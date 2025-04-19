@@ -1,16 +1,17 @@
 project:
   type: book
+  output-dir: docs
 
 book:
   title: "horror_rpg"
   author: "Pontifex Ex Machina"
-  date: "4/17/2025"
+  date: "4/18/2025"
   chapters:
     - index.qmd
     - game_rules.qmd
     - appendix_n.qmd
 
-bibliography: references.bib
+#bibliography: references.bib
 
 format:
   html:
@@ -19,6 +20,3 @@ format:
       - brand
   pdf:
     documentclass: scrbook
-
-
-
