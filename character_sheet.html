@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror RPG Character Sheet</title>
+    <link href="_book/site_libs/bootstrap/bootstrap-364982630eef5352dd1537128a8ed5cb.min.css" rel="stylesheet">
+    <link href="_book/site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .section-title {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            font-size: 1.3em;
+        }
+        .form-label {
+            font-weight: bold;
+            margin-bottom: 0.2rem;
+        }
+        .small-input {
+             width: 65px;
+             display: inline-block;
+             text-align: center;
+             padding: 0.2rem 0.3rem;
+             font-size: 0.9em;
+        }
+        .stat-block {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .stat-block .form-label {
+            display: block;
+            margin-bottom: 0.1rem;
+        }
+
+        /* Force Flex Display for Stats Row */
+        .stats-row-override {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            width: 100%;
+            margin-left: -var(--bs-gutter-x, .75rem);
+            margin-right: -var(--bs-gutter-x, .75rem);
+        }
+        .stats-row-override > .col-4 {
+             padding-left: var(--bs-gutter-x, .75rem);
+             padding-right: var(--bs-gutter-x, .75rem);
+             flex: 0 0 auto; /* Ensure columns don't shrink/grow unexpectedly */
+             width: 33.33333333%; /* Explicit width for col-4 */
+        }
+        /* End Force Flex */
+
+         /* Skill layout */
+        .skill-row > .col-4 {
+             padding-left: var(--bs-gutter-x, .75rem);
+             padding-right: var(--bs-gutter-x, .75rem);
+        }
+        .skill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px; /* Keep spacing between items if they wrap */
+            /* background-color: #f0f0f0; /* Temp bg for testing */
+            /* border: 1px solid #ccc;  /* Temp border for testing */
+        }
+        .skill-item .form-label {
+            margin-bottom: 0;
+            flex-grow: 1;
+            font-size: 0.9em; /* Slightly smaller skill labels */
+        }
+         .skill-item .skill-total {
+            display: inline-block;
+            width: 30px; /* Slightly narrower */
+            text-align: center;
+            font-weight: bold;
+            margin: 0 5px; /* Less margin */
+            border: 1px solid #eee;
+            background-color: #f8f9fa;
+            padding: 0.2rem 0;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+         }
+         .skill-item .small-input {
+             width: 55px; /* Slightly narrower skill input */
+         }
+
+        /* Status layout */
+        .status-row > .col-4 {
+             padding-left: var(--bs-gutter-x, .75rem);
+             padding-right: var(--bs-gutter-x, .75rem);
+        }
+        .status-box {
+             border: 1px solid #ccc;
+             padding: 6px 8px; /* Tighter padding */
+             margin-bottom: 8px;
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
+             font-size: 0.85em; /* Smaller font for status */
+             height: 100%; /* Try to make boxes equal height in a row */
+        }
+        .status-box .form-check-label {
+             margin-right: 5px; /* Space between label and checkbox */
+        }
+        .status-box .form-check {
+            margin: 0;
+            padding-left: 0; /* Remove default padding if label is separate */
+        }
+        .status-box .form-check-input {
+            margin-left: auto; /* Push checkbox to the right */
+            margin-right: 0;
+        }
+
+        .derived-stat {
+             font-weight: bold;
+             margin-left: 5px;
+             padding: 0.2rem 0.5rem;
+             background-color: #e9ecef;
+             border-radius: 0.25rem;
+             display: inline-block;
+             min-width: 30px;
+             text-align: center;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                font-size: 9pt;
+            }
+            .no-print {
+                 display: none;
+            }
+            .form-control, .form-select, .form-check-input, .derived-stat, .skill-total {
+                 border: 1px solid #ccc !important;
+            }
+            textarea.form-control {
+                height: auto;
+                min-height: 80px;
+            }
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+             .row > *, .col-4, .col-md-6 {
+                 padding-left: 5px !important;
+                 padding-right: 5px !important;
+            }
+             .section-title { margin-top: 15px; margin-bottom: 8px; }
+            .stats-row-override, .status-row, .skill-row {
+                display: flex !important;
+                flex-wrap: nowrap !important; /* Prevent wrapping in print */
+             }
+             .skill-item .form-label { font-size: 0.85em;} /* Even smaller for print */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Horror RPG Character Sheet</h1>
+
+        <div class="mb-3">
+            <label for="charName" class="form-label">Character Name:</label>
+            <input type="text" class="form-control" id="charName">
+        </div>
+
+        <div class="row mb-3 align-items-end stats-row-override">
+             <div class="col-4 stat-block">
+                <label for="might" class="form-label">Might</label>
+                <input type="number" class="form-control small-input" id="might" value="0" oninput="updateDerivedStats(); updateSkillTotals();">
+            </div>
+            <div class="col-4 stat-block">
+                <label for="speed" class="form-label">Speed</label>
+                <input type="number" class="form-control small-input" id="speed" value="0" oninput="updateDerivedStats(); updateSkillTotals();">
+            </div>
+             <div class="col-4 stat-block">
+                <label for="wits" class="form-label">Wits</label>
+                <input type="number" class="form-control small-input" id="wits" value="0" oninput="updateSkillTotals();">
+            </div>
+        </div>
+        <div class="row">
+             <div class="col-12 text-center mb-3">
+                <small class="form-text text-muted">Starting array: 2, 1, -1</small>
+            </div>
+        </div>
+
+
+        <div class="row">
+             <div class="col-md-6">
+                 <h2 class="section-title">Vitals & Status</h2>
+                 <div class="mb-2">
+                    <label class="form-label d-inline me-2">Hit Points:</label>
+                    <input type="number" class="form-control small-input" id="hp_current" placeholder="Current">
+                    / <span id="hp_max_display" class="derived-stat">8</span>
+                    <small class="text-muted">(Max = 8 + Might)</small>
+                 </div>
+                  <div class="mb-3">
+                    <label class="form-label d-inline me-2">Defense:</label>
+                    <span id="defense_display" class="derived-stat">8</span>
+                     <small class="text-muted">(8 + Speed)</small>
+                 </div>
+
+                 <div class="mb-2 d-flex align-items-center">
+                    <label for="stress" class="form-label me-2 mb-0">Stress:</label>
+                    <input type="number" class="form-control small-input" id="stress" value="3">
+                    <small class="ms-2 text-muted">(Starts at 3)</small>
+                </div>
+
+                 <div class="row status-row mb-3">
+                     <div class="col-4">
+                         <div class="status-box">
+                            <label class="form-check-label" for="panicked">Panicked</label>
+                            <input class="form-check-input" type="checkbox" id="panicked">
+                         </div>
+                     </div>
+                      <div class="col-4">
+                         <div class="status-box">
+                            <label class="form-check-label" for="wounded">Wounded</label>
+                            <input class="form-check-input" type="checkbox" id="wounded">
+                         </div>
+                      </div>
+                      <div class="col-4">
+                         <div class="status-box">
+                            <label class="form-check-label" for="critical">Critical</label>
+                            <input class="form-check-input" type="checkbox" id="critical">
+                         </div>
+                      </div>
+                 </div>
+                 <div class="mb-2 d-flex align-items-center">
+                     <label for="shrouds" class="form-label me-2 mb-0">Shrouds of Death:</label>
+                     <input type="number" class="form-control small-input" id="shrouds" min="0" max="3" value="0">
+                      <small class="ms-2 text-muted">(0-3)</small>
+                 </div>
+
+                 <h2 class="section-title">Talent</h2>
+                 <div class="mb-3">
+                     <label for="talent" class="form-label">Select Starting Talent:</label>
+                     <select class="form-select" id="talent">
+                         <option selected>Choose...</option>
+                         <option value="True Grit">True Grit</option>
+                         <option value="Sharp Tongue">Sharp Tongue</option>
+                         <option value="Final Girl">Final Girl</option>
+                         <option value="Healing Hands">Healing Hands</option>
+                         <option value="Inspiring Friend">Inspiring Friend</option>
+                         <option value="Sweep The Leg">Sweep The Leg</option>
+                     </select>
+                     <textarea class="form-control mt-2" id="talentDescription" rows="2" placeholder="Talent Description..." readonly></textarea>
+                 </div>
+            </div>
+
+             <div class="col-md-6">
+                <h2 class="section-title">Skills</h2>
+                <div>
+                    <h5>Might Skills (Might + Skill)</h5>
+                    <div class="row skill-row mb-2">
+                        <div class="col-4">
+                            <div class="skill-item">
+                                <label for="brawl" class="form-label">Brawl:</label>
+                                <span id="brawl_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="brawl" value="0" oninput="updateSkillTotals()">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                             <div class="skill-item">
+                                <label for="brawn" class="form-label">Brawn:</label>
+                                <span id="brawn_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="brawn" value="0" oninput="updateSkillTotals()">
+                             </div>
+                        </div>
+                         <div class="col-4">
+                             <div class="skill-item">
+                                <label for="brace" class="form-label">Brace:</label>
+                                <span id="brace_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="brace" value="0" oninput="updateSkillTotals()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h5>Speed Skills (Speed + Skill)</h5>
+                     <div class="row skill-row mb-2">
+                         <div class="col-4">
+                             <div class="skill-item">
+                                <label for="shoot" class="form-label">Shoot:</label>
+                                <span id="shoot_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="shoot" value="0" oninput="updateSkillTotals()">
+                            </div>
+                         </div>
+                         <div class="col-4">
+                             <div class="skill-item">
+                                <label for="stunt" class="form-label">Stunt:</label>
+                                <span id="stunt_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="stunt" value="0" oninput="updateSkillTotals()">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                             <div class="skill-item">
+                                <label for="sneak" class="form-label">Sneak:</label>
+                                <span id="sneak_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="sneak" value="0" oninput="updateSkillTotals()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                    <h5>Wits Skills (Wits + Skill)</h5>
+                     <div class="row skill-row mb-2">
+                         <div class="col-4">
+                              <div class="skill-item">
+                                <label for="chat" class="form-label">Chat:</label>
+                                 <span id="chat_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="chat" value="0" oninput="updateSkillTotals()">
+                            </div>
+                         </div>
+                         <div class="col-4">
+                             <div class="skill-item">
+                                <label for="clever" class="form-label">Clever:</label>
+                                 <span id="clever_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="clever" value="0" oninput="updateSkillTotals()">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                             <div class="skill-item">
+                                <label for="cure" class="form-label">Cure:</label>
+                                 <span id="cure_total" class="skill-total">0</span>
+                                <input type="number" class="form-control small-input" id="cure" value="0" oninput="updateSkillTotals()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <h2 class="section-title">Weapons</h2>
+         <table class="table table-sm table-bordered">
+             <thead class="table-light">
+                 <tr>
+                     <th>Name</th>
+                     <th>Dmg</th>
+                     <th>Effect</th>
+                 </tr>
+             </thead>
+             <tbody>
+                 <tr>
+                     <td><input type="text" class="form-control form-control-sm"></td>
+                     <td><input type="text" class="form-control form-control-sm" style="width: 80px;"></td>
+                     <td><input type="text" class="form-control form-control-sm"></td>
+                 </tr>
+                  <tr>
+                     <td><input type="text" class="form-control form-control-sm"></td>
+                     <td><input type="text" class="form-control form-control-sm" style="width: 80px;"></td>
+                     <td><input type="text" class="form-control form-control-sm"></td>
+                 </tr>
+                  <tr>
+                     <td><input type="text" class="form-control form-control-sm"></td>
+                     <td><input type="text" class="form-control form-control-sm" style="width: 80px;"></td>
+                     <td><input type="text" class="form-control form-control-sm"></td>
+                 </tr>
+             </tbody>
+         </table>
+
+        <h2 class="section-title">Equipment & Notes</h2>
+        <div class="mb-3">
+            <textarea class="form-control" id="notes" rows="5"></textarea>
+        </div>
+
+        <button type="button" class="btn btn-secondary no-print" onclick="window.print()">Print Character Sheet</button>
+
+    </div>
+
+    <script>
+        // --- Helper Function ---
+        function getIntValue(elementId) {
+            const element = document.getElementById(elementId);
+            return element ? parseInt(element.value, 10) || 0 : 0;
+        }
+
+        // --- Update Functions ---
+        function updateDerivedStats() {
+            const might = getIntValue('might');
+            const speed = getIntValue('speed');
+
+            const hpMax = 8 + might;
+            const defense = 8 + speed;
+
+            document.getElementById('hp_max_display').textContent = hpMax;
+            document.getElementById('defense_display').textContent = defense;
+        }
+
+        function updateSkillTotals() {
+            const might = getIntValue('might');
+            const speed = getIntValue('speed');
+            const wits = getIntValue('wits');
+
+            // Might Skills
+            document.getElementById('brawl_total').textContent = might + getIntValue('brawl');
+            document.getElementById('brawn_total').textContent = might + getIntValue('brawn');
+            document.getElementById('brace_total').textContent = might + getIntValue('brace');
+
+            // Speed Skills
+            document.getElementById('shoot_total').textContent = speed + getIntValue('shoot');
+            document.getElementById('stunt_total').textContent = speed + getIntValue('stunt');
+            document.getElementById('sneak_total').textContent = speed + getIntValue('sneak');
+
+            // Wits Skills
+            document.getElementById('chat_total').textContent = wits + getIntValue('chat');
+            document.getElementById('clever_total').textContent = wits + getIntValue('clever');
+            document.getElementById('cure_total').textContent = wits + getIntValue('cure');
+        }
+
+        // --- Talent Description ---
+        const talentSelect = document.getElementById('talent');
+        const talentDesc = document.getElementById('talentDescription');
+        const talentDescriptions = {
+            "True Grit": "You may replace one of the dice rolls with a 3 whenever you roll for Grit.",
+            "Sharp Tongue": "You may replace one of the dice rolls with a 3 whenever you roll for Taunt.",
+            "Final Girl": "Once per day, when you reach 0 HP, you are instead at 3 HP.",
+            "Healing Hands": "Once per day, you auto-succeed at a First Aid check.",
+            "Inspiring Friend": "You roll Challenging checks instead of Difficult checks to Rally.",
+            "Sweep The Leg": "Spending two actions, you can do a Trip against all adjacent enemies."
+        };
+
+        talentSelect.addEventListener('change', function() {
+            talentDesc.value = talentDescriptions[this.value] || '';
+        });
+
+         // --- Initial Calculation on Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDerivedStats();
+            updateSkillTotals();
+             if (talentSelect.value && talentDescriptions[talentSelect.value]) {
+                 talentDesc.value = talentDescriptions[talentSelect.value];
+             }
+        });
+    </script>
+</body>
+</html>

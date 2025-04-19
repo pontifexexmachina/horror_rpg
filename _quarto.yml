@@ -1,6 +1,8 @@
 project:
   type: book
   output-dir: docs
+  resources: 
+    - "character_sheet.html"
 
 book:
   title: "horror_rpg"
