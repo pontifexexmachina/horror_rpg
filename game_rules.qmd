@@ -1,0 +1,190 @@
+# Game Rules
+
+## Resolution mechanic
+
+There are two kinds of tests, Checks and Saves. Unopposed tests are versus a fixed Difficulty (Challenging or Formidable). Opposed tests are rolled between a PC and an NPC or another PC.
+
+**Meets Beats**: On unopposed tests, meeting the difficulty is a success. In the event of a tie on an opposed test, 
+
+**Check**: 2d6 + Stat + Skill
+**Save**: 2d6 + Stat
+
+**Challenging Difficulty**: 8
+**Formidable Difficulty**: 10
+
+**Unopposed test**: Rolling an 8 or better succeeds at an Challenging task, rolling a 10 or better succeeds at a Difficult task.
+**Opposed test**: Both roll and add modifiers, highest wins.
+
+**Advantage**: Roll 3d6, take two highest
+**Disadvantage**: Roll 3d6, take two lowest
+
+**Critical Success**: Doubles on a success (so two fours on an Challenging task, two fives and two sixes on all tasks)
+
+## Stats
+
+* Might
+* Speed
+* Wits
+
+Your starting ability spread is 2, 1, -1. Put one in each stat.
+
+Hit Points: 8 + Might
+Defense: 8 + Speed
+
+## Pushing
+
+You can Push a Test to get an extra d6 (keep highest 2) on a roll, or offset Disadvantage on a roll by dropping the lowest die roll. You may do this after you see the results of the inital roll. Pushing causes a Stress Test.
+
+## Stress/Panic
+
+Your starting Stress is 3. Every time you fail a Stress Test, it goes up by 1. It can also go up by 1 in other situations (monster abilities, etc.)
+
+**Stress Test**: Roll 2d6, with the Difficulty being your current Stress.
+
+If your Stress is 8 or higher, you are Panicked. A Panicked character can only perform one action, not two, in combat.
+
+You can reduce Stress after an entire day of calm (no Stress Tests or Combat) by rolling a 2d6 check (not a Stress Test) against your Stress. On a success, reduce Stress by 1.
+
+At 13 stress, you become unable to take actions in Combat and must use your movement to flee.
+
+## Dying
+
+If you reach 0 HP, you are Wounded. (You cannot go below 0 HP.) A Wounded character can take only one action per turn in Combat, and must succeed on a Difficult Brace check at the end of each turn to keep from being Critical. Being healed for any amount ends Wounded.
+
+A Critical character is unconscious and unable to take any actions. At the end of every turn, make an Challenging Brace check. On a Success you remain Critical. A Critical Success puts you at Stable but 0 HP. A Failure gives you a Shroud of Death. If you get three Shrouds, you are dead. Being healed for any amount ends Critical, but does not remove any Shrouds. (Removing Shrouds is a TBD item.)
+
+## Skills
+
+Everybody starts with skill points to invest.
+
+### Might Skills
+
+**Brawl**: Punching and using melee weapons
+**Brawn**: Lifting, throwing, climbing, breaking down doors
+**Brace**: Fortify yourself from injury
+
+### Speed Skills
+
+**Shoot**: Use a firearm
+**Stunt**: Roll to break a fall without getting hurt, trip someone, etc.
+**Sneak**: Hide, do something without being notices
+
+### Wits Skills
+
+**Chat**: Lie, charm, pressure
+**Clever**: Remember something important, notice something
+**Cure**: Help someone who's injured
+
+## Combat
+
+### Initiative/Rounds
+
+Everybody rolls speed, initiative goes highest to lowest, ties go to highest d6 roll. Everybody takes a turn in order of intiative in each round.
+
+### Turns
+
+During your turn, you can take move and take two actions in combat, only one of which may be a weapon attack.
+
+### Reactions
+
+Some situations allow you to make a Reaction to someone else's Action. You may take one Reaction per Round.
+
+### Movement
+
+You may move 30 ft. (6 squares) per round. Moving out of a square next to an enemy to a square not adjacent to that same enemy provokes a reaction attack.
+
+### Actions
+
+#### Shove
+
+Roll Brawn against target's Might. On a success, the target moves 5 ft. in the direction you choose. On a critical succes, the target moves 5 ft. in the direction you choose and becomes Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.
+
+#### Taunt
+
+Roll Chat against target's Wits. On a success, the target has Disadvantage on actions against any combatant other than you on its next turn.
+
+#### Trip
+
+Roll Stunt against target's speed. On a success, target is Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.
+
+#### Grit
+
+Roll Brace for a Difficult task. On a success, heal 2 HP. On a crit, heal 3 HP.
+
+#### Rally
+
+Roll Charm for a Difficult task. On a success, target ally gets advantage on their next weapon attack. On a critical success, target ally also heals 1 HP.
+
+#### Feint
+
+Roll Steath vs Wits. On a success, you have advantage on a weapon attack on the target this turn.
+
+#### First Aid
+
+Roll Cure for an Challenging task. On a success, heal 1 HP on an adjacent ally. On a crit, heal 2 HP.
+
+#### Attack
+
+Roll Brawl for a melee weapon or unarmed attack, Shoot for a Firearm, against the enemy's Defense. On a success, do damage equal to your weapon's damage dice. On a critical success, take the max roll possible.
+
+## Weapons
+
+These weapons are available to starting characters. Iconic weapons come later
+
+### Melee
+
+| Name           | Dmg | Effect    |
+|----------------|-----|-----------|
+| Unarmed        | d4  | N/A       |
+| Baseball bat   | d6  | N/A       |
+| Spiked bat     | d6  | Bleed     |
+
+### Firearm 
+
+| Name           | Dmg | Effect    |
+|----------------|-----|-----------|
+| Pistol         | d6  | N/A       |
+| Shotgun        | d4  | Knockback |
+| Assault Rifle  | d6  | Auto      |
+
+### Effects
+
+#### Bleed
+
+If you are Bleeding, take 1 damage at the start of your turn. You can end Bleeding by using Grit successfully.
+
+#### Auto
+
+Fire two shots at Disadvantage.
+
+#### Knockback
+
+Target must succeed on a Difficult Strength save or be moved 5 ft away from the source of the knockback.
+
+## Talents
+
+Each character gets one Talent to start. Potential to get more as you advance.
+
+### True Grit
+
+You may replace one of the dice rolls with a 3 whenever you roll for Grit.
+
+### Sharp Tongue
+
+You may replace one of the dice rolls with a 3 whenever you roll for Taunt.
+
+### Final Girl
+
+Once per day, when you reach 0 HP, you are instead at 3 HP.
+
+### Healing Hands
+
+Once per day, you auto-succeed at a First Aid check.
+
+### Inspiring Friend
+
+You roll Challenging checks instead of Difficult checks to Rally.
+
+### Sweep The Leg
+
+Spending two actions, you can do a Trip against all adjacent enemies.

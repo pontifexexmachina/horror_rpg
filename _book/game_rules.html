@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>1&nbsp; Game Rules – horror_rpg</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./appendix_n.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-53f539a478d6ecd1be31ce9fd30fd81c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-364982630eef5352dd1537128a8ed5cb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./game_rules.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Game Rules</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">horror_rpg</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./game_rules.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Game Rules</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix_n.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendix N</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#resolution-mechanic" id="toc-resolution-mechanic" class="nav-link active" data-scroll-target="#resolution-mechanic"><span class="header-section-number">1.1</span> Resolution mechanic</a></li>
+  <li><a href="#stats" id="toc-stats" class="nav-link" data-scroll-target="#stats"><span class="header-section-number">1.2</span> Stats</a></li>
+  <li><a href="#pushing" id="toc-pushing" class="nav-link" data-scroll-target="#pushing"><span class="header-section-number">1.3</span> Pushing</a></li>
+  <li><a href="#stresspanic" id="toc-stresspanic" class="nav-link" data-scroll-target="#stresspanic"><span class="header-section-number">1.4</span> Stress/Panic</a></li>
+  <li><a href="#dying" id="toc-dying" class="nav-link" data-scroll-target="#dying"><span class="header-section-number">1.5</span> Dying</a></li>
+  <li><a href="#skills" id="toc-skills" class="nav-link" data-scroll-target="#skills"><span class="header-section-number">1.6</span> Skills</a>
+  <ul class="collapse">
+  <li><a href="#might-skills" id="toc-might-skills" class="nav-link" data-scroll-target="#might-skills"><span class="header-section-number">1.6.1</span> Might Skills</a></li>
+  <li><a href="#speed-skills" id="toc-speed-skills" class="nav-link" data-scroll-target="#speed-skills"><span class="header-section-number">1.6.2</span> Speed Skills</a></li>
+  <li><a href="#wits-skills" id="toc-wits-skills" class="nav-link" data-scroll-target="#wits-skills"><span class="header-section-number">1.6.3</span> Wits Skills</a></li>
+  </ul></li>
+  <li><a href="#combat" id="toc-combat" class="nav-link" data-scroll-target="#combat"><span class="header-section-number">1.7</span> Combat</a>
+  <ul class="collapse">
+  <li><a href="#initiativerounds" id="toc-initiativerounds" class="nav-link" data-scroll-target="#initiativerounds"><span class="header-section-number">1.7.1</span> Initiative/Rounds</a></li>
+  <li><a href="#turns" id="toc-turns" class="nav-link" data-scroll-target="#turns"><span class="header-section-number">1.7.2</span> Turns</a></li>
+  <li><a href="#reactions" id="toc-reactions" class="nav-link" data-scroll-target="#reactions"><span class="header-section-number">1.7.3</span> Reactions</a></li>
+  <li><a href="#movement" id="toc-movement" class="nav-link" data-scroll-target="#movement"><span class="header-section-number">1.7.4</span> Movement</a></li>
+  <li><a href="#actions" id="toc-actions" class="nav-link" data-scroll-target="#actions"><span class="header-section-number">1.7.5</span> Actions</a></li>
+  </ul></li>
+  <li><a href="#weapons" id="toc-weapons" class="nav-link" data-scroll-target="#weapons"><span class="header-section-number">1.8</span> Weapons</a>
+  <ul class="collapse">
+  <li><a href="#melee" id="toc-melee" class="nav-link" data-scroll-target="#melee"><span class="header-section-number">1.8.1</span> Melee</a></li>
+  <li><a href="#firearm" id="toc-firearm" class="nav-link" data-scroll-target="#firearm"><span class="header-section-number">1.8.2</span> Firearm</a></li>
+  <li><a href="#effects" id="toc-effects" class="nav-link" data-scroll-target="#effects"><span class="header-section-number">1.8.3</span> Effects</a></li>
+  </ul></li>
+  <li><a href="#talents" id="toc-talents" class="nav-link" data-scroll-target="#talents"><span class="header-section-number">1.9</span> Talents</a>
+  <ul class="collapse">
+  <li><a href="#true-grit" id="toc-true-grit" class="nav-link" data-scroll-target="#true-grit"><span class="header-section-number">1.9.1</span> True Grit</a></li>
+  <li><a href="#sharp-tongue" id="toc-sharp-tongue" class="nav-link" data-scroll-target="#sharp-tongue"><span class="header-section-number">1.9.2</span> Sharp Tongue</a></li>
+  <li><a href="#final-girl" id="toc-final-girl" class="nav-link" data-scroll-target="#final-girl"><span class="header-section-number">1.9.3</span> Final Girl</a></li>
+  <li><a href="#healing-hands" id="toc-healing-hands" class="nav-link" data-scroll-target="#healing-hands"><span class="header-section-number">1.9.4</span> Healing Hands</a></li>
+  <li><a href="#inspiring-friend" id="toc-inspiring-friend" class="nav-link" data-scroll-target="#inspiring-friend"><span class="header-section-number">1.9.5</span> Inspiring Friend</a></li>
+  <li><a href="#sweep-the-leg" id="toc-sweep-the-leg" class="nav-link" data-scroll-target="#sweep-the-leg"><span class="header-section-number">1.9.6</span> Sweep The Leg</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Game Rules</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="resolution-mechanic" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="resolution-mechanic"><span class="header-section-number">1.1</span> Resolution mechanic</h2>
+<p>There are two kinds of tests, Checks and Saves. Unopposed tests are versus a fixed Difficulty (Challenging or Formidable). Opposed tests are rolled between a PC and an NPC or another PC.</p>
+<p><strong>Meets Beats</strong>: On unopposed tests, meeting the difficulty is a success. In the event of a tie on an opposed test,</p>
+<p><strong>Check</strong>: 2d6 + Stat + Skill <strong>Save</strong>: 2d6 + Stat</p>
+<p><strong>Challenging Difficulty</strong>: 8 <strong>Formidable Difficulty</strong>: 10</p>
+<p><strong>Unopposed test</strong>: Rolling an 8 or better succeeds at an Challenging task, rolling a 10 or better succeeds at a Difficult task. <strong>Opposed test</strong>: Both roll and add modifiers, highest wins.</p>
+<p><strong>Advantage</strong>: Roll 3d6, take two highest <strong>Disadvantage</strong>: Roll 3d6, take two lowest</p>
+<p><strong>Critical Success</strong>: Doubles on a success (so two fours on an Challenging task, two fives and two sixes on all tasks)</p>
+</section>
+<section id="stats" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="stats"><span class="header-section-number">1.2</span> Stats</h2>
+<ul>
+<li>Might</li>
+<li>Speed</li>
+<li>Wits</li>
+</ul>
+<p>Your starting ability spread is 2, 1, -1. Put one in each stat.</p>
+<p>Hit Points: 8 + Might Defense: 8 + Speed</p>
+</section>
+<section id="pushing" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="pushing"><span class="header-section-number">1.3</span> Pushing</h2>
+<p>You can Push a Test to get an extra d6 (keep highest 2) on a roll, or offset Disadvantage on a roll by dropping the lowest die roll. You may do this after you see the results of the inital roll. Pushing causes a Stress Test.</p>
+</section>
+<section id="stresspanic" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="stresspanic"><span class="header-section-number">1.4</span> Stress/Panic</h2>
+<p>Your starting Stress is 3. Every time you fail a Stress Test, it goes up by 1. It can also go up by 1 in other situations (monster abilities, etc.)</p>
+<p><strong>Stress Test</strong>: Roll 2d6, with the Difficulty being your current Stress.</p>
+<p>If your Stress is 8 or higher, you are Panicked. A Panicked character can only perform one action, not two, in combat.</p>
+<p>You can reduce Stress after an entire day of calm (no Stress Tests or Combat) by rolling a 2d6 check (not a Stress Test) against your Stress. On a success, reduce Stress by 1.</p>
+<p>At 13 stress, you become unable to take actions in Combat and must use your movement to flee.</p>
+</section>
+<section id="dying" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="dying"><span class="header-section-number">1.5</span> Dying</h2>
+<p>If you reach 0 HP, you are Wounded. (You cannot go below 0 HP.) A Wounded character can take only one action per turn in Combat, and must succeed on a Difficult Brace check at the end of each turn to keep from being Critical. Being healed for any amount ends Wounded.</p>
+<p>A Critical character is unconscious and unable to take any actions. At the end of every turn, make an Challenging Brace check. On a Success you remain Critical. A Critical Success puts you at Stable but 0 HP. A Failure gives you a Shroud of Death. If you get three Shrouds, you are dead. Being healed for any amount ends Critical, but does not remove any Shrouds. (Removing Shrouds is a TBD item.)</p>
+</section>
+<section id="skills" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="skills"><span class="header-section-number">1.6</span> Skills</h2>
+<p>Everybody starts with skill points to invest.</p>
+<section id="might-skills" class="level3" data-number="1.6.1">
+<h3 data-number="1.6.1" class="anchored" data-anchor-id="might-skills"><span class="header-section-number">1.6.1</span> Might Skills</h3>
+<p><strong>Brawl</strong>: Punching and using melee weapons <strong>Brawn</strong>: Lifting, throwing, climbing, breaking down doors <strong>Brace</strong>: Fortify yourself from injury</p>
+</section>
+<section id="speed-skills" class="level3" data-number="1.6.2">
+<h3 data-number="1.6.2" class="anchored" data-anchor-id="speed-skills"><span class="header-section-number">1.6.2</span> Speed Skills</h3>
+<p><strong>Shoot</strong>: Use a firearm <strong>Stunt</strong>: Roll to break a fall without getting hurt, trip someone, etc. <strong>Sneak</strong>: Hide, do something without being notices</p>
+</section>
+<section id="wits-skills" class="level3" data-number="1.6.3">
+<h3 data-number="1.6.3" class="anchored" data-anchor-id="wits-skills"><span class="header-section-number">1.6.3</span> Wits Skills</h3>
+<p><strong>Chat</strong>: Lie, charm, pressure <strong>Clever</strong>: Remember something important, notice something <strong>Cure</strong>: Help someone who’s injured</p>
+</section>
+</section>
+<section id="combat" class="level2" data-number="1.7">
+<h2 data-number="1.7" class="anchored" data-anchor-id="combat"><span class="header-section-number">1.7</span> Combat</h2>
+<section id="initiativerounds" class="level3" data-number="1.7.1">
+<h3 data-number="1.7.1" class="anchored" data-anchor-id="initiativerounds"><span class="header-section-number">1.7.1</span> Initiative/Rounds</h3>
+<p>Everybody rolls speed, initiative goes highest to lowest, ties go to highest d6 roll. Everybody takes a turn in order of intiative in each round.</p>
+</section>
+<section id="turns" class="level3" data-number="1.7.2">
+<h3 data-number="1.7.2" class="anchored" data-anchor-id="turns"><span class="header-section-number">1.7.2</span> Turns</h3>
+<p>During your turn, you can take move and take two actions in combat, only one of which may be a weapon attack.</p>
+</section>
+<section id="reactions" class="level3" data-number="1.7.3">
+<h3 data-number="1.7.3" class="anchored" data-anchor-id="reactions"><span class="header-section-number">1.7.3</span> Reactions</h3>
+<p>Some situations allow you to make a Reaction to someone else’s Action. You may take one Reaction per Round.</p>
+</section>
+<section id="movement" class="level3" data-number="1.7.4">
+<h3 data-number="1.7.4" class="anchored" data-anchor-id="movement"><span class="header-section-number">1.7.4</span> Movement</h3>
+<p>You may move 30 ft. (6 squares) per round. Moving out of a square next to an enemy to a square not adjacent to that same enemy provokes a reaction attack.</p>
+</section>
+<section id="actions" class="level3" data-number="1.7.5">
+<h3 data-number="1.7.5" class="anchored" data-anchor-id="actions"><span class="header-section-number">1.7.5</span> Actions</h3>
+<section id="shove" class="level4" data-number="1.7.5.1">
+<h4 data-number="1.7.5.1" class="anchored" data-anchor-id="shove"><span class="header-section-number">1.7.5.1</span> Shove</h4>
+<p>Roll Brawn against target’s Might. On a success, the target moves 5 ft. in the direction you choose. On a critical succes, the target moves 5 ft. in the direction you choose and becomes Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.</p>
+</section>
+<section id="taunt" class="level4" data-number="1.7.5.2">
+<h4 data-number="1.7.5.2" class="anchored" data-anchor-id="taunt"><span class="header-section-number">1.7.5.2</span> Taunt</h4>
+<p>Roll Chat against target’s Wits. On a success, the target has Disadvantage on actions against any combatant other than you on its next turn.</p>
+</section>
+<section id="trip" class="level4" data-number="1.7.5.3">
+<h4 data-number="1.7.5.3" class="anchored" data-anchor-id="trip"><span class="header-section-number">1.7.5.3</span> Trip</h4>
+<p>Roll Stunt against target’s speed. On a success, target is Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.</p>
+</section>
+<section id="grit" class="level4" data-number="1.7.5.4">
+<h4 data-number="1.7.5.4" class="anchored" data-anchor-id="grit"><span class="header-section-number">1.7.5.4</span> Grit</h4>
+<p>Roll Brace for a Difficult task. On a success, heal 2 HP. On a crit, heal 3 HP.</p>
+</section>
+<section id="rally" class="level4" data-number="1.7.5.5">
+<h4 data-number="1.7.5.5" class="anchored" data-anchor-id="rally"><span class="header-section-number">1.7.5.5</span> Rally</h4>
+<p>Roll Charm for a Difficult task. On a success, target ally gets advantage on their next weapon attack. On a critical success, target ally also heals 1 HP.</p>
+</section>
+<section id="feint" class="level4" data-number="1.7.5.6">
+<h4 data-number="1.7.5.6" class="anchored" data-anchor-id="feint"><span class="header-section-number">1.7.5.6</span> Feint</h4>
+<p>Roll Steath vs Wits. On a success, you have advantage on a weapon attack on the target this turn.</p>
+</section>
+<section id="first-aid" class="level4" data-number="1.7.5.7">
+<h4 data-number="1.7.5.7" class="anchored" data-anchor-id="first-aid"><span class="header-section-number">1.7.5.7</span> First Aid</h4>
+<p>Roll Cure for an Challenging task. On a success, heal 1 HP on an adjacent ally. On a crit, heal 2 HP.</p>
+</section>
+<section id="attack" class="level4" data-number="1.7.5.8">
+<h4 data-number="1.7.5.8" class="anchored" data-anchor-id="attack"><span class="header-section-number">1.7.5.8</span> Attack</h4>
+<p>Roll Brawl for a melee weapon or unarmed attack, Shoot for a Firearm, against the enemy’s Defense. On a success, do damage equal to your weapon’s damage dice. On a critical success, take the max roll possible.</p>
+</section>
+</section>
+</section>
+<section id="weapons" class="level2" data-number="1.8">
+<h2 data-number="1.8" class="anchored" data-anchor-id="weapons"><span class="header-section-number">1.8</span> Weapons</h2>
+<p>These weapons are available to starting characters. Iconic weapons come later</p>
+<section id="melee" class="level3" data-number="1.8.1">
+<h3 data-number="1.8.1" class="anchored" data-anchor-id="melee"><span class="header-section-number">1.8.1</span> Melee</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Dmg</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Unarmed</td>
+<td>d4</td>
+<td>N/A</td>
+</tr>
+<tr class="even">
+<td>Baseball bat</td>
+<td>d6</td>
+<td>N/A</td>
+</tr>
+<tr class="odd">
+<td>Spiked bat</td>
+<td>d6</td>
+<td>Bleed</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="firearm" class="level3" data-number="1.8.2">
+<h3 data-number="1.8.2" class="anchored" data-anchor-id="firearm"><span class="header-section-number">1.8.2</span> Firearm</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Dmg</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pistol</td>
+<td>d6</td>
+<td>N/A</td>
+</tr>
+<tr class="even">
+<td>Shotgun</td>
+<td>d4</td>
+<td>Knockback</td>
+</tr>
+<tr class="odd">
+<td>Assault Rifle</td>
+<td>d6</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="effects" class="level3" data-number="1.8.3">
+<h3 data-number="1.8.3" class="anchored" data-anchor-id="effects"><span class="header-section-number">1.8.3</span> Effects</h3>
+<section id="bleed" class="level4" data-number="1.8.3.1">
+<h4 data-number="1.8.3.1" class="anchored" data-anchor-id="bleed"><span class="header-section-number">1.8.3.1</span> Bleed</h4>
+<p>If you are Bleeding, take 1 damage at the start of your turn. You can end Bleeding by using Grit successfully.</p>
+</section>
+<section id="auto" class="level4" data-number="1.8.3.2">
+<h4 data-number="1.8.3.2" class="anchored" data-anchor-id="auto"><span class="header-section-number">1.8.3.2</span> Auto</h4>
+<p>Fire two shots at Disadvantage.</p>
+</section>
+<section id="knockback" class="level4" data-number="1.8.3.3">
+<h4 data-number="1.8.3.3" class="anchored" data-anchor-id="knockback"><span class="header-section-number">1.8.3.3</span> Knockback</h4>
+<p>Target must succeed on a Difficult Strength save or be moved 5 ft away from the source of the knockback.</p>
+</section>
+</section>
+</section>
+<section id="talents" class="level2" data-number="1.9">
+<h2 data-number="1.9" class="anchored" data-anchor-id="talents"><span class="header-section-number">1.9</span> Talents</h2>
+<p>Each character gets one Talent to start. Potential to get more as you advance.</p>
+<section id="true-grit" class="level3" data-number="1.9.1">
+<h3 data-number="1.9.1" class="anchored" data-anchor-id="true-grit"><span class="header-section-number">1.9.1</span> True Grit</h3>
+<p>You may replace one of the dice rolls with a 3 whenever you roll for Grit.</p>
+</section>
+<section id="sharp-tongue" class="level3" data-number="1.9.2">
+<h3 data-number="1.9.2" class="anchored" data-anchor-id="sharp-tongue"><span class="header-section-number">1.9.2</span> Sharp Tongue</h3>
+<p>You may replace one of the dice rolls with a 3 whenever you roll for Taunt.</p>
+</section>
+<section id="final-girl" class="level3" data-number="1.9.3">
+<h3 data-number="1.9.3" class="anchored" data-anchor-id="final-girl"><span class="header-section-number">1.9.3</span> Final Girl</h3>
+<p>Once per day, when you reach 0 HP, you are instead at 3 HP.</p>
+</section>
+<section id="healing-hands" class="level3" data-number="1.9.4">
+<h3 data-number="1.9.4" class="anchored" data-anchor-id="healing-hands"><span class="header-section-number">1.9.4</span> Healing Hands</h3>
+<p>Once per day, you auto-succeed at a First Aid check.</p>
+</section>
+<section id="inspiring-friend" class="level3" data-number="1.9.5">
+<h3 data-number="1.9.5" class="anchored" data-anchor-id="inspiring-friend"><span class="header-section-number">1.9.5</span> Inspiring Friend</h3>
+<p>You roll Challenging checks instead of Difficult checks to Rally.</p>
+</section>
+<section id="sweep-the-leg" class="level3" data-number="1.9.6">
+<h3 data-number="1.9.6" class="anchored" data-anchor-id="sweep-the-leg"><span class="header-section-number">1.9.6</span> Sweep The Leg</h3>
+<p>Spending two actions, you can do a Trip against all adjacent enemies.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link" aria-label="Preface">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Preface</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./appendix_n.html" class="pagination-link" aria-label="Appendix N">
+        <span class="nav-page-text">Appendix N</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

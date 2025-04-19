@@ -1,0 +1,172 @@
+[
+  {
+    "objectID": "appendix_n.html",
+    "href": "appendix_n.html",
+    "title": "Appendix N",
+    "section": "",
+    "text": "Music\nYou love vibes, right? Here’s some things that inspired the vibes of this game.",
+    "crumbs": [
+      "Appendix N"
+    ]
+  },
+  {
+    "objectID": "appendix_n.html#movies",
+    "href": "appendix_n.html#movies",
+    "title": "Appendix N",
+    "section": "Movies",
+    "text": "Movies\n\nThe Evil Dead trilogy, dir. by Sam Raimi\nHalloween, dir. by John Carpenter",
+    "crumbs": [
+      "Appendix N"
+    ]
+  },
+  {
+    "objectID": "appendix_n.html#video-games",
+    "href": "appendix_n.html#video-games",
+    "title": "Appendix N",
+    "section": "Video Games",
+    "text": "Video Games\n\nResident Evil 4\nAlan Wake",
+    "crumbs": [
+      "Appendix N"
+    ]
+  },
+  {
+    "objectID": "intro.html",
+    "href": "intro.html",
+    "title": "1  Introduction",
+    "section": "",
+    "text": "This is a book created from markdown and executable code.\nSee Knuth (1984) for additional discussion of literate programming.\n\n\n\n\nKnuth, Donald E. 1984. “Literate Programming.” Comput. J. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
+    ]
+  },
+  {
+    "objectID": "summary.html",
+    "href": "summary.html",
+    "title": "2  Summary",
+    "section": "",
+    "text": "In summary, this book has no content whatsoever.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Summary</span>"
+    ]
+  },
+  {
+    "objectID": "references.html",
+    "href": "references.html",
+    "title": "References",
+    "section": "",
+    "text": "Knuth, Donald E. 1984. “Literate Programming.” Comput.\nJ. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
+    "crumbs": [
+      "References"
+    ]
+  },
+  {
+    "objectID": "appendix_n.html#music",
+    "href": "appendix_n.html#music",
+    "title": "Appendix N",
+    "section": "",
+    "text": "“Screen Violence,” by CHVRCHES\nRob Zombie. All of it.\nGoblin. Go check out the Suspiria soundtrack.",
+    "crumbs": [
+      "Appendix N"
+    ]
+  },
+  {
+    "objectID": "game_rules.html",
+    "href": "game_rules.html",
+    "title": "1  Game Rules",
+    "section": "",
+    "text": "1.1 Resolution mechanic\nThere are two kinds of tests, Checks and Saves. Unopposed tests are versus a fixed Difficulty (Challenging or Formidable). Opposed tests are rolled between a PC and an NPC or another PC.\nMeets Beats: On unopposed tests, meeting the difficulty is a success. In the event of a tie on an opposed test,\nCheck: 2d6 + Stat + Skill Save: 2d6 + Stat\nChallenging Difficulty: 8 Formidable Difficulty: 10\nUnopposed test: Rolling an 8 or better succeeds at an Challenging task, rolling a 10 or better succeeds at a Difficult task. Opposed test: Both roll and add modifiers, highest wins.\nAdvantage: Roll 3d6, take two highest Disadvantage: Roll 3d6, take two lowest\nCritical Success: Doubles on a success (so two fours on an Challenging task, two fives and two sixes on all tasks)",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#stats",
+    "href": "game_rules.html#stats",
+    "title": "1  Game Rules",
+    "section": "1.2 Stats",
+    "text": "1.2 Stats\n\nMight\nSpeed\nWits\n\nYour starting ability spread is 2, 1, -1. Put one in each stat.\nHit Points: 8 + Might Defense: 8 + Speed",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#pushing",
+    "href": "game_rules.html#pushing",
+    "title": "1  Game Rules",
+    "section": "1.3 Pushing",
+    "text": "1.3 Pushing\nYou can Push a Test to get an extra d6 (keep highest 2) on a roll, or offset Disadvantage on a roll by dropping the lowest die roll. You may do this after you see the results of the inital roll. Pushing causes a Stress Test.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#stresspanic",
+    "href": "game_rules.html#stresspanic",
+    "title": "1  Game Rules",
+    "section": "1.4 Stress/Panic",
+    "text": "1.4 Stress/Panic\nYour starting Stress is 3. Every time you fail a Stress Test, it goes up by 1. It can also go up by 1 in other situations (monster abilities, etc.)\nStress Test: Roll 2d6, with the Difficulty being your current Stress.\nIf your Stress is 8 or higher, you are Panicked. A Panicked character can only perform one action, not two, in combat.\nYou can reduce Stress after an entire day of calm (no Stress Tests or Combat) by rolling a 2d6 check (not a Stress Test) against your Stress. On a success, reduce Stress by 1.\nAt 13 stress, you become unable to take actions in Combat and must use your movement to flee.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#dying",
+    "href": "game_rules.html#dying",
+    "title": "1  Game Rules",
+    "section": "1.5 Dying",
+    "text": "1.5 Dying\nIf you reach 0 HP, you are Wounded. (You cannot go below 0 HP.) A Wounded character can take only one action per turn in Combat, and must succeed on a Difficult Brace check at the end of each turn to keep from being Critical. Being healed for any amount ends Wounded.\nA Critical character is unconscious and unable to take any actions. At the end of every turn, make an Challenging Brace check. On a Success you remain Critical. A Critical Success puts you at Stable but 0 HP. A Failure gives you a Shroud of Death. If you get three Shrouds, you are dead. Being healed for any amount ends Critical, but does not remove any Shrouds. (Removing Shrouds is a TBD item.)",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#skills",
+    "href": "game_rules.html#skills",
+    "title": "1  Game Rules",
+    "section": "1.6 Skills",
+    "text": "1.6 Skills\nEverybody starts with skill points to invest.\n\n1.6.1 Might Skills\nBrawl: Punching and using melee weapons Brawn: Lifting, throwing, climbing, breaking down doors Brace: Fortify yourself from injury\n\n\n1.6.2 Speed Skills\nShoot: Use a firearm Stunt: Roll to break a fall without getting hurt, trip someone, etc. Sneak: Hide, do something without being notices\n\n\n1.6.3 Wits Skills\nChat: Lie, charm, pressure Clever: Remember something important, notice something Cure: Help someone who’s injured",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#combat",
+    "href": "game_rules.html#combat",
+    "title": "1  Game Rules",
+    "section": "1.7 Combat",
+    "text": "1.7 Combat\n\n1.7.1 Initiative/Rounds\nEverybody rolls speed, initiative goes highest to lowest, ties go to highest d6 roll. Everybody takes a turn in order of intiative in each round.\n\n\n1.7.2 Turns\nDuring your turn, you can take move and take two actions in combat, only one of which may be a weapon attack.\n\n\n1.7.3 Reactions\nSome situations allow you to make a Reaction to someone else’s Action. You may take one Reaction per Round.\n\n\n1.7.4 Movement\nYou may move 30 ft. (6 squares) per round. Moving out of a square next to an enemy to a square not adjacent to that same enemy provokes a reaction attack.\n\n\n1.7.5 Actions\n\n1.7.5.1 Shove\nRoll Brawn against target’s Might. On a success, the target moves 5 ft. in the direction you choose. On a critical succes, the target moves 5 ft. in the direction you choose and becomes Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.\n\n\n1.7.5.2 Taunt\nRoll Chat against target’s Wits. On a success, the target has Disadvantage on actions against any combatant other than you on its next turn.\n\n\n1.7.5.3 Trip\nRoll Stunt against target’s speed. On a success, target is Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.\n\n\n1.7.5.4 Grit\nRoll Brace for a Difficult task. On a success, heal 2 HP. On a crit, heal 3 HP.\n\n\n1.7.5.5 Rally\nRoll Charm for a Difficult task. On a success, target ally gets advantage on their next weapon attack. On a critical success, target ally also heals 1 HP.\n\n\n1.7.5.6 Feint\nRoll Steath vs Wits. On a success, you have advantage on a weapon attack on the target this turn.\n\n\n1.7.5.7 First Aid\nRoll Cure for an Challenging task. On a success, heal 1 HP on an adjacent ally. On a crit, heal 2 HP.\n\n\n1.7.5.8 Attack\nRoll Brawl for a melee weapon or unarmed attack, Shoot for a Firearm, against the enemy’s Defense. On a success, do damage equal to your weapon’s damage dice. On a critical success, take the max roll possible.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#weapons",
+    "href": "game_rules.html#weapons",
+    "title": "1  Game Rules",
+    "section": "1.8 Weapons",
+    "text": "1.8 Weapons\nThese weapons are available to starting characters. Iconic weapons come later\n\n1.8.1 Melee\n\n\n\nName\nDmg\nEffect\n\n\n\n\nUnarmed\nd4\nN/A\n\n\nBaseball bat\nd6\nN/A\n\n\nSpiked bat\nd6\nBleed\n\n\n\n\n\n1.8.2 Firearm\n\n\n\nName\nDmg\nEffect\n\n\n\n\nPistol\nd6\nN/A\n\n\nShotgun\nd4\nKnockback\n\n\nAssault Rifle\nd6\nAuto\n\n\n\n\n\n1.8.3 Effects\n\n1.8.3.1 Bleed\nIf you are Bleeding, take 1 damage at the start of your turn. You can end Bleeding by using Grit successfully.\n\n\n1.8.3.2 Auto\nFire two shots at Disadvantage.\n\n\n1.8.3.3 Knockback\nTarget must succeed on a Difficult Strength save or be moved 5 ft away from the source of the knockback.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "game_rules.html#talents",
+    "href": "game_rules.html#talents",
+    "title": "1  Game Rules",
+    "section": "1.9 Talents",
+    "text": "1.9 Talents\nEach character gets one Talent to start. Potential to get more as you advance.\n\n1.9.1 True Grit\nYou may replace one of the dice rolls with a 3 whenever you roll for Grit.\n\n\n1.9.2 Sharp Tongue\nYou may replace one of the dice rolls with a 3 whenever you roll for Taunt.\n\n\n1.9.3 Final Girl\nOnce per day, when you reach 0 HP, you are instead at 3 HP.\n\n\n1.9.4 Healing Hands\nOnce per day, you auto-succeed at a First Aid check.\n\n\n1.9.5 Inspiring Friend\nYou roll Challenging checks instead of Difficult checks to Rally.\n\n\n1.9.6 Sweep The Leg\nSpending two actions, you can do a Trip against all adjacent enemies.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Game Rules</span>"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "horror_rpg",
+    "section": "",
+    "text": "Preface\nWelcome to “Untitled Horror Game.”",
+    "crumbs": [
+      "Preface"
+    ]
+  }
+]
