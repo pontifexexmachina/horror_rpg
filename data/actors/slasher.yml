@@ -1,0 +1,19 @@
+id: slasher
+name: Slasher
+role: brute
+default_persona: brute
+stats:
+  might: 2
+  speed: 1
+  wits: -1
+skills:
+  brawl: 2
+  shoot: 0
+  brace: 1
+  cure: 0
+  clever: 0
+  chat: 0
+actions: [brawl_attack]
+weapon_id: claws
+talents: []
+starting_band: near

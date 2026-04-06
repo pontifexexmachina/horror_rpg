@@ -1,0 +1,70 @@
+[project]
+name = "dead-by-dawn-sim"
+version = "0.1.0"
+description = "Combat-focused simulation lab for Dead By Dawn."
+readme = "notes/simulator_design.md"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.11.0,<3.0.0",
+  "pyyaml>=6.0.2,<7.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "basedpyright>=1.29.1,<2.0.0",
+  "pytest>=8.3.0,<9.0.0",
+  "ruff>=0.11.0,<0.12.0",
+]
+
+[project.scripts]
+ddb-sim = "dead_by_dawn_sim.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+cache_dir = ".pytest_cache_local"
+addopts = "-p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "B",
+  "UP",
+  "N",
+  "ARG",
+  "RUF",
+]
+ignore = [
+  "ARG001",
+  "E501",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.basedpyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+reportMissingTypeStubs = false
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportUnknownVariableType = false

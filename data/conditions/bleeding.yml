@@ -1,0 +1,5 @@
+id: bleeding
+name: Bleeding
+tags: [damage_over_time]
+damage_per_turn: 1
+attack_modifier: 0

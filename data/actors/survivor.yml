@@ -1,0 +1,19 @@
+id: survivor
+name: Survivor
+role: player
+default_persona: power_gamer
+stats:
+  might: 1
+  speed: 2
+  wits: 0
+skills:
+  brawl: 1
+  shoot: 2
+  brace: 1
+  cure: 0
+  clever: 0
+  chat: 0
+actions: [attack, grit]
+weapon_id: pistol
+talents: [final_girl]
+starting_band: near

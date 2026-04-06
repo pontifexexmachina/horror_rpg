@@ -1,0 +1,14 @@
+id: taunt
+name: Taunt
+action_cost: 1
+tags: [control]
+range: enemy
+allow_push: false
+effect:
+  type: debuff_attack
+  amount: -1
+  duration_rounds: 1
+  difficulty: challenging
+  stat: wits
+  skill: chat
+  target: enemy

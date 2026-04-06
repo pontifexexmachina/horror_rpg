@@ -1,0 +1,6 @@
+id: claws
+name: Claws
+skill: brawl
+damage_die: 6
+tags: [bleed]
+max_range: engaged

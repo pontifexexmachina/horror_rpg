@@ -1,0 +1,6 @@
+id: pistol
+name: Pistol
+skill: shoot
+damage_die: 6
+tags: []
+max_range: far

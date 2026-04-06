@@ -1,0 +1,13 @@
+id: first_aid
+name: First Aid
+action_cost: 1
+tags: [heal, support]
+range: ally
+allow_push: true
+effect:
+  type: heal
+  amount: 1
+  difficulty: challenging
+  stat: wits
+  skill: cure
+  target: ally

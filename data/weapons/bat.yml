@@ -1,0 +1,6 @@
+id: bat
+name: Baseball Bat
+skill: brawl
+damage_die: 6
+tags: []
+max_range: engaged

@@ -1,0 +1,22 @@
+version: "0.1.0"
+check_dice: 2
+save_dice: 2
+keep_dice: 2
+hp_base: 8
+defense_base: 8
+crit_on_doubles: true
+max_rounds: 8
+difficulties:
+  challenging: 8
+  formidable: 10
+push:
+  extra_die: 1
+  keep: 2
+stress:
+  starting: 3
+  panic_threshold: 8
+  breakdown_threshold: 13
+death:
+  wounded_to_critical_difficulty: formidable
+  critical_stabilize_difficulty: challenging
+  shrouds_to_die: 3

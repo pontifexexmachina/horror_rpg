@@ -1,0 +1,13 @@
+id: grit
+name: Grit
+action_cost: 1
+tags: [heal, self_sustain]
+range: self
+allow_push: true
+effect:
+  type: heal
+  amount: 2
+  difficulty: formidable
+  stat: might
+  skill: brace
+  target: self

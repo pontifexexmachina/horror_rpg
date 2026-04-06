@@ -1,1 +1,12 @@
 /.quarto/
+.venv/
+.sim_runs/
+__pycache__/
+.pytest_cache/
+.pytest_cache_local/
+.ruff_cache/
+.ruff-cache-local/
+.basedpyright/
+.uv-cache/
+tools/
+pytest-cache-files-*/

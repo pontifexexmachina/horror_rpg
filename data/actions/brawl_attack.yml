@@ -1,0 +1,11 @@
+id: brawl_attack
+name: Brawl Attack
+action_cost: 1
+tags: [attack]
+range: engaged
+allow_push: true
+effect:
+  type: attack
+  uses_weapon: true
+  stat: might
+  skill: brawl

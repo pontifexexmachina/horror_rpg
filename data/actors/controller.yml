@@ -1,0 +1,19 @@
+id: controller
+name: Controller
+role: controller
+default_persona: controller
+stats:
+  might: 1
+  speed: 1
+  wits: 1
+skills:
+  brawl: 1
+  shoot: 0
+  brace: 1
+  cure: 0
+  clever: 1
+  chat: 2
+actions: [brawl_attack, taunt]
+weapon_id: bat
+talents: []
+starting_band: near

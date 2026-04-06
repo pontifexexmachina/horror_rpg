@@ -1,0 +1,5 @@
+id: final_girl
+name: Final Girl
+tags: [survival]
+effect:
+  type: final_girl

@@ -1,0 +1,5 @@
+id: healing_hands
+name: Healing Hands
+tags: [healing]
+effect:
+  type: healing_hands
