@@ -1,0 +1,15 @@
+This is "Dead By Dawn!" Dead By Dawn is a modern horror tabletop roleplaying game. If you need an explanation of what a tabletop roleplaying game is, this is probably not the game for you. Go find a copy of Dungeons and Dragons or something.
+
+Okay, so, if you're reading this I assume you in fact have hundreds of TTRPGs to choose from. Why choose this one?
+
+***Rules-light for GMs*** You've already run a ton of games. You know how to make good rulings and bad rulings. You want something easy to learn, easy to teach, quick to play. If you do not want that, I guess wait for Cabininthewoodsfinder 2E to come out from Paizo in like six years? Not a lot of high-crunch modern horror games, and I don't intend to blaze that... path.
+
+***Rules-light is not an excuse to ask you to write your own game*** There will not be three pages of random tables for every one page of actual rules content. There will be procedures, guidelines, and advice! We will never tell you to make something up between you and the players! You don't need a book to make things up, you can do that for free! You bought a book because you wanted some help! Buy this book and you'll find page after page of things I made up for you!
+
+***No wasting your time!*** No long section explaing what a TTRPG is like you didn't buy this off Itch.io! No weird name for the GM you will never remember! This is not your first rodeo, this is not even your second rodeo. Some people look around the hobby and go, "if I could be somebody's first game, that somebody would never learn bad habits I despise." Me, I look around this hobby and go "not enough chainsaws." And let's be honest. Can you ever have too many chainsaws?
+
+***Bribe your players with stuff!*** Some people say "the answers are not on your character sheets." Personally I feel like if your players are only going to read one piece of paper the entire campaign (and you know they are only going to read one sheet of paper, don't you), it should probably have answers to _something_. Meanwhile, your players are going to whine the second you whip out a book that isn't the one you're already bored sick of. That's because 90% of indie TTRPGs are written by GMs for GMs, and mistake "no cool character choices" for being simple to learn and easy to pick up. Instead, let your players gander at all the sweet Talents, and maybe let them take a peek at the Iconic Weapons they could get if they survive the first night. They get to feel like their PC is unique and awesome, and then you get to try and kill them!
+
+***I have read books by people other than H.P. Lovecraft!*** I will not say 'there is nothing wrong with H.P. Lovecraft' because a cursory study of H.P. Lovecraft will demonstrate otherwise. But I like Pickman's Model as much as the next guy. That doesn't mean that the beginning and end of horror gaming needs to be fighting non-Euclidean tentacle beasts from now until the end of time. Sometimes you just want to go and kill a sewer clown.
+
+Does that sound like your jam? If so, try "Dead By Dawn" today!
