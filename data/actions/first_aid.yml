@@ -7,7 +7,7 @@ allow_push: true
 effect:
   type: heal
   amount: 1
-  difficulty: challenging
+  difficulty: formidable
   stat: wits
   skill: cure
   target: ally

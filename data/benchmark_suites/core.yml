@@ -1,9 +1,9 @@
 id: core
 name: Core Benchmark Suite
 scenario_ids:
-  - single_pc_vs_slasher
-  - two_pc_vs_brute
-  - two_pc_vs_controller
-  - push_vs_panic
-  - casual_vs_pair
-  - talent_showdown
+  - four_pc_vs_slasher
+  - four_pc_vs_brute_pair
+  - four_pc_vs_control_mix
+  - four_pc_push_vs_panic_mix
+  - casual_four_vs_triplet
+  - four_pc_talent_showdown

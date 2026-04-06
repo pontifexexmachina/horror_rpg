@@ -6,7 +6,7 @@ range: self
 allow_push: true
 effect:
   type: heal
-  amount: 2
+  amount: 1
   difficulty: formidable
   stat: might
   skill: brace

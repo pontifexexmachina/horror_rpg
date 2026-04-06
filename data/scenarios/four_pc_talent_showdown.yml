@@ -1,0 +1,17 @@
+id: four_pc_talent_showdown
+name: Four PCs Talent Showdown
+description: Talent-bearing party versus mixed finishers.
+team_a:
+  - template_id: survivor
+    persona_id: power_gamer
+  - template_id: medic
+    persona_id: tactician
+  - template_id: bruiser
+    persona_id: butt_kicker
+  - template_id: occultist
+    persona_id: method_actor
+team_b:
+  - template_id: slasher
+    persona_id: finisher
+  - template_id: controller
+    persona_id: controller

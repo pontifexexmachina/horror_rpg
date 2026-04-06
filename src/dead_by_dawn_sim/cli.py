@@ -27,8 +27,18 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _to_jsonable(value: Any) -> Any:
+    if hasattr(value, "__dataclass_fields__") and not isinstance(value, type):
+        return {key: _to_jsonable(item) for key, item in vars(value).items()}
+    if isinstance(value, dict):
+        return {key: _to_jsonable(item) for key, item in value.items()}
+    if isinstance(value, list | tuple):
+        return [_to_jsonable(item) for item in value]
+    return value
+
+
 def _write_output(payload: dict[str, Any], output_path: str | None) -> None:
-    rendered = json.dumps(payload, indent=2, sort_keys=True)
+    rendered = json.dumps(_to_jsonable(payload), indent=2, sort_keys=True)
     if output_path is None:
         print(rendered)
         return
@@ -58,7 +68,9 @@ def main(argv: list[str] | None = None) -> int:
                 "seed": result.seed,
                 "winner": result.winner,
                 "rounds": result.rounds,
+                "actor_metadata": result.actor_metadata,
                 "actor_snapshots": result.actor_snapshots,
+                "actor_contributions": result.actor_contributions,
                 "events": list(result.events),
             },
             args.output,

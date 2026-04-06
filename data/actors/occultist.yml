@@ -1,0 +1,19 @@
+id: occultist
+name: Occultist
+role: player
+default_persona: method_actor
+stats:
+  might: -1
+  speed: 0
+  wits: 2
+skills:
+  brawl: 0
+  shoot: 1
+  brace: 0
+  cure: 0
+  clever: 2
+  chat: 1
+actions: [attack, shriek, taunt]
+weapon_id: pistol
+talents: []
+starting_band: near

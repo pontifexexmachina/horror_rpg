@@ -1,0 +1,19 @@
+id: bruiser
+name: Bruiser
+role: player
+default_persona: butt_kicker
+stats:
+  might: 2
+  speed: 1
+  wits: -1
+skills:
+  brawl: 2
+  shoot: 0
+  brace: 2
+  cure: 0
+  clever: 0
+  chat: 0
+actions: [brawl_attack, grit]
+weapon_id: bat
+talents: [final_girl]
+starting_band: near

@@ -6,7 +6,7 @@ range: enemy
 allow_push: false
 effect:
   type: stress
-  amount: 1
+  amount: 2
   difficulty: challenging
   stat: wits
   skill: clever

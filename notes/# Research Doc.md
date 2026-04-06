@@ -47,3 +47,10 @@ https://possumcreek.medium.com/rules-are-a-cage-and-im-a-puppygirl-69e8d569b2b6
 
 https://www.failuretolerated.com/lessons-i-learned-designing-the-mothership-character-sheet
 
+https://web.archive.org/web/20080221174425/http://www.montecook.com/cgi-bin/page.cgi?mc_los_142
+
+https://thealexandrian.net/wordpress/43843/roleplaying-games/ptolus-running-the-campaign-dungeon-as-a-theater-of-operations
+
+https://drolleries.substack.com/p/skills-for-everything-and-the-fruitful
+
+https://seanmccoy.substack.com/p/violent-encounters

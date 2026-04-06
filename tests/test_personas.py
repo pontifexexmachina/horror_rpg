@@ -26,3 +26,15 @@ def test_personas_make_different_choices_in_same_state() -> None:
     butt_kicker_choice = PERSONA_REGISTRY["butt_kicker"].choose_action(legal, state, ruleset)
     assert tactician_choice.action_id == "first_aid"
     assert butt_kicker_choice.action_id == "attack"
+
+
+def test_bruiser_advances_instead_of_gritting_at_full_hp() -> None:
+    ruleset = load_ruleset()
+    runner = EncounterRunner(ruleset)
+    state = runner.build_state("four_pc_vs_slasher", seed=1)
+    bruiser_id = next(
+        actor_id for actor_id in state.actors if actor_id.startswith("team_a_bruiser")
+    )
+    legal = legal_actions_for_actor(state, bruiser_id, ruleset)
+    choice = PERSONA_REGISTRY["butt_kicker"].choose_action(legal, state, ruleset)
+    assert choice.action_id == "advance"

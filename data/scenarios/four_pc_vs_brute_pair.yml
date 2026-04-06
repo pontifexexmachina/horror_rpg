@@ -1,0 +1,17 @@
+id: four_pc_vs_brute_pair
+name: Four PCs vs Brute Pair
+description: Baseline party versus two hard-hitting threats.
+team_a:
+  - template_id: survivor
+    persona_id: power_gamer
+  - template_id: medic
+    persona_id: tactician
+  - template_id: bruiser
+    persona_id: butt_kicker
+  - template_id: occultist
+    persona_id: method_actor
+team_b:
+  - template_id: slasher
+    persona_id: brute
+  - template_id: slasher
+    persona_id: finisher
