@@ -45,90 +45,6 @@ class CoreRules(BaseModel):
     max_rounds: int = 10
 
 
-class AttackEffect(BaseModel):
-    type: Literal["attack"]
-    uses_weapon: bool = True
-    weapon_id: str | None = None
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-
-
-class HealEffect(BaseModel):
-    type: Literal["heal"]
-    amount: int
-    difficulty: Literal["challenging", "formidable"]
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-    target: Literal["self", "ally"]
-
-
-class BuffEffect(BaseModel):
-    type: Literal["buff"]
-    difficulty: Literal["challenging", "formidable"]
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-    target: Literal["ally", "self"]
-    condition_id: str
-    duration_rounds: int
-    crit_heal_amount: int = 0
-
-
-class StressEffect(BaseModel):
-    type: Literal["stress"]
-    amount: int
-    difficulty: Literal["challenging", "formidable"]
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-    target: Literal["enemy"]
-
-
-class DebuffAttackEffect(BaseModel):
-    type: Literal["debuff_attack"]
-    amount: int
-    duration_rounds: int
-    difficulty: Literal["challenging", "formidable"]
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-    target: Literal["enemy"]
-
-
-class ContestDebuffEffect(BaseModel):
-    type: Literal["contest_debuff"]
-    amount: int
-    duration_rounds: int
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-    target: Literal["enemy"]
-    defense_stat: Literal["might", "speed", "wits"]
-
-
-class ContestConditionEffect(BaseModel):
-    type: Literal["contest_condition"]
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-    target: Literal["enemy"]
-    defense_stat: Literal["might", "speed", "wits"]
-    condition_id: str
-    duration_rounds: int
-    apply_to: Literal["target", "self"] = "target"
-
-
-class ContestMoveEffect(BaseModel):
-    type: Literal["contest_move"]
-    stat: Literal["might", "speed", "wits"]
-    skill: str
-    target: Literal["enemy"]
-    defense_stat: Literal["might", "speed", "wits"]
-    crit_condition_id: str | None = None
-    crit_duration_rounds: int = 0
-
-
-class RemoveConditionEffect(BaseModel):
-    type: Literal["remove_condition"]
-    target: Literal["self"]
-    condition_id: str
-
-
 ActionOutcome = Literal["always", "success", "critical"]
 ProcedureTarget = Literal["self", "target"]
 MoveDestination = Literal["choice"]
@@ -218,19 +134,6 @@ class ActionProcedure(BaseModel):
     steps: list[ActionProcedureStep] = Field(default_factory=list)
 
 
-ActionEffect = (
-    AttackEffect
-    | HealEffect
-    | BuffEffect
-    | StressEffect
-    | DebuffAttackEffect
-    | ContestDebuffEffect
-    | ContestConditionEffect
-    | ContestMoveEffect
-    | RemoveConditionEffect
-)
-
-
 class ActionDefinition(BaseModel):
     id: str
     name: str
@@ -238,34 +141,14 @@ class ActionDefinition(BaseModel):
     tags: list[str]
     range: Literal["engaged", "near", "far", "self", "ally", "enemy"]
     allow_push: bool
-    effect: ActionEffect = Field(discriminator="type")
-    procedure: ActionProcedure | None = None
+    procedure: ActionProcedure
 
 
 def attack_step_for_action(action: ActionDefinition) -> AttackRollStep | None:
-    if action.procedure is not None:
-        for step in action.procedure.steps:
-            if isinstance(step, AttackRollStep):
-                return step
-    if isinstance(action.effect, AttackEffect):
-        return AttackRollStep(
-            type="attack",
-            uses_weapon=action.effect.uses_weapon,
-            weapon_id=action.effect.weapon_id,
-            stat=action.effect.stat,
-            skill=action.effect.skill,
-        )
+    for step in action.procedure.steps:
+        if isinstance(step, AttackRollStep):
+            return step
     return None
-
-
-def attack_effect_from_step(step: AttackRollStep) -> AttackEffect:
-    return AttackEffect(
-        type="attack",
-        uses_weapon=step.uses_weapon,
-        weapon_id=step.weapon_id,
-        stat=step.stat,
-        skill=step.skill,
-    )
 
 
 def action_target_mode(action: ActionDefinition) -> Literal["self", "ally", "enemy"]:
@@ -277,15 +160,11 @@ def action_target_mode(action: ActionDefinition) -> Literal["self", "ally", "ene
 
 
 def requires_destination_choice(action: ActionDefinition) -> bool:
-    if action.procedure is not None:
-        return any(isinstance(step, MoveTargetStep) for step in action.procedure.steps)
-    return isinstance(action.effect, ContestMoveEffect)
+    return any(isinstance(step, MoveTargetStep) for step in action.procedure.steps)
 
 
 def action_has_heal_steps(action: ActionDefinition) -> bool:
-    if action.procedure is not None:
-        return any(isinstance(step, ApplyHealingStep) for step in action.procedure.steps)
-    return isinstance(action.effect, HealEffect)
+    return any(isinstance(step, ApplyHealingStep) for step in action.procedure.steps)
 
 
 class ConditionDefinition(BaseModel):

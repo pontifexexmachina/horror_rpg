@@ -32,9 +32,7 @@ def _has_ammo_for_attack(actor: ActorState, attack: ActionDefinition, ruleset: R
     step = attack_step_for_action(attack)
     if step is None:
         return False
-    from dead_by_dawn_sim.rules import attack_effect_from_step
-
-    weapon = attack_weapon(attack_effect_from_step(step), actor, ruleset)
+    weapon = attack_weapon(step, actor, ruleset)
     if weapon is None:
         return False
     if weapon.ammo_kind is None:
@@ -93,9 +91,7 @@ def _can_target(
     if action.range == "enemy":
         attack_step = attack_step_for_action(action)
         if attack_step is not None:
-            from dead_by_dawn_sim.rules import attack_effect_from_step
-
-            weapon = attack_weapon(attack_effect_from_step(attack_step), actor, ruleset)
+            weapon = attack_weapon(attack_step, actor, ruleset)
             if weapon is None:
                 return False
             if weapon.max_range == "engaged":

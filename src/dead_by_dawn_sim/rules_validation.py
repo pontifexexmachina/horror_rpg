@@ -2,13 +2,8 @@ from __future__ import annotations
 
 from dead_by_dawn_sim.rules import (
     ApplyConditionStep,
-    AttackEffect,
     AttackRollStep,
-    BuffEffect,
     ClearConditionStep,
-    ContestConditionEffect,
-    ContestMoveEffect,
-    RemoveConditionEffect,
     Ruleset,
 )
 
@@ -30,8 +25,6 @@ def _validate_actor_templates(ruleset: Ruleset) -> None:
 
 def _validate_action_procedure(ruleset: Ruleset, action_id: str) -> None:
     action = ruleset.actions[action_id]
-    if action.procedure is None:
-        return
     for step in action.procedure.steps:
         step_condition_id = None
         if isinstance(step, ApplyConditionStep | ClearConditionStep):
@@ -52,22 +45,6 @@ def _validate_action_procedure(ruleset: Ruleset, action_id: str) -> None:
 
 def _validate_actions(ruleset: Ruleset) -> None:
     for action in ruleset.actions.values():
-        if action.procedure is None:
-            raise ValueError(f"Action {action.id} is missing a declarative procedure.")
-        effect = action.effect
-        condition_id = None
-        if isinstance(effect, BuffEffect | ContestConditionEffect | RemoveConditionEffect):
-            condition_id = effect.condition_id
-        elif isinstance(effect, ContestMoveEffect):
-            condition_id = effect.crit_condition_id
-        if condition_id is not None and condition_id not in ruleset.conditions:
-            raise ValueError(f"Action {action.id} references unknown condition {condition_id}.")
-        if (
-            isinstance(effect, AttackEffect)
-            and effect.weapon_id is not None
-            and effect.weapon_id not in ruleset.weapons
-        ):
-            raise ValueError(f"Action {action.id} references unknown weapon {effect.weapon_id}.")
         _validate_action_procedure(ruleset, action.id)
 
 

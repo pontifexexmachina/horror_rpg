@@ -4,14 +4,6 @@ action_cost: 1
 tags: [control]
 range: far
 allow_push: true
-effect:
-  type: contest_debuff
-  amount: -1
-  duration_rounds: 1
-  stat: wits
-  skill: chat
-  target: enemy
-  defense_stat: wits
 procedure:
   steps:
     - type: contest

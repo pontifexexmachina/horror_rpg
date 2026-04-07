@@ -64,7 +64,7 @@ def test_load_ruleset_from_repo_data() -> None:
     assert ruleset.scenarios["ballroom_escape"].objective.type == "reach_exit"
 
 
-def test_unknown_effect_type_is_rejected() -> None:
+def test_missing_procedure_is_rejected() -> None:
     payload = {
         "id": "bad_action",
         "name": "Bad Action",
@@ -72,9 +72,6 @@ def test_unknown_effect_type_is_rejected() -> None:
         "tags": ["attack"],
         "range": "enemy",
         "allow_push": False,
-        "effect": {
-            "type": "unknown",
-        },
     }
     with pytest.raises(ValidationError):
         ActionDefinition.model_validate(payload)

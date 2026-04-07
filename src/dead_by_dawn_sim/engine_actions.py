@@ -15,7 +15,6 @@ from dead_by_dawn_sim.engine_rolls import roll_check
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
     Ruleset,
-    attack_effect_from_step,
     attack_step_for_action,
 )
 from dead_by_dawn_sim.state import (
@@ -69,7 +68,7 @@ def _resolve_reaction_attacks(
         attack_step = attack_step_for_action(action)
         if attack_step is None:
             continue
-        effect = attack_effect_from_step(attack_step)
+        effect = attack_step
         modifier, difficulty = attack_modifier_and_difficulty(
             state, reactor, target, effect, ruleset
         )

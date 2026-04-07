@@ -4,13 +4,6 @@ action_cost: 2
 tags: [stress, control]
 range: far
 allow_push: true
-effect:
-  type: stress
-  amount: 2
-  difficulty: challenging
-  stat: wits
-  skill: clever
-  target: enemy
 procedure:
   steps:
     - type: check

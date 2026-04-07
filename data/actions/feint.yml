@@ -4,15 +4,6 @@ action_cost: 1
 tags: [control, setup]
 range: engaged
 allow_push: true
-effect:
-  type: contest_condition
-  stat: speed
-  skill: sneak
-  target: enemy
-  defense_stat: wits
-  condition_id: feinting
-  duration_rounds: 1
-  apply_to: self
 procedure:
   steps:
     - type: contest

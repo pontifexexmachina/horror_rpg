@@ -27,7 +27,6 @@ from dead_by_dawn_sim.rules import (
     ApplyConditionStep,
     ApplyHealingStep,
     ApplyStressStep,
-    AttackEffect,
     AttackRollStep,
     CheckRollStep,
     ClearConditionStep,
@@ -36,7 +35,6 @@ from dead_by_dawn_sim.rules import (
     Ruleset,
     WeaponDefinition,
     action_has_heal_steps,
-    attack_effect_from_step,
 )
 from dead_by_dawn_sim.state import (
     ActorState,
@@ -104,7 +102,7 @@ def _effective_attack_modifier(actor: ActorState, ruleset: Ruleset) -> int:
     return modifier
 
 
-def _spend_attack_resource(actor: ActorState, effect: AttackEffect, ruleset: Ruleset) -> ActorState:
+def _spend_attack_resource(actor: ActorState, effect: AttackRollStep, ruleset: Ruleset) -> ActorState:
     weapon = attack_weapon(effect, actor, ruleset)
     if weapon is None or weapon.ammo_kind is None:
         return actor
@@ -142,8 +140,7 @@ def roll_mode_for_action(
     target: ActorState,
 ) -> RollMode:
     swing = 0
-    procedure = action.procedure
-    if procedure is not None and any(isinstance(step, AttackRollStep) for step in procedure.steps):
+    if any(isinstance(step, AttackRollStep) for step in action.procedure.steps):
         if has_condition(actor, "inspired") or has_condition(actor, "feinting"):
             swing += 1
         if has_condition(target, "prone"):
@@ -170,7 +167,7 @@ def attack_modifier_and_difficulty(
     state: EncounterState,
     actor: ActorState,
     target: ActorState,
-    effect: AttackEffect,
+    effect: AttackRollStep,
     ruleset: Ruleset,
 ) -> tuple[int, int]:
     modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
@@ -421,7 +418,7 @@ def _run_attack_step(
     resolution: ProcedureResolution,
     step: AttackRollStep,
 ) -> ProcedureResolution:
-    effect = attack_effect_from_step(step)
+    effect = step
     weapon = attack_weapon(effect, resolution.actor, ctx.ruleset)
     if weapon is None:
         raise ValueError(f"Actor {resolution.actor.actor_id} attempted an attack without a weapon.")

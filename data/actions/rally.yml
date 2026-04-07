@@ -4,15 +4,6 @@ action_cost: 1
 tags: [support, setup]
 range: ally
 allow_push: true
-effect:
-  type: buff
-  difficulty: formidable
-  stat: wits
-  skill: chat
-  target: ally
-  condition_id: inspired
-  duration_rounds: 1
-  crit_heal_amount: 1
 procedure:
   steps:
     - type: check

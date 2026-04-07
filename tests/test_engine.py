@@ -11,7 +11,7 @@ from dead_by_dawn_sim.engine import (
     resolve_roll,
     start_turn,
 )
-from dead_by_dawn_sim.rules import RemoveConditionEffect, Ruleset, load_ruleset
+from dead_by_dawn_sim.rules import ActionProcedure, ClearConditionStep, Ruleset, load_ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
 from dead_by_dawn_sim.state import (
     ActorStatus,
@@ -249,20 +249,27 @@ def test_taunt_condition_persists_into_target_turn() -> None:
     assert any(condition.id == "rattled" for condition in started.actor(target_id).conditions)
 
 
-def test_procedure_execution_takes_precedence_over_legacy_effect() -> None:
+def test_procedure_execution_uses_current_procedure_definition() -> None:
     ruleset, state = build_state("two_pc_vs_controller", seed=2)
     medic_id = actor_id_with_prefix(state, "team_a_medic")
     ally_id = actor_id_with_prefix(state, "team_a_survivor")
     state = update_actor_fields(state, ally_id, hp=6)
     rally = ruleset.actions["rally"]
-    swapped_effect_ruleset = replace(
+    swapped_procedure_ruleset = replace(
         ruleset,
         actions={
             **ruleset.actions,
             "rally": rally.model_copy(
                 update={
-                    "effect": RemoveConditionEffect(
-                        type="remove_condition", target="self", condition_id="prone"
+                    "procedure": ActionProcedure(
+                        steps=[
+                            ClearConditionStep(
+                                type="clear_condition",
+                                target="target",
+                                condition_id="prone",
+                                when="always",
+                            )
+                        ]
                     )
                 }
             ),
@@ -272,11 +279,11 @@ def test_procedure_execution_takes_precedence_over_legacy_effect() -> None:
         state,
         ActionChoice(actor_id=medic_id, action_id="rally", target_id=ally_id, push=False),
         FixedDiceRoller([6, 6]),
-        swapped_effect_ruleset,
+        swapped_procedure_ruleset,
     )
     rallied = result.actor(ally_id)
-    assert rallied.hp == 7
-    assert any(condition.id == "inspired" for condition in rallied.conditions)
+    assert rallied.hp == 6
+    assert not any(condition.id == "inspired" for condition in rallied.conditions)
 
 
 def test_rally_applies_inspired_and_can_heal_on_crit() -> None:

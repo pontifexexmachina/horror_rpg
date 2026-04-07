@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from dead_by_dawn_sim.rules import AttackEffect, Ruleset, WeaponDefinition
+from dead_by_dawn_sim.rules import AttackRollStep, Ruleset, WeaponDefinition
 from dead_by_dawn_sim.state import ActorState
 
 
 def attack_weapon(
-    effect: AttackEffect, actor: ActorState, ruleset: Ruleset
+    effect: AttackRollStep, actor: ActorState, ruleset: Ruleset
 ) -> WeaponDefinition | None:
     weapon_id = effect.weapon_id or actor.weapon_id
     if weapon_id is None:

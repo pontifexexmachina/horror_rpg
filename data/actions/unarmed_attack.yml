@@ -4,12 +4,6 @@ action_cost: 1
 tags: [attack]
 range: engaged
 allow_push: true
-effect:
-  type: attack
-  uses_weapon: false
-  weapon_id: unarmed
-  stat: might
-  skill: brawl
 procedure:
   steps:
     - type: attack

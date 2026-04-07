@@ -4,11 +4,6 @@ action_cost: 1
 tags: [attack]
 range: enemy
 allow_push: true
-effect:
-  type: attack
-  uses_weapon: true
-  stat: speed
-  skill: shoot
 procedure:
   steps:
     - type: attack
