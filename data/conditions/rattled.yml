@@ -2,4 +2,4 @@ id: rattled
 name: Rattled
 tags: [attack_debuff]
 damage_per_turn: 0
-attack_modifier: -1
+attack_modifier: 0

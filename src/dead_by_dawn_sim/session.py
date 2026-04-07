@@ -75,6 +75,7 @@ class SessionRunner:
                         round_number=scene_state.round_number,
                         initiative_order=scene_state.initiative_order,
                         active_actor_id=scene_state.active_actor_id,
+                        used_reactions=scene_state.used_reactions,
                         winner=scene_state.winner,
                         events=scene_state.events,
                     )

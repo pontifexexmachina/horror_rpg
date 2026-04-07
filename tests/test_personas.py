@@ -6,6 +6,7 @@ from dead_by_dawn_sim.actions import legal_actions_for_actor
 from dead_by_dawn_sim.personas import PERSONA_REGISTRY
 from dead_by_dawn_sim.rules import load_ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
+from dead_by_dawn_sim.state import ActorStatus, synchronize_engagements
 
 
 def test_personas_make_different_choices_in_same_state() -> None:
@@ -63,3 +64,87 @@ def test_monster_persona_moves_to_intercept_exit_route() -> None:
     choice = PERSONA_REGISTRY["panic_engine"].choose_action(legal, state, ruleset)
     assert choice.action_id == "advance"
     assert choice.destination_area == "ballroom"
+
+
+def test_power_gamer_chases_last_enemy_instead_of_self_rallying() -> None:
+    ruleset = load_ruleset()
+    runner = EncounterRunner(ruleset)
+    state = runner.build_state("hallway_ambush", seed=1)
+    survivor_id = next(
+        actor_id for actor_id in state.actors if actor_id.startswith("team_a_survivor")
+    )
+    bruiser_id = next(
+        actor_id for actor_id in state.actors if actor_id.startswith("team_a_bruiser")
+    )
+    slasher_id = next(
+        actor_id for actor_id in state.actors if actor_id.startswith("team_b_slasher")
+    )
+    controller_id = next(
+        actor_id for actor_id in state.actors if actor_id.startswith("team_b_controller")
+    )
+    state = replace(
+        state,
+        actors={
+            **state.actors,
+            survivor_id: replace(state.actor(survivor_id), ammo={"sidearm": 0}),
+            bruiser_id: replace(state.actor(bruiser_id), area_id="hallway"),
+            slasher_id: replace(state.actor(slasher_id), status=ActorStatus.DEAD, hp=0),
+            controller_id: replace(state.actor(controller_id), area_id="parlor"),
+        },
+    )
+    state = synchronize_engagements(state)
+    legal = legal_actions_for_actor(state, survivor_id, ruleset)
+    choice = PERSONA_REGISTRY["power_gamer"].choose_action(legal, state, ruleset)
+    assert choice.action_id == "advance"
+    assert choice.destination_area == "hallway"
+
+
+def test_casual_bruiser_attacks_lone_enemy_instead_of_tripping() -> None:
+    ruleset = load_ruleset()
+    runner = EncounterRunner(ruleset)
+    state = runner.build_state("casual_four_vs_triplet", seed=1)
+    bruiser_id = next(
+        actor_id for actor_id in state.actors if actor_id.startswith("team_a_bruiser")
+    )
+    terror_id = next(actor_id for actor_id in state.actors if actor_id.startswith("team_b_terror"))
+    state = replace(
+        state,
+        actors={
+            **state.actors,
+            **{
+                actor_id: replace(actor, status=ActorStatus.DEAD, hp=0)
+                for actor_id, actor in state.actors.items()
+                if actor_id.startswith("team_b_") and actor_id != terror_id
+            },
+            bruiser_id: replace(state.actor(bruiser_id), area_id="arena"),
+            terror_id: replace(state.actor(terror_id), area_id="arena"),
+        },
+    )
+    state = synchronize_engagements(state)
+    legal = legal_actions_for_actor(state, bruiser_id, ruleset)
+    choice = PERSONA_REGISTRY["casual"].choose_action(legal, state, ruleset)
+    assert choice.action_id == "brawl_attack"
+
+
+def test_casual_medic_attacks_lone_enemy_instead_of_rallying_healthy_ally() -> None:
+    ruleset = load_ruleset()
+    runner = EncounterRunner(ruleset)
+    state = runner.build_state("casual_four_vs_triplet", seed=1)
+    medic_id = next(actor_id for actor_id in state.actors if actor_id.startswith("team_a_medic"))
+    terror_id = next(actor_id for actor_id in state.actors if actor_id.startswith("team_b_terror"))
+    state = replace(
+        state,
+        actors={
+            **state.actors,
+            **{
+                actor_id: replace(actor, status=ActorStatus.DEAD, hp=0)
+                for actor_id, actor in state.actors.items()
+                if actor_id.startswith("team_b_") and actor_id != terror_id
+            },
+        },
+    )
+    state = synchronize_engagements(state)
+    legal = legal_actions_for_actor(state, medic_id, ruleset)
+    choice = PERSONA_REGISTRY["casual"].choose_action(legal, state, ruleset)
+    assert choice.action_id == "attack"
+    assert choice.target_id == terror_id

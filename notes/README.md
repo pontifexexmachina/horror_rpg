@@ -17,3 +17,5 @@ Current agent-generated design notes worth revisiting:
 - `agent_generated/design/spatial_rules_architecture.md` for areas, connections, and optional grid support
 - `agent_generated/design/spatial_simulator_implementation_prep.md` for the first area-based simulator migration
 - `agent_generated/design/simulator_rules_inventory_pass.md` for the inventory-aware simulator direction
+- `agent_generated/design/simulator_canon_drift_log.md` for simulator-vs-manuscript divergences and author checklist items
+- `agent_generated/design/combat_and_chase_separation.md` for the decision to split stand-up combat from flee/chase simulation

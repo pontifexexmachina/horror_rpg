@@ -8,12 +8,14 @@ stats:
   wits: 2
 skills:
   brawl: 0
+  brawn: 0
   shoot: 1
+  stunt: 0
   brace: 0
   cure: 0
   clever: 2
   chat: 1
-actions: [attack, shriek, taunt]
+actions: [attack, brawl_attack, shriek, taunt, grit, rally, shove, trip]
 weapon_id: pistol
 talents: []
 starting_band: near

@@ -1,0 +1,15 @@
+id: shove
+name: Shove
+action_cost: 1
+tags: [control, reposition]
+range: engaged
+allow_push: true
+effect:
+  type: contest_move
+  stat: might
+  skill: brawn
+  target: enemy
+  defense_stat: might
+  crit_condition_id: prone
+  crit_duration_rounds: 1
+

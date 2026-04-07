@@ -2,8 +2,8 @@ id: taunt
 name: Taunt
 action_cost: 1
 tags: [control]
-range: enemy
-allow_push: false
+range: far
+allow_push: true
 effect:
   type: debuff_attack
   amount: -1
@@ -12,3 +12,4 @@ effect:
   stat: wits
   skill: chat
   target: enemy
+

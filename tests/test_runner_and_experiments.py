@@ -93,3 +93,20 @@ def test_cli_validate_and_run_commands(capsys: CaptureFixture[str]) -> None:
     assert main(["session-benchmark", "--plan", "core_night", "--runs", "1", "--seed", "5"]) == 0
     session_benchmark_output = capsys.readouterr().out
     assert '"avg_medkits_spent"' in session_benchmark_output
+
+
+def test_runner_respects_action_costs_for_shriek() -> None:
+    ruleset = load_ruleset()
+    terror = ruleset.actors["terror"]
+    assert ruleset.actions["shriek"].action_cost == 2
+    assert terror.actions == ["shriek"]
+    report = ExperimentRunner(ruleset).run_benchmark_suite("combat_canonical", runs=1, seed=0)
+    scenario = report.scenario_breakdown["four_pc_vs_control_mix"]
+    action_frequencies = scenario["action_frequencies"]
+    assert isinstance(action_frequencies, dict)
+    assert "shriek" in action_frequencies
+
+
+def test_validate_loads_updated_shriek_cost() -> None:
+    ruleset = load_ruleset()
+    assert ruleset.actions["shriek"].action_cost == 2

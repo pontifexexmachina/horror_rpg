@@ -18,7 +18,7 @@ def test_load_ruleset_from_repo_data() -> None:
     ruleset = load_ruleset()
     counts = count_ruleset_entities(ruleset)
     assert ruleset.version == "0.1.0"
-    assert counts["actions"] >= 5
+    assert counts["actions"] >= 7
     assert counts["session_plans"] >= 1
     assert counts["benchmark_suites"] >= 2
     assert "single_pc_vs_slasher" in ruleset.scenarios
@@ -26,13 +26,21 @@ def test_load_ruleset_from_repo_data() -> None:
     assert "ballroom_escape" in ruleset.scenarios
     assert "spatial" in ruleset.benchmark_suites
     assert "core_night" in ruleset.session_plans
-    assert "steadied" in ruleset.conditions
+    assert "inspired" in ruleset.conditions
+    assert "rally" in ruleset.actions
+    assert ruleset.core.stress.panic_threshold == 8
+    assert ruleset.core.stress.breakdown_threshold == 13
+    assert ruleset.core.death.wounded_to_critical_difficulty == "formidable"
+    assert ruleset.core.death.critical_stabilize_difficulty == "challenging"
+    assert ruleset.core.death.shrouds_to_die == 3
     assert ruleset.weapons["pistol"].ammo_kind == "sidearm"
     assert ruleset.actors["medic"].starting_bandages == 3
     assert ruleset.actors["medic"].starting_medkits == 2
     assert ruleset.actors["slasher"].death_mode == "die_at_zero"
+    assert ruleset.actors["slasher"].stress_mode == "ignore"
     assert ruleset.actors["controller"].death_mode == "die_at_zero"
     assert ruleset.actors["survivor"].death_mode == "pc_track"
+    assert ruleset.actors["survivor"].stress_mode == "track"
     assert ruleset.scenarios["single_pc_vs_slasher"].areas[0].id == "arena"
     assert ruleset.scenarios["hallway_ambush"].objective.type == "defeat_enemies"
     assert ruleset.scenarios["ballroom_escape"].objective.type == "reach_exit"

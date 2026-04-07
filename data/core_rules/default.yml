@@ -14,9 +14,9 @@ push:
   keep: 2
 stress:
   starting: 3
-  panic_threshold: 6
-  breakdown_threshold: 10
+  panic_threshold: 8
+  breakdown_threshold: 13
 death:
-  wounded_to_critical_difficulty: challenging
-  critical_stabilize_difficulty: formidable
-  shrouds_to_die: 2
+  wounded_to_critical_difficulty: formidable
+  critical_stabilize_difficulty: challenging
+  shrouds_to_die: 3

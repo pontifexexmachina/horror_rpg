@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.rules import Ruleset
-from dead_by_dawn_sim.state import ActorState, EncounterState, shortest_path_distance
+from dead_by_dawn_sim.state import ActorState, ActorStatus, EncounterState, shortest_path_distance
 
 
 @dataclass(frozen=True)
@@ -46,6 +46,7 @@ def _score_action(
             score += _push_adjustment(actor, ruleset, persona)
 
     score += _objective_adjustment(choice, state, persona)
+    score += _closeout_adjustment(choice, state, ruleset, persona)
 
     if actor.hp <= max(2, actor.max_hp // 3):
         score += persona.weights.get("low_hp_modifier", 0.0)
@@ -71,12 +72,6 @@ def _context_adjustment(
         if target.status.value in {"wounded", "critical"}:
             adjustment += persona.weights.get("rescue", 0.5)
 
-    if "stabilize" in action.tags:
-        if actor.status.value == "wounded":
-            adjustment += persona.weights.get("stabilize_urgency", 3.0)
-        else:
-            adjustment -= 5.0
-
     if "stress" in action.tags:
         adjustment += max(
             0, ruleset.core.stress.panic_threshold - target.stress
@@ -87,10 +82,91 @@ def _context_adjustment(
         adjustment += persona.weights.get("control_setup", 0.6)
         adjustment -= existing_conditions * persona.weights.get("control_repeat_penalty", 1.2)
 
+    if choice.action_id == "grit":
+        missing_hp = actor.max_hp - actor.hp
+        is_bleeding = any(condition.id == "bleeding" for condition in actor.conditions)
+        in_real_danger = (
+            actor.status in {ActorStatus.WOUNDED, ActorStatus.CRITICAL}
+            or actor.hp <= max(2, actor.max_hp // 2)
+            or is_bleeding
+        )
+        if not in_real_danger:
+            adjustment -= persona.weights.get("grit_topoff_penalty", 3.5)
+        else:
+            adjustment += persona.weights.get("grit_danger_bonus", 0.8)
+
+    if choice.action_id == "rally":
+        if target.actor_id == actor.actor_id:
+            adjustment -= persona.weights.get("self_rally_penalty", 3.0)
+        if target.engaged_with or target.weapon_id is not None:
+            adjustment += persona.weights.get("ally_strike_setup", 0.8)
+        if target.max_hp - target.hp > 0:
+            adjustment += persona.weights.get("rally_urgency", 0.4)
+
+    if choice.action_id == "trip":
+        if any(condition.id == "prone" for condition in target.conditions):
+            adjustment -= 4.0
+        else:
+            adjustment += persona.weights.get("trip_urgency", 0.3)
+
+    if choice.action_id == "shove" and choice.destination_area is not None:
+        if choice.destination_area != actor.area_id:
+            adjustment += persona.weights.get("shove_urgency", 0.4)
+        if target.area_id == actor.area_id and choice.destination_area != actor.area_id:
+            adjustment += persona.weights.get("break_line", 0.6)
+
     if "attack" in action.tags and actor.hp > 0:
         adjustment += persona.weights.get("pressure", 0.4)
 
     return adjustment
+
+
+def _active_enemies(state: EncounterState, team: str) -> list[ActorState]:
+    return [
+        candidate
+        for candidate in state.actors.values()
+        if candidate.team != team
+        and candidate.status not in {ActorStatus.DEAD, ActorStatus.CRITICAL, ActorStatus.BROKEN}
+    ]
+
+
+def _closeout_adjustment(
+    choice: ActionChoice, state: EncounterState, ruleset: Ruleset, persona: Persona
+) -> float:
+    actor = state.actor(choice.actor_id)
+    enemies = _active_enemies(state, actor.team)
+    if len(enemies) != 1:
+        return 0.0
+    last_enemy = enemies[0]
+    if choice.action_id in {"advance", "fall_back"} and choice.destination_area is not None:
+        before = shortest_path_distance(state, actor.area_id, last_enemy.area_id)
+        after = shortest_path_distance(state, choice.destination_area, last_enemy.area_id)
+        if before is not None and after is not None and after < before:
+            return persona.weights.get("closeout_pursuit", 3.0) * (before - after)
+        return 0.0
+
+    action = ruleset.actions[choice.action_id]
+    target = state.actor(choice.target_id)
+    if target.actor_id == last_enemy.actor_id:
+        if "attack" in action.tags:
+            return persona.weights.get("closeout_attack", 3.5)
+        if choice.action_id == "trip":
+            return -persona.weights.get("closeout_trip_penalty", 3.5)
+        if "control" in action.tags or "stress" in action.tags:
+            return -persona.weights.get("closeout_delay", 2.0)
+        return 0.0
+
+    if "heal" in action.tags and target.status.value in {"wounded", "critical"}:
+        return persona.weights.get("closeout_rescue", 1.5)
+    if (
+        choice.action_id == "rally"
+        and target.actor_id != actor.actor_id
+        and target.status.value in {"wounded", "critical"}
+    ):
+        return persona.weights.get("closeout_rescue", 1.0)
+    if choice.action_id == "rally":
+        return -persona.weights.get("closeout_rally_penalty", 4.0)
+    return -persona.weights.get("closeout_delay", 2.0)
 
 
 def _objective_adjustment(choice: ActionChoice, state: EncounterState, persona: Persona) -> float:
@@ -193,17 +269,21 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 4.0,
             "heal": 1.0,
-            "stabilize": 1.2,
             "control": 0.8,
             "stress": 0.5,
             "finisher": 2.5,
             "close_distance": 2.0,
             "pressure": 0.7,
             "heal_urgency": 0.5,
-            "stabilize_urgency": 2.5,
+            "ally_strike_setup": 1.0,
+            "rally_urgency": 0.6,
+            "trip_urgency": 0.2,
+            "shove_urgency": 0.2,
             "objective_progress": 3.4,
             "objective_delay_penalty": 2.8,
             "hold_exit": 1.8,
+            "grit_topoff_penalty": 4.5,
+            "grit_danger_bonus": 0.8,
         },
         1.2,
     ),
@@ -212,18 +292,21 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 5.0,
             "heal": 0.2,
-            "stabilize": 1.5,
             "control": 0.1,
             "finisher": 1.8,
             "close_distance": 4.0,
             "pressure": 1.0,
             "panic_push_penalty": -1.5,
-            "stabilize_urgency": 3.4,
+            "trip_urgency": 0.4,
+            "shove_urgency": 0.8,
+            "break_line": 0.8,
             "objective_progress": 2.0,
             "objective_delay_penalty": 1.8,
             "objective_intercept": 2.3,
             "deny_objective": 2.0,
             "intercept_runner": 1.2,
+            "grit_topoff_penalty": 5.0,
+            "grit_danger_bonus": 0.4,
         },
         1.4,
     ),
@@ -232,7 +315,6 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 2.5,
             "heal": 2.0,
-            "stabilize": 2.8,
             "control": 3.0,
             "setup": 1.0,
             "finisher": 1.2,
@@ -240,12 +322,17 @@ PERSONA_REGISTRY: dict[str, Persona] = {
             "heal_urgency": 1.0,
             "rescue": 2.5,
             "control_setup": 1.0,
-            "stabilize_urgency": 4.0,
+            "ally_strike_setup": 2.0,
+            "rally_urgency": 1.2,
+            "trip_urgency": 0.2,
+            "shove_urgency": 0.4,
             "objective_progress": 2.6,
             "objective_delay_penalty": 2.2,
             "objective_intercept": 2.6,
             "deny_objective": 2.5,
             "hold_ground": 1.5,
+            "grit_topoff_penalty": 4.0,
+            "grit_danger_bonus": 0.8,
         },
         0.8,
     ),
@@ -254,19 +341,22 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 2.0,
             "heal": 2.5,
-            "stabilize": 2.0,
             "control": 1.4,
             "close_distance": 0.8,
             "heal_urgency": 0.8,
             "rescue": 1.6,
             "control_setup": 0.8,
-            "stabilize_urgency": 3.2,
+            "ally_strike_setup": 0.8,
+            "rally_urgency": 0.5,
+            "trip_urgency": 0.2,
             "low_hp_modifier": -1.0,
             "high_stress_modifier": -1.5,
             "panic_push_penalty": -3.0,
             "objective_progress": 2.4,
             "objective_delay_penalty": 1.8,
             "hold_exit": 1.2,
+            "grit_topoff_penalty": 3.0,
+            "grit_danger_bonus": 1.0,
         },
         -0.5,
     ),
@@ -275,79 +365,92 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 2.4,
             "heal": 1.8,
-            "stabilize": 1.5,
             "control": 0.5,
             "advance": 0.7,
             "close_distance": 1.2,
             "heal_urgency": 0.6,
             "rescue": 1.2,
-            "stabilize_urgency": 2.4,
+            "ally_strike_setup": 0.6,
+            "rally_urgency": 0.4,
+            "trip_urgency": 0.1,
+            "shove_urgency": 0.2,
             "objective_progress": 1.6,
             "objective_delay_penalty": 1.5,
+            "grit_topoff_penalty": 3.5,
+            "grit_danger_bonus": 0.6,
         },
         -0.2,
     ),
     "brute": Persona(
         "brute",
         {
-            "attack": 4.0,
+            "attack": 4.4,
             "advance": 2.0,
-            "control": 0.1,
-            "finisher": 1.4,
+            "control": 0.4,
+            "finisher": 1.8,
             "close_distance": 3.0,
-            "pressure": 0.8,
-            "stabilize_urgency": 2.0,
+            "pressure": 0.9,
+            "trip_urgency": 0.3,
+            "shove_urgency": 1.0,
+            "break_line": 1.0,
             "objective_intercept": 2.8,
             "deny_objective": 3.0,
             "intercept_runner": 1.8,
         },
-        0.6,
+        0.9,
     ),
     "controller": Persona(
         "controller",
         {
-            "attack": 1.2,
-            "control": 4.0,
+            "attack": 1.8,
+            "control": 3.6,
             "stress": 1.2,
             "advance": 1.0,
             "close_distance": 2.0,
             "control_setup": 1.2,
             "control_repeat_penalty": 1.8,
+            "trip_urgency": 0.2,
+            "shove_urgency": 0.9,
+            "break_line": 0.7,
             "objective_intercept": 2.4,
             "deny_objective": 2.7,
             "intercept_runner": 1.6,
             "hold_ground": 1.0,
         },
-        0.4,
+        0.6,
     ),
     "panic_engine": Persona(
         "panic_engine",
         {
-            "attack": 1.0,
-            "stress": 4.5,
+            "attack": 1.4,
+            "stress": 4.8,
             "control": 1.0,
             "advance": 1.0,
             "close_distance": 1.0,
             "stress_setup": 0.2,
             "control_setup": 0.4,
             "control_repeat_penalty": 1.0,
+            "finisher": 0.8,
             "objective_intercept": 2.0,
             "deny_objective": 2.2,
         },
-        0.2,
+        0.4,
     ),
     "finisher": Persona(
         "finisher",
         {
-            "attack": 3.0,
-            "finisher": 4.0,
-            "control": 0.2,
+            "attack": 3.6,
+            "finisher": 4.8,
+            "control": 0.3,
             "advance": 1.0,
             "close_distance": 2.8,
-            "pressure": 0.7,
+            "pressure": 0.9,
+            "trip_urgency": 0.2,
+            "shove_urgency": 0.5,
+            "break_line": 0.4,
             "objective_intercept": 2.6,
             "deny_objective": 3.0,
         },
-        0.7,
+        0.9,
     ),
 }

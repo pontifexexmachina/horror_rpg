@@ -8,12 +8,14 @@ stats:
   wits: -1
 skills:
   brawl: 2
+  brawn: 2
   shoot: 0
+  stunt: 1
   brace: 2
   cure: 0
   clever: 0
   chat: 0
-actions: [brawl_attack, grit]
+actions: [brawl_attack, grit, rally, shove, trip]
 weapon_id: bat
 talents: [final_girl]
 starting_band: near

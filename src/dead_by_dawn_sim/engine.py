@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
     AttackEffect,
+    BuffEffect,
+    ContestConditionEffect,
+    DebuffAttackEffect,
     HealEffect,
     Ruleset,
-    StabilizeEffect,
     StressEffect,
 )
 from dead_by_dawn_sim.state import (
@@ -21,6 +23,8 @@ from dead_by_dawn_sim.state import (
     TalentState,
     append_event,
     area_has_tag,
+    can_enter_area,
+    connected_area_ids,
     synchronize_engagements,
     update_actor,
 )
@@ -33,6 +37,14 @@ class RollResult(NamedTuple):
     is_critical: bool
 
 
+class ContestResult(NamedTuple):
+    attacker: RollResult
+    defender: RollResult
+    is_success: bool
+    is_critical: bool
+
+
+RollMode = Literal["normal", "advantage", "disadvantage"]
 RANGED_SKILLS = {"shoot"}
 
 
@@ -65,18 +77,18 @@ def _uses_pc_death_track(actor: ActorState) -> bool:
     return actor.death_mode == "pc_track"
 
 
+def _uses_stress_track(actor: ActorState) -> bool:
+    return actor.stress_mode == "track"
+
+
 def _actor_actions_per_turn(actor: ActorState, ruleset: Ruleset) -> int:
     if actor.status in {ActorStatus.CRITICAL, ActorStatus.DEAD, ActorStatus.BROKEN}:
         return 0
-    if actor.stress >= ruleset.core.stress.breakdown_threshold:
+    if _uses_stress_track(actor) and actor.stress >= ruleset.core.stress.breakdown_threshold:
         return 0
-    if (
-        _uses_pc_death_track(actor)
-        and actor.status is ActorStatus.WOUNDED
-        and not _has_condition(actor, "steadied")
-    ):
+    if _uses_pc_death_track(actor) and actor.status is ActorStatus.WOUNDED:
         return 1
-    if actor.stress >= ruleset.core.stress.panic_threshold:
+    if _uses_stress_track(actor) and actor.stress >= ruleset.core.stress.panic_threshold:
         return 1
     return 2
 
@@ -90,10 +102,19 @@ def _decrement_conditions(actor: ActorState) -> ActorState:
     return replace(actor, conditions=next_conditions)
 
 
+def _remove_condition(actor: ActorState, condition_id: str) -> ActorState:
+    return replace(
+        actor,
+        conditions=tuple(
+            condition for condition in actor.conditions if condition.id != condition_id
+        ),
+    )
+
+
 def _transition_actor_state(actor: ActorState, ruleset: Ruleset) -> ActorState:
     if actor.shrouds >= ruleset.core.death.shrouds_to_die:
         return replace(actor, status=ActorStatus.DEAD)
-    if actor.stress >= ruleset.core.stress.breakdown_threshold:
+    if _uses_stress_track(actor) and actor.stress >= ruleset.core.stress.breakdown_threshold:
         return replace(actor, status=ActorStatus.BROKEN)
     if actor.hp <= 0:
         if actor.status in {ActorStatus.CRITICAL, ActorStatus.DEAD}:
@@ -104,25 +125,85 @@ def _transition_actor_state(actor: ActorState, ruleset: Ruleset) -> ActorState:
     return replace(actor, status=ActorStatus.NORMAL)
 
 
-def _roll_check(
-    *, roller: DiceRoller, ruleset: Ruleset, modifier: int, difficulty: int, push: bool
-) -> RollResult:
-    raw_rolls = roller.roll_d6(
-        ruleset.core.check_dice + (ruleset.core.push.extra_die if push else 0)
+def _roll_mode_params(ruleset: Ruleset, roll_mode: RollMode, push: bool) -> tuple[int, int, bool]:
+    if roll_mode == "advantage":
+        return (ruleset.core.check_dice + 1 + int(push), ruleset.core.keep_dice, True)
+    if roll_mode == "disadvantage":
+        if push:
+            return (ruleset.core.check_dice + 1, ruleset.core.keep_dice, True)
+        return (ruleset.core.check_dice + 1, ruleset.core.keep_dice, False)
+    return (
+        ruleset.core.check_dice + (ruleset.core.push.extra_die if push else 0),
+        ruleset.core.push.keep if push else ruleset.core.keep_dice,
+        True,
     )
+
+
+def _roll_check(
+    *,
+    roller: DiceRoller,
+    ruleset: Ruleset,
+    modifier: int,
+    difficulty: int,
+    push: bool,
+    roll_mode: RollMode = "normal",
+) -> RollResult:
+    num_dice, keep, highest = _roll_mode_params(ruleset, roll_mode, push)
+    raw_rolls = roller.roll_d6(num_dice)
     return resolve_roll(
         raw_rolls=raw_rolls,
-        keep=ruleset.core.push.keep if push else ruleset.core.keep_dice,
+        keep=keep,
         modifier=modifier,
         difficulty=difficulty,
+        highest=highest,
+    )
+
+
+def _roll_contest(
+    *,
+    roller: DiceRoller,
+    ruleset: Ruleset,
+    attacker_modifier: int,
+    defender_modifier: int,
+    push: bool,
+    roll_mode: RollMode,
+) -> ContestResult:
+    attacker = _roll_check(
+        roller=roller,
+        ruleset=ruleset,
+        modifier=attacker_modifier,
+        difficulty=-999,
+        push=push,
+        roll_mode=roll_mode,
+    )
+    defender = _roll_check(
+        roller=roller,
+        ruleset=ruleset,
+        modifier=defender_modifier,
+        difficulty=-999,
+        push=False,
+        roll_mode="normal",
+    )
+    is_success = attacker.total > defender.total
+    return ContestResult(
+        attacker=attacker,
+        defender=defender,
+        is_success=is_success,
+        is_critical=is_success and attacker.is_critical,
     )
 
 
 def _run_stress_test(
     state: EncounterState, actor: ActorState, roller: DiceRoller, ruleset: Ruleset
 ) -> EncounterState:
+    if not _uses_stress_track(actor):
+        return state
     result = _roll_check(
-        roller=roller, ruleset=ruleset, modifier=0, difficulty=actor.stress, push=False
+        roller=roller,
+        ruleset=ruleset,
+        modifier=0,
+        difficulty=actor.stress,
+        push=False,
     )
     if result.is_success:
         return append_event(state, f"{actor.actor_id} holds together under stress.")
@@ -140,7 +221,9 @@ def _apply_damage(target: ActorState, amount: int, ruleset: Ruleset) -> ActorSta
         and "final_girl" not in target.talent_state.used
     ):
         updated = replace(
-            updated, hp=3, talent_state=TalentState(used=target.talent_state.used | {"final_girl"})
+            updated,
+            hp=3,
+            talent_state=TalentState(used=target.talent_state.used | {"final_girl"}),
         )
     return _transition_actor_state(updated, ruleset)
 
@@ -187,6 +270,111 @@ def _ranged_concealment_penalty(
     return -1 if area_has_tag(state, target.area_id, "dark") else 0
 
 
+def _roll_mode_for_action(
+    actor: ActorState,
+    target: ActorState,
+    action: ActionDefinition,
+    effect: object,
+) -> RollMode:
+    swing = 0
+    if isinstance(effect, AttackEffect):
+        if _has_condition(actor, "inspired"):
+            swing += 1
+        if _has_condition(target, "prone"):
+            swing += 1
+    if getattr(effect, "target", None) == "enemy":
+        for condition in actor.conditions:
+            if condition.id != "rattled":
+                continue
+            if condition.source_actor_id is None or target.actor_id != condition.source_actor_id:
+                swing -= 1
+    if swing > 0:
+        return "advantage"
+    if swing < 0:
+        return "disadvantage"
+    return "normal"
+
+
+def _consume_attack_conditions(actor: ActorState) -> ActorState:
+    return _remove_condition(actor, "inspired")
+
+
+def _mark_reaction_used(state: EncounterState, actor_id: str) -> EncounterState:
+    return replace(state, used_reactions=state.used_reactions | {actor_id})
+
+
+def _reaction_attack_action_id(actor: ActorState, ruleset: Ruleset) -> str | None:
+    for action_id in actor.action_ids:
+        action = ruleset.actions[action_id]
+        if "attack" not in action.tags:
+            continue
+        if action.range == "engaged":
+            return action_id
+    return None
+
+
+def _resolve_reaction_attacks(
+    state: EncounterState,
+    *,
+    moving_actor_id: str,
+    reactors: tuple[str, ...],
+    roller: DiceRoller,
+    ruleset: Ruleset,
+) -> EncounterState:
+    for reactor_id in reactors:
+        if reactor_id in state.used_reactions:
+            continue
+        reactor = state.actor(reactor_id)
+        target = state.actor(moving_actor_id)
+        if reactor.status in {ActorStatus.CRITICAL, ActorStatus.DEAD, ActorStatus.BROKEN}:
+            continue
+        reaction_action_id = _reaction_attack_action_id(reactor, ruleset)
+        if reaction_action_id is None:
+            continue
+        action = ruleset.actions[reaction_action_id]
+        effect = action.effect
+        if not isinstance(effect, AttackEffect):
+            continue
+        modifier, difficulty = _attack_modifier_and_difficulty(
+            state, reactor, target, effect, ruleset
+        )
+        result = _roll_check(
+            roller=roller,
+            ruleset=ruleset,
+            modifier=modifier,
+            difficulty=difficulty,
+            push=False,
+            roll_mode=_roll_mode_for_action(reactor, target, action, effect),
+        )
+        state = _mark_reaction_used(state, reactor_id)
+        if result.is_success:
+            weapon = ruleset.weapons[reactor.weapon_id] if reactor.weapon_id is not None else None
+            if weapon is None:
+                continue
+            damage_roll = roller.roll_d6(1)[0]
+            damage = (
+                weapon.damage_die if result.is_critical else min(damage_roll, weapon.damage_die)
+            )
+            updated_target = _apply_damage(target, damage, ruleset)
+            if "bleed" in weapon.tags:
+                updated_target = replace(
+                    updated_target,
+                    conditions=(
+                        *updated_target.conditions,
+                        ConditionState(id="bleeding", rounds_remaining=3),
+                    ),
+                )
+            state = update_actor(state, updated_target)
+            state = append_event(
+                state, f"{reactor_id} reacts against {moving_actor_id} for {damage}."
+            )
+        else:
+            state = append_event(
+                state, f"{reactor_id} misses a reaction attack on {moving_actor_id}."
+            )
+    return state
+
+
 def _attack_modifier_and_difficulty(
     state: EncounterState,
     actor: ActorState,
@@ -203,6 +391,15 @@ def _attack_modifier_and_difficulty(
     return modifier, difficulty
 
 
+def _move_target(
+    state: EncounterState,
+    target: ActorState,
+    destination_area: str,
+) -> EncounterState:
+    moved = update_actor(state, replace(target, area_id=destination_area, engaged_with=frozenset()))
+    return synchronize_engagements(moved)
+
+
 def _apply_action_effect(
     state: EncounterState,
     actor: ActorState,
@@ -211,8 +408,10 @@ def _apply_action_effect(
     roller: DiceRoller,
     ruleset: Ruleset,
     push: bool,
+    destination_area: str | None,
 ) -> EncounterState:
     effect = action.effect
+    roll_mode = _roll_mode_for_action(actor, target, action, effect)
     if isinstance(effect, AttackEffect):
         if actor.weapon_id is None:
             raise ValueError(f"Actor {actor.actor_id} attempted a weapon attack without a weapon.")
@@ -223,8 +422,15 @@ def _apply_action_effect(
             state, actor, target, effect, ruleset
         )
         result = _roll_check(
-            roller=roller, ruleset=ruleset, modifier=modifier, difficulty=difficulty, push=push
+            roller=roller,
+            ruleset=ruleset,
+            modifier=modifier,
+            difficulty=difficulty,
+            push=push,
+            roll_mode=roll_mode,
         )
+        actor_after = _consume_attack_conditions(state.actor(actor.actor_id))
+        state = update_actor(state, actor_after)
         if result.is_success:
             damage_roll = roller.roll_d6(1)[0]
             damage = (
@@ -251,7 +457,8 @@ def _apply_action_effect(
         if "healing_hands" in actor.talent_ids and "healing_hands" not in actor.talent_state.used:
             result = RollResult(kept=[6, 6], total=999, is_success=True, is_critical=True)
             actor = replace(
-                actor, talent_state=TalentState(used=actor.talent_state.used | {"healing_hands"})
+                actor,
+                talent_state=TalentState(used=actor.talent_state.used | {"healing_hands"}),
             )
             state = update_actor(state, actor)
         else:
@@ -261,14 +468,41 @@ def _apply_action_effect(
                 modifier=modifier,
                 difficulty=_difficulty(ruleset, effect.difficulty),
                 push=push,
+                roll_mode=roll_mode,
             )
         if result.is_success:
             amount = effect.amount + (1 if result.is_critical else 0)
             updated_target = _heal_target(target, amount, ruleset)
+            if action.id == "grit":
+                updated_target = _remove_condition(updated_target, "bleeding")
             state = update_actor(state, updated_target)
             state = append_event(state, f"{actor.actor_id} heals {target.actor_id} for {amount}.")
         else:
             state = append_event(state, f"{actor.actor_id} fails to heal {target.actor_id}.")
+    elif isinstance(effect, BuffEffect):
+        modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
+        result = _roll_check(
+            roller=roller,
+            ruleset=ruleset,
+            modifier=modifier,
+            difficulty=_difficulty(ruleset, effect.difficulty),
+            push=push,
+            roll_mode=roll_mode,
+        )
+        if result.is_success:
+            updated_target = replace(
+                target,
+                conditions=(
+                    *target.conditions,
+                    ConditionState(id=effect.condition_id, rounds_remaining=effect.duration_rounds),
+                ),
+            )
+            if result.is_critical and effect.crit_heal_amount > 0:
+                updated_target = _heal_target(updated_target, effect.crit_heal_amount, ruleset)
+            state = update_actor(state, updated_target)
+            state = append_event(state, f"{actor.actor_id} rallies {target.actor_id}.")
+        else:
+            state = append_event(state, f"{actor.actor_id} fails to rally {target.actor_id}.")
     elif isinstance(effect, StressEffect):
         modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
         result = _roll_check(
@@ -277,14 +511,15 @@ def _apply_action_effect(
             modifier=modifier,
             difficulty=_difficulty(ruleset, effect.difficulty),
             push=push,
+            roll_mode=roll_mode,
         )
-        if result.is_success:
+        if result.is_success and _uses_stress_track(target):
             updated_target = _transition_actor_state(
                 replace(target, stress=target.stress + effect.amount), ruleset
             )
             state = update_actor(state, updated_target)
             state = append_event(state, f"{actor.actor_id} rattles {target.actor_id}.")
-    elif isinstance(effect, StabilizeEffect):
+    elif isinstance(effect, DebuffAttackEffect):
         modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
         result = _roll_check(
             roller=roller,
@@ -292,51 +527,111 @@ def _apply_action_effect(
             modifier=modifier,
             difficulty=_difficulty(ruleset, effect.difficulty),
             push=push,
-        )
-        if result.is_success:
-            updated_actor = replace(
-                actor,
-                conditions=(
-                    *actor.conditions,
-                    ConditionState(id=effect.condition_id, rounds_remaining=effect.duration_rounds),
-                ),
-            )
-            state = update_actor(state, updated_actor)
-            state = append_event(state, f"{actor.actor_id} grits through the pain.")
-        else:
-            state = append_event(state, f"{actor.actor_id} fails to steady themselves.")
-    else:
-        modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
-        result = _roll_check(
-            roller=roller,
-            ruleset=ruleset,
-            modifier=modifier,
-            difficulty=_difficulty(ruleset, effect.difficulty),
-            push=push,
+            roll_mode=roll_mode,
         )
         if result.is_success:
             updated_target = replace(
                 target,
                 conditions=(
                     *target.conditions,
-                    ConditionState(id="rattled", rounds_remaining=effect.duration_rounds),
+                    ConditionState(
+                        id="rattled",
+                        rounds_remaining=effect.duration_rounds,
+                        source_actor_id=actor.actor_id,
+                    ),
                 ),
             )
             state = update_actor(state, updated_target)
             state = append_event(state, f"{actor.actor_id} rattles {target.actor_id}'s aim.")
+    elif isinstance(effect, ContestConditionEffect):
+        attacker_modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
+        defender_modifier = target.stats[effect.defense_stat]
+        result = _roll_contest(
+            roller=roller,
+            ruleset=ruleset,
+            attacker_modifier=attacker_modifier,
+            defender_modifier=defender_modifier,
+            push=push,
+            roll_mode=roll_mode,
+        )
+        if result.is_success:
+            updated_target = replace(
+                target,
+                conditions=(
+                    *target.conditions,
+                    ConditionState(id=effect.condition_id, rounds_remaining=effect.duration_rounds),
+                ),
+            )
+            state = update_actor(state, updated_target)
+            state = append_event(state, f"{actor.actor_id} puts {target.actor_id} on the ground.")
+        else:
+            state = append_event(state, f"{actor.actor_id} fails to topple {target.actor_id}.")
+    else:
+        if destination_area is None:
+            raise ValueError(f"Action {action.id} requires a destination area.")
+        if destination_area not in connected_area_ids(state, target.area_id):
+            raise ValueError(
+                f"Action {action.id} cannot move {target.actor_id} to {destination_area}."
+            )
+        if not can_enter_area(state, destination_area):
+            raise ValueError(f"Action {action.id} cannot move {target.actor_id} into a full area.")
+        attacker_modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
+        defender_modifier = target.stats[effect.defense_stat]
+        result = _roll_contest(
+            roller=roller,
+            ruleset=ruleset,
+            attacker_modifier=attacker_modifier,
+            defender_modifier=defender_modifier,
+            push=push,
+            roll_mode=roll_mode,
+        )
+        if result.is_success:
+            state = _move_target(state, target, destination_area)
+            moved_target = state.actor(target.actor_id)
+            if result.is_critical and effect.crit_condition_id is not None:
+                moved_target = replace(
+                    moved_target,
+                    conditions=(
+                        *moved_target.conditions,
+                        ConditionState(
+                            id=effect.crit_condition_id,
+                            rounds_remaining=effect.crit_duration_rounds,
+                        ),
+                    ),
+                )
+                state = update_actor(state, moved_target)
+            state = append_event(
+                state, f"{actor.actor_id} shoves {target.actor_id} to {destination_area}."
+            )
+        else:
+            state = append_event(state, f"{actor.actor_id} fails to shove {target.actor_id}.")
     if push:
         state = _run_stress_test(state, state.actor(actor.actor_id), roller, ruleset)
     return state
 
 
 def _move_actor(
-    state: EncounterState, actor: ActorState, destination_area: str, action_id: str
+    state: EncounterState,
+    actor: ActorState,
+    destination_area: str,
+    action_id: str,
+    roller: DiceRoller,
+    ruleset: Ruleset,
 ) -> EncounterState:
+    reactors: tuple[str, ...] = tuple(actor.engaged_with) if action_id == "fall_back" else tuple()
     moved_state = update_actor(
         state,
         replace(actor, area_id=destination_area, engaged_with=frozenset()),
     )
     moved_state = synchronize_engagements(moved_state)
+    if reactors:
+        moved_state = _resolve_reaction_attacks(
+            moved_state,
+            moving_actor_id=actor.actor_id,
+            reactors=reactors,
+            roller=roller,
+            ruleset=ruleset,
+        )
     verb = "falls back" if action_id == "fall_back" else "advances"
     return append_event(moved_state, f"{actor.actor_id} {verb} to {destination_area}.")
 
@@ -349,9 +644,16 @@ def resolve_action(
     if choice.action_id in {"advance", "fall_back"}:
         if choice.destination_area is None:
             raise ValueError(f"Movement action {choice.action_id} requires a destination area.")
-        return _move_actor(state, actor, choice.destination_area, choice.action_id)
+        return _move_actor(state, actor, choice.destination_area, choice.action_id, roller, ruleset)
     return _apply_action_effect(
-        state, actor, target, ruleset.actions[choice.action_id], roller, ruleset, choice.push
+        state,
+        actor,
+        target,
+        ruleset.actions[choice.action_id],
+        roller,
+        ruleset,
+        choice.push,
+        choice.destination_area,
     )
 
 
@@ -360,7 +662,6 @@ def start_turn(state: EncounterState, actor_id: str, ruleset: Ruleset) -> Encoun
     damage = sum(ruleset.conditions[condition.id].damage_per_turn for condition in actor.conditions)
     if damage > 0:
         actor = _apply_damage(actor, damage, ruleset)
-    actor = _decrement_conditions(actor)
     actor = _transition_actor_state(actor, ruleset)
     updated_state = update_actor(state, actor)
     return synchronize_engagements(updated_state)
@@ -370,35 +671,38 @@ def end_turn(
     state: EncounterState, actor_id: str, roller: DiceRoller, ruleset: Ruleset
 ) -> EncounterState:
     actor = state.actor(actor_id)
-    if not _uses_pc_death_track(actor):
-        return synchronize_engagements(state)
-    if actor.status is ActorStatus.WOUNDED:
-        result = _roll_check(
-            roller=roller,
-            ruleset=ruleset,
-            modifier=actor.stats["might"] + actor.skills.get("brace", 0),
-            difficulty=_difficulty(ruleset, ruleset.core.death.wounded_to_critical_difficulty),
-            push=False,
-        )
-        if not result.is_success:
-            actor = replace(actor, status=ActorStatus.CRITICAL)
-            state = append_event(
-                update_actor(state, actor), f"{actor.actor_id} slips into critical condition."
+    if _uses_pc_death_track(actor):
+        if actor.status is ActorStatus.WOUNDED:
+            result = _roll_check(
+                roller=roller,
+                ruleset=ruleset,
+                modifier=actor.stats["might"] + actor.skills.get("brace", 0),
+                difficulty=_difficulty(ruleset, ruleset.core.death.wounded_to_critical_difficulty),
+                push=False,
             )
-    elif actor.status is ActorStatus.CRITICAL:
-        result = _roll_check(
-            roller=roller,
-            ruleset=ruleset,
-            modifier=actor.stats["might"] + actor.skills.get("brace", 0),
-            difficulty=_difficulty(ruleset, ruleset.core.death.critical_stabilize_difficulty),
-            push=False,
-        )
-        if result.is_critical:
-            actor = replace(actor, hp=1, status=ActorStatus.WOUNDED)
-            state = append_event(update_actor(state, actor), f"{actor.actor_id} stabilizes.")
-        elif not result.is_success:
-            actor = _transition_actor_state(replace(actor, shrouds=actor.shrouds + 1), ruleset)
-            state = append_event(update_actor(state, actor), f"{actor.actor_id} gains a shroud.")
+            if not result.is_success:
+                actor = replace(actor, status=ActorStatus.CRITICAL)
+                state = append_event(
+                    update_actor(state, actor), f"{actor.actor_id} slips into critical condition."
+                )
+        elif actor.status is ActorStatus.CRITICAL:
+            result = _roll_check(
+                roller=roller,
+                ruleset=ruleset,
+                modifier=actor.stats["might"] + actor.skills.get("brace", 0),
+                difficulty=_difficulty(ruleset, ruleset.core.death.critical_stabilize_difficulty),
+                push=False,
+            )
+            if result.is_critical:
+                actor = replace(actor, hp=1, status=ActorStatus.WOUNDED)
+                state = append_event(update_actor(state, actor), f"{actor.actor_id} stabilizes.")
+            elif not result.is_success:
+                actor = _transition_actor_state(replace(actor, shrouds=actor.shrouds + 1), ruleset)
+                state = append_event(
+                    update_actor(state, actor), f"{actor.actor_id} gains a shroud."
+                )
+    actor = _decrement_conditions(actor)
+    state = update_actor(state, actor)
     return synchronize_engagements(state)
 
 

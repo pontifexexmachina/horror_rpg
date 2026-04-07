@@ -1,6 +1,6 @@
 id: four_pc_talent_showdown
 name: Four PCs Talent Showdown
-description: Talent-bearing party versus mixed finishers.
+description: Baseline party versus a durable finisher pair.
 team_a:
   - template_id: survivor
     persona_id: power_gamer

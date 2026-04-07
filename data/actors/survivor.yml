@@ -8,12 +8,14 @@ stats:
   wits: 0
 skills:
   brawl: 1
+  brawn: 1
   shoot: 2
+  stunt: 1
   brace: 1
   cure: 0
   clever: 0
   chat: 0
-actions: [attack, grit]
+actions: [attack, brawl_attack, grit, rally, shove, trip]
 weapon_id: pistol
 talents: [final_girl]
 starting_band: near

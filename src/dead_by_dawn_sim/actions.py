@@ -5,13 +5,12 @@ from dataclasses import dataclass
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
     AttackEffect,
+    ContestMoveEffect,
     HealEffect,
     Ruleset,
-    StabilizeEffect,
 )
 from dead_by_dawn_sim.state import (
     ActorState,
-    ActorStatus,
     EncounterState,
     can_enter_area,
     connected_area_ids,
@@ -46,8 +45,9 @@ def _action_is_contextually_available(
         return _has_ammo_for_attack(actor, ruleset)
     if isinstance(action.effect, HealEffect) and action.id == "first_aid":
         return actor.bandages > 0
-    if isinstance(action.effect, StabilizeEffect):
-        return actor.status is ActorStatus.WOUNDED
+    if isinstance(action.effect, HealEffect) and action.id == "grit":
+        is_bleeding = any(condition.id == "bleeding" for condition in actor.conditions)
+        return actor.hp < actor.max_hp or is_bleeding
     return True
 
 
@@ -108,23 +108,50 @@ def legal_actions_for_actor(
         if not _action_is_contextually_available(action, actor, ruleset):
             continue
         for target in state.actors.values():
-            if _can_target(state, action, actor, target, ruleset):
-                legal.append(
-                    ActionChoice(
-                        actor_id=actor_id,
-                        action_id=action_id,
-                        target_id=target.actor_id,
-                    )
-                )
-                if action.allow_push:
+            if not _can_target(state, action, actor, target, ruleset):
+                continue
+            if isinstance(action.effect, ContestMoveEffect):
+                destinations = [
+                    area_id
+                    for area_id in connected_area_ids(state, target.area_id)
+                    if can_enter_area(state, area_id)
+                ]
+                for destination_area in destinations:
                     legal.append(
                         ActionChoice(
                             actor_id=actor_id,
                             action_id=action_id,
                             target_id=target.actor_id,
-                            push=True,
+                            destination_area=destination_area,
                         )
                     )
+                    if action.allow_push:
+                        legal.append(
+                            ActionChoice(
+                                actor_id=actor_id,
+                                action_id=action_id,
+                                target_id=target.actor_id,
+                                push=True,
+                                destination_area=destination_area,
+                            )
+                        )
+                continue
+            legal.append(
+                ActionChoice(
+                    actor_id=actor_id,
+                    action_id=action_id,
+                    target_id=target.actor_id,
+                )
+            )
+            if action.allow_push:
+                legal.append(
+                    ActionChoice(
+                        actor_id=actor_id,
+                        action_id=action_id,
+                        target_id=target.actor_id,
+                        push=True,
+                    )
+                )
     move_targets = [
         area_id
         for area_id in connected_area_ids(state, actor.area_id)

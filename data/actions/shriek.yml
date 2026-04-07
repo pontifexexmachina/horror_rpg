@@ -1,9 +1,9 @@
 id: shriek
 name: Shriek
-action_cost: 1
+action_cost: 2
 tags: [stress, control]
-range: enemy
-allow_push: false
+range: far
+allow_push: true
 effect:
   type: stress
   amount: 2
@@ -11,3 +11,4 @@ effect:
   stat: wits
   skill: clever
   target: enemy
+

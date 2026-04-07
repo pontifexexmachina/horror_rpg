@@ -1,0 +1,5 @@
+id: inspired
+name: Inspired
+tags: [attack_buff]
+damage_per_turn: 0
+attack_modifier: 0

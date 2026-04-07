@@ -12,6 +12,7 @@ from dead_by_dawn_sim.rules import (
     DeathMode,
     ObjectiveDefinition,
     Ruleset,
+    StressMode,
 )
 
 
@@ -27,6 +28,7 @@ class ActorStatus(str, Enum):
 class ConditionState:
     id: str
     rounds_remaining: int
+    source_actor_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -60,6 +62,7 @@ class ActorState:
     talent_state: TalentState
     conditions: tuple[ConditionState, ...]
     death_mode: DeathMode
+    stress_mode: StressMode
     area_id: str
     engaged_with: frozenset[str]
 
@@ -78,6 +81,7 @@ class EncounterState:
     round_number: int
     initiative_order: tuple[str, ...]
     active_actor_id: str | None
+    used_reactions: frozenset[str] = field(default_factory=frozenset)
     winner: str | None = None
     events: tuple[str, ...] = field(default_factory=tuple)
 
@@ -188,7 +192,7 @@ def build_actor_state(
         hp=max_hp,
         max_hp=max_hp,
         defense=defense,
-        stress=ruleset.core.stress.starting,
+        stress=ruleset.core.stress.starting if template.stress_mode == "track" else 0,
         shrouds=0,
         status=ActorStatus.NORMAL,
         weapon_id=template.weapon_id,
@@ -200,6 +204,7 @@ def build_actor_state(
         talent_state=TalentState(),
         conditions=tuple(),
         death_mode=template.death_mode,
+        stress_mode=template.stress_mode,
         area_id=start_area,
         engaged_with=frozenset(),
     )

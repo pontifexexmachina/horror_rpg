@@ -8,15 +8,18 @@ stats:
   wits: -1
 skills:
   brawl: 2
+  brawn: 2
   shoot: 0
+  stunt: 1
   brace: 1
   cure: 0
   clever: 0
   chat: 0
-actions: [brawl_attack]
+actions: [brawl_attack, shove, trip]
 weapon_id: claws
 talents: []
 death_mode: die_at_zero
+stress_mode: ignore
 starting_band: near
 starting_ammo: {}
 starting_bandages: 0

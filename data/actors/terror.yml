@@ -8,7 +8,9 @@ stats:
   wits: 2
 skills:
   brawl: 0
+  brawn: 0
   shoot: 0
+  stunt: 0
   brace: 0
   cure: 0
   clever: 2
@@ -17,6 +19,7 @@ actions: [shriek]
 weapon_id: null
 talents: []
 death_mode: die_at_zero
+stress_mode: ignore
 starting_band: far
 starting_ammo: {}
 starting_bandages: 0

@@ -61,6 +61,17 @@ class HealEffect(BaseModel):
     target: Literal["self", "ally"]
 
 
+class BuffEffect(BaseModel):
+    type: Literal["buff"]
+    difficulty: Literal["challenging", "formidable"]
+    stat: Literal["might", "speed", "wits"]
+    skill: str
+    target: Literal["ally", "self"]
+    condition_id: str
+    duration_rounds: int
+    crit_heal_amount: int = 0
+
+
 class StressEffect(BaseModel):
     type: Literal["stress"]
     amount: int
@@ -80,17 +91,35 @@ class DebuffAttackEffect(BaseModel):
     target: Literal["enemy"]
 
 
-class StabilizeEffect(BaseModel):
-    type: Literal["stabilize"]
-    difficulty: Literal["challenging", "formidable"]
+class ContestConditionEffect(BaseModel):
+    type: Literal["contest_condition"]
     stat: Literal["might", "speed", "wits"]
     skill: str
-    target: Literal["self"]
+    target: Literal["enemy"]
+    defense_stat: Literal["might", "speed", "wits"]
     condition_id: str
     duration_rounds: int
 
 
-ActionEffect = AttackEffect | HealEffect | StressEffect | DebuffAttackEffect | StabilizeEffect
+class ContestMoveEffect(BaseModel):
+    type: Literal["contest_move"]
+    stat: Literal["might", "speed", "wits"]
+    skill: str
+    target: Literal["enemy"]
+    defense_stat: Literal["might", "speed", "wits"]
+    crit_condition_id: str | None = None
+    crit_duration_rounds: int = 0
+
+
+ActionEffect = (
+    AttackEffect
+    | HealEffect
+    | BuffEffect
+    | StressEffect
+    | DebuffAttackEffect
+    | ContestConditionEffect
+    | ContestMoveEffect
+)
 
 
 class ActionDefinition(BaseModel):
@@ -133,6 +162,7 @@ class TalentDefinition(BaseModel):
 
 
 DeathMode = Literal["pc_track", "die_at_zero"]
+StressMode = Literal["track", "ignore"]
 
 
 class ActorTemplate(BaseModel):
@@ -146,6 +176,7 @@ class ActorTemplate(BaseModel):
     weapon_id: str | None = None
     talents: list[str] = Field(default_factory=list)
     death_mode: DeathMode = "pc_track"
+    stress_mode: StressMode = "track"
     starting_band: Literal["engaged", "near", "far"] = "near"
     starting_ammo: dict[str, int] = Field(default_factory=dict)
     starting_bandages: int = 0
@@ -293,13 +324,14 @@ def validate_ruleset(ruleset: Ruleset) -> None:
             if talent_id not in ruleset.talents:
                 raise ValueError(f"Actor {actor.id} references unknown talent {talent_id}.")
     for action in ruleset.actions.values():
-        if (
-            isinstance(action.effect, StabilizeEffect)
-            and action.effect.condition_id not in ruleset.conditions
-        ):
-            raise ValueError(
-                f"Action {action.id} references unknown condition {action.effect.condition_id}."
-            )
+        effect = action.effect
+        condition_id = None
+        if isinstance(effect, BuffEffect | ContestConditionEffect):
+            condition_id = effect.condition_id
+        elif isinstance(effect, ContestMoveEffect):
+            condition_id = effect.crit_condition_id
+        if condition_id is not None and condition_id not in ruleset.conditions:
+            raise ValueError(f"Action {action.id} references unknown condition {condition_id}.")
     for scenario in ruleset.scenarios.values():
         area_ids = [area.id for area in scenario.areas]
         if len(area_ids) != len(set(area_ids)):

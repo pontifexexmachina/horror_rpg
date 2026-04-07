@@ -54,3 +54,12 @@ https://thealexandrian.net/wordpress/43843/roleplaying-games/ptolus-running-the-
 https://drolleries.substack.com/p/skills-for-everything-and-the-fruitful
 
 https://seanmccoy.substack.com/p/violent-encounters
+
+https://tao-dnd.blogspot.com/2011/02/fetishizing-suboptimal.html
+
+https://www.graycastlepress.com/progress-clocks-dnd/
+http://www.realityrefracted.com/2019/08/mechanics-worth-stealing-progress-clocks.html
+https://www.domainofmanythings.com/blog/progress-clocks-for-ttrpgs -- love the design of this site btw
+https://sidrdesai.substack.com/p/mechanics-to-steal-clocks
+
+https://www.prismaticwasteland.com/blog/drinking-problems-the-trouble-with-alcohol-rules-in-games

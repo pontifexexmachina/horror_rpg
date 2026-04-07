@@ -1,0 +1,15 @@
+id: trip
+name: Trip
+action_cost: 1
+tags: [control, setup]
+range: engaged
+allow_push: true
+effect:
+  type: contest_condition
+  stat: speed
+  skill: stunt
+  target: enemy
+  defense_stat: speed
+  condition_id: prone
+  duration_rounds: 1
+

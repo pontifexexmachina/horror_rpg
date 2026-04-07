@@ -62,6 +62,22 @@ class EncounterResult:
     events: tuple[str, ...]
 
 
+def _choice_action_cost(choice: ActionChoice, ruleset: Ruleset) -> int:
+    if choice.action_id in {"advance", "fall_back"}:
+        return 1
+    return ruleset.actions[choice.action_id].action_cost
+
+
+def _affordable_actions(
+    legal_actions: list[ActionChoice], ruleset: Ruleset, remaining_actions: int
+) -> list[ActionChoice]:
+    return [
+        choice
+        for choice in legal_actions
+        if _choice_action_cost(choice, ruleset) <= remaining_actions
+    ]
+
+
 class EncounterRunner:
     def __init__(self, ruleset: Ruleset) -> None:
         self.ruleset = ruleset
@@ -127,6 +143,7 @@ class EncounterRunner:
             round_number=1,
             initiative_order=initiative,
             active_actor_id=None,
+            used_reactions=frozenset(),
         )
         state = synchronize_engagements(state)
         state = append_event(
@@ -196,6 +213,7 @@ class EncounterRunner:
                 round_number=round_number,
                 initiative_order=state.initiative_order,
                 active_actor_id=state.active_actor_id,
+                used_reactions=frozenset(),
                 winner=state.winner,
                 events=state.events,
             )
@@ -221,16 +239,22 @@ class EncounterRunner:
                     state = end_turn(state, actor_id, roller, self.ruleset)
                     continue
                 persona = PERSONA_REGISTRY[metadata[actor_id].persona_id]
-                for _ in range(actions_per_turn(state, actor_id, self.ruleset)):
+                remaining_actions = actions_per_turn(state, actor_id, self.ruleset)
+                while remaining_actions > 0:
                     legal_actions = legal_actions_for_actor(state, actor_id, self.ruleset)
-                    if not legal_actions:
+                    affordable_actions = _affordable_actions(
+                        legal_actions, self.ruleset, remaining_actions
+                    )
+                    if not affordable_actions:
                         break
-                    choice = persona.choose_action(legal_actions, state, self.ruleset)
+                    choice = persona.choose_action(affordable_actions, state, self.ruleset)
+                    action_cost = _choice_action_cost(choice, self.ruleset)
                     action_counts[choice.action_id] = action_counts.get(choice.action_id, 0) + 1
                     if choice.push:
                         push_count += 1
                     previous_state = state
                     state = resolve_action(state, choice, roller, self.ruleset)
+                    remaining_actions -= action_cost
                     contributions[choice.actor_id] = self._accumulate_contribution(
                         contributions[choice.actor_id],
                         choice=choice,

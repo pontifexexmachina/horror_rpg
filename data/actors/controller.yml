@@ -8,15 +8,18 @@ stats:
   wits: 1
 skills:
   brawl: 1
+  brawn: 1
   shoot: 0
+  stunt: 1
   brace: 1
   cure: 0
   clever: 1
   chat: 2
-actions: [brawl_attack, taunt]
+actions: [brawl_attack, taunt, shove, trip]
 weapon_id: bat
 talents: []
 death_mode: die_at_zero
+stress_mode: ignore
 starting_band: near
 starting_ammo: {}
 starting_bandages: 0
