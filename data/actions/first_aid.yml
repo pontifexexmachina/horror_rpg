@@ -21,3 +21,7 @@ procedure:
       target: target
       amount: 1
       when: success
+    - type: heal
+      target: target
+      amount: 1
+      when: critical
