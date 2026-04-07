@@ -5,10 +5,10 @@ from dataclasses import dataclass
 from dead_by_dawn_sim.combat_support import attack_weapon, has_condition
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
-    AttackEffect,
-    ContestMoveEffect,
-    HealEffect,
     Ruleset,
+    action_target_mode,
+    attack_step_for_action,
+    requires_destination_choice,
 )
 from dead_by_dawn_sim.state import (
     ActorState,
@@ -28,8 +28,13 @@ class ActionChoice:
     destination_area: str | None = None
 
 
-def _has_ammo_for_attack(actor: ActorState, attack: AttackEffect, ruleset: Ruleset) -> bool:
-    weapon = attack_weapon(attack, actor, ruleset)
+def _has_ammo_for_attack(actor: ActorState, attack: ActionDefinition, ruleset: Ruleset) -> bool:
+    step = attack_step_for_action(attack)
+    if step is None:
+        return False
+    from dead_by_dawn_sim.rules import attack_effect_from_step
+
+    weapon = attack_weapon(attack_effect_from_step(step), actor, ruleset)
     if weapon is None:
         return False
     if weapon.ammo_kind is None:
@@ -42,11 +47,12 @@ def _action_is_contextually_available(
     actor: ActorState,
     ruleset: Ruleset,
 ) -> bool:
-    if isinstance(action.effect, AttackEffect) and action.effect.skill == "shoot":
-        return _has_ammo_for_attack(actor, action.effect, ruleset)
-    if isinstance(action.effect, HealEffect) and action.id == "first_aid":
+    attack_step = attack_step_for_action(action)
+    if attack_step is not None and attack_step.skill == "shoot":
+        return _has_ammo_for_attack(actor, action, ruleset)
+    if action.id == "first_aid":
         return actor.bandages > 0
-    if isinstance(action.effect, HealEffect) and action.id == "grit":
+    if action.id == "grit":
         is_bleeding = any(condition.id == "bleeding" for condition in actor.conditions)
         return actor.hp < actor.max_hp or is_bleeding
     return True
@@ -67,7 +73,7 @@ def _can_target(
     target: ActorState,
     ruleset: Ruleset,
 ) -> bool:
-    target_mode = getattr(action.effect, "target", "enemy")
+    target_mode = action_target_mode(action)
     if target_mode == "ally" and actor.team != target.team:
         return False
     if target_mode == "enemy" and actor.team == target.team:
@@ -85,8 +91,11 @@ def _can_target(
     if action.range == "far":
         return _is_same_area(actor, target) or _is_connected_target(state, actor, target)
     if action.range == "enemy":
-        if isinstance(action.effect, AttackEffect):
-            weapon = attack_weapon(action.effect, actor, ruleset)
+        attack_step = attack_step_for_action(action)
+        if attack_step is not None:
+            from dead_by_dawn_sim.rules import attack_effect_from_step
+
+            weapon = attack_weapon(attack_effect_from_step(attack_step), actor, ruleset)
             if weapon is None:
                 return False
             if weapon.max_range == "engaged":
@@ -113,7 +122,7 @@ def legal_actions_for_actor(
         for target in state.actors.values():
             if not _can_target(state, action, actor, target, ruleset):
                 continue
-            if isinstance(action.effect, ContestMoveEffect):
+            if requires_destination_choice(action):
                 destinations = [
                     area_id
                     for area_id in connected_area_ids(state, target.area_id)

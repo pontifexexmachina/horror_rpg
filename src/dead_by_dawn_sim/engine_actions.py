@@ -12,7 +12,12 @@ from dead_by_dawn_sim.engine_effect_handlers import (
     roll_mode_for_action,
 )
 from dead_by_dawn_sim.engine_rolls import roll_check
-from dead_by_dawn_sim.rules import ActionDefinition, AttackEffect, Ruleset
+from dead_by_dawn_sim.rules import (
+    ActionDefinition,
+    Ruleset,
+    attack_effect_from_step,
+    attack_step_for_action,
+)
 from dead_by_dawn_sim.state import (
     ActorState,
     ActorStatus,
@@ -61,9 +66,10 @@ def _resolve_reaction_attacks(
         if reaction_action_id is None:
             continue
         action = ruleset.actions[reaction_action_id]
-        effect = action.effect
-        if not isinstance(effect, AttackEffect):
+        attack_step = attack_step_for_action(action)
+        if attack_step is None:
             continue
+        effect = attack_effect_from_step(attack_step)
         modifier, difficulty = attack_modifier_and_difficulty(
             state, reactor, target, effect, ruleset
         )
@@ -73,7 +79,7 @@ def _resolve_reaction_attacks(
             modifier=modifier,
             difficulty=difficulty,
             push=False,
-            roll_mode=roll_mode_for_action(reactor, target, effect),
+            roll_mode=roll_mode_for_action(action, reactor, target),
         )
         state = _mark_reaction_used(state, reactor_id)
         if result.is_success:

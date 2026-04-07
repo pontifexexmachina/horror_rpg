@@ -52,6 +52,8 @@ def _validate_action_procedure(ruleset: Ruleset, action_id: str) -> None:
 
 def _validate_actions(ruleset: Ruleset) -> None:
     for action in ruleset.actions.values():
+        if action.procedure is None:
+            raise ValueError(f"Action {action.id} is missing a declarative procedure.")
         effect = action.effect
         condition_id = None
         if isinstance(effect, BuffEffect | ContestConditionEffect | RemoveConditionEffect):

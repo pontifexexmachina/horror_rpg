@@ -14,7 +14,7 @@ from dead_by_dawn_sim.engine import (
     start_turn,
 )
 from dead_by_dawn_sim.personas import PERSONA_REGISTRY
-from dead_by_dawn_sim.rules import AttackEffect, Ruleset, ScenarioSideEntry
+from dead_by_dawn_sim.rules import Ruleset, ScenarioSideEntry, attack_step_for_action
 from dead_by_dawn_sim.state import (
     ActorState,
     ActorStatus,
@@ -82,7 +82,7 @@ def _affordable_actions(
 def _is_attack_choice(choice: ActionChoice, ruleset: Ruleset) -> bool:
     if choice.action_id in {"advance", "fall_back", "stand_up"}:
         return False
-    return isinstance(ruleset.actions[choice.action_id].effect, AttackEffect)
+    return attack_step_for_action(ruleset.actions[choice.action_id]) is not None
 
 
 class EncounterRunner:

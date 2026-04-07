@@ -242,6 +242,52 @@ class ActionDefinition(BaseModel):
     procedure: ActionProcedure | None = None
 
 
+def attack_step_for_action(action: ActionDefinition) -> AttackRollStep | None:
+    if action.procedure is not None:
+        for step in action.procedure.steps:
+            if isinstance(step, AttackRollStep):
+                return step
+    if isinstance(action.effect, AttackEffect):
+        return AttackRollStep(
+            type="attack",
+            uses_weapon=action.effect.uses_weapon,
+            weapon_id=action.effect.weapon_id,
+            stat=action.effect.stat,
+            skill=action.effect.skill,
+        )
+    return None
+
+
+def attack_effect_from_step(step: AttackRollStep) -> AttackEffect:
+    return AttackEffect(
+        type="attack",
+        uses_weapon=step.uses_weapon,
+        weapon_id=step.weapon_id,
+        stat=step.stat,
+        skill=step.skill,
+    )
+
+
+def action_target_mode(action: ActionDefinition) -> Literal["self", "ally", "enemy"]:
+    if action.range == "self":
+        return "self"
+    if action.range == "ally":
+        return "ally"
+    return "enemy"
+
+
+def requires_destination_choice(action: ActionDefinition) -> bool:
+    if action.procedure is not None:
+        return any(isinstance(step, MoveTargetStep) for step in action.procedure.steps)
+    return isinstance(action.effect, ContestMoveEffect)
+
+
+def action_has_heal_steps(action: ActionDefinition) -> bool:
+    if action.procedure is not None:
+        return any(isinstance(step, ApplyHealingStep) for step in action.procedure.steps)
+    return isinstance(action.effect, HealEffect)
+
+
 class ConditionDefinition(BaseModel):
     id: str
     name: str

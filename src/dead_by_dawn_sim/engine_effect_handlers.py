@@ -23,27 +23,20 @@ from dead_by_dawn_sim.engine_state import (
 )
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
-    ActionEffect,
     ApplyAttackModifierStep,
     ApplyConditionStep,
     ApplyHealingStep,
     ApplyStressStep,
     AttackEffect,
     AttackRollStep,
-    BuffEffect,
     CheckRollStep,
     ClearConditionStep,
-    ContestConditionEffect,
-    ContestDebuffEffect,
-    ContestMoveEffect,
     ContestRollStep,
-    DebuffAttackEffect,
-    HealEffect,
     MoveTargetStep,
-    RemoveConditionEffect,
     Ruleset,
-    StressEffect,
     WeaponDefinition,
+    action_has_heal_steps,
+    attack_effect_from_step,
 )
 from dead_by_dawn_sim.state import (
     ActorState,
@@ -67,7 +60,6 @@ class ActionResolutionContext:
     actor: ActorState
     target: ActorState
     action: ActionDefinition
-    effect: ActionEffect
     roller: DiceRoller
     ruleset: Ruleset
     push: bool
@@ -87,18 +79,16 @@ class ActionResolutionContext:
         push: bool,
         destination_area: str | None,
     ) -> ActionResolutionContext:
-        effect = action.effect
         return cls(
             state=state,
             actor=actor,
             target=target,
             action=action,
-            effect=effect,
             roller=roller,
             ruleset=ruleset,
             push=push,
             destination_area=destination_area,
-            roll_mode=roll_mode_for_action(actor, target, effect),
+            roll_mode=roll_mode_for_action(action, actor, target),
         )
 
     def with_state(self, state: EncounterState) -> ActionResolutionContext:
@@ -147,17 +137,18 @@ def _ranged_concealment_penalty(
 
 
 def roll_mode_for_action(
+    action: ActionDefinition,
     actor: ActorState,
     target: ActorState,
-    effect: ActionEffect,
 ) -> RollMode:
     swing = 0
-    if isinstance(effect, AttackEffect):
+    procedure = action.procedure
+    if procedure is not None and any(isinstance(step, AttackRollStep) for step in procedure.steps):
         if has_condition(actor, "inspired") or has_condition(actor, "feinting"):
             swing += 1
         if has_condition(target, "prone"):
             swing += 1
-    if getattr(effect, "target", None) == "enemy":
+    if action.range in {"engaged", "enemy", "far", "near"}:
         for condition in actor.conditions:
             if condition.id != "rattled":
                 continue
@@ -277,50 +268,6 @@ def apply_attack_hit(
     return append_event(state, event.format(damage=damage))
 
 
-def _resolve_skill_effect_result(
-    effect: BuffEffect | StressEffect | DebuffAttackEffect,
-    *,
-    actor: ActorState,
-    roller: DiceRoller,
-    ruleset: Ruleset,
-    push: bool,
-    roll_mode: RollMode,
-) -> RollResult:
-    return _resolve_effect_check(
-        actor=actor,
-        stat=effect.stat,
-        skill=effect.skill,
-        difficulty_name=effect.difficulty,
-        roller=roller,
-        ruleset=ruleset,
-        push=push,
-        roll_mode=roll_mode,
-    )
-
-
-def _resolve_contest_effect_result(
-    effect: ContestDebuffEffect | ContestConditionEffect | ContestMoveEffect,
-    *,
-    actor: ActorState,
-    target: ActorState,
-    roller: DiceRoller,
-    ruleset: Ruleset,
-    push: bool,
-    roll_mode: RollMode,
-) -> ContestResult:
-    return _resolve_effect_contest(
-        actor=actor,
-        target=target,
-        stat=effect.stat,
-        skill=effect.skill,
-        defense_stat=effect.defense_stat,
-        roller=roller,
-        ruleset=ruleset,
-        push=push,
-        roll_mode=roll_mode,
-    )
-
-
 def _apply_rattled(
     state: EncounterState,
     *,
@@ -345,19 +292,6 @@ def _move_target(
 ) -> EncounterState:
     moved = update_actor(state, replace(target, area_id=destination_area, engaged_with=frozenset()))
     return synchronize_engagements(moved)
-
-
-def _apply_condition_result(
-    state: EncounterState,
-    *,
-    actor: ActorState,
-    target: ActorState,
-    result: RollResult | ContestResult,
-    duration_rounds: int,
-) -> EncounterState:
-    if not result.is_success:
-        return state
-    return _apply_rattled(state, actor=actor, target=target, duration_rounds=duration_rounds)
 
 
 @dataclass(frozen=True)
@@ -406,13 +340,6 @@ def _procedure_result_applies(
     return last_roll.is_critical
 
 
-def _procedure_has_heal_steps(action: ActionDefinition) -> bool:
-    procedure = action.procedure
-    if procedure is None:
-        return False
-    return any(isinstance(step, ApplyHealingStep) for step in procedure.steps)
-
-
 def _auto_critical_heal_result(
     ctx: ActionResolutionContext, actor: ActorState
 ) -> tuple[EncounterState, ActorState, RollResult]:
@@ -436,7 +363,7 @@ def _run_check_step(
         actor = _spend_bandage(actor)
         state = update_actor(state, actor)
     if (
-        _procedure_has_heal_steps(ctx.action)
+        action_has_heal_steps(ctx.action)
         and "healing_hands" in actor.talent_ids
         and "healing_hands" not in actor.talent_state.used
     ):
@@ -494,13 +421,7 @@ def _run_attack_step(
     resolution: ProcedureResolution,
     step: AttackRollStep,
 ) -> ProcedureResolution:
-    effect = AttackEffect(
-        type="attack",
-        uses_weapon=step.uses_weapon,
-        weapon_id=step.weapon_id,
-        stat=step.stat,
-        skill=step.skill,
-    )
+    effect = attack_effect_from_step(step)
     weapon = attack_weapon(effect, resolution.actor, ctx.ruleset)
     if weapon is None:
         raise ValueError(f"Actor {resolution.actor.actor_id} attempted an attack without a weapon.")
@@ -617,6 +538,20 @@ def _run_attack_modifier_step(
     )
 
 
+def _validate_move_destination(ctx: ActionResolutionContext) -> str:
+    if ctx.destination_area is None:
+        raise ValueError(f"Action {ctx.action.id} requires a destination area.")
+    if ctx.destination_area not in connected_area_ids(ctx.state, ctx.target.area_id):
+        raise ValueError(
+            f"Action {ctx.action.id} cannot move {ctx.target.actor_id} to {ctx.destination_area}."
+        )
+    if not can_enter_area(ctx.state, ctx.destination_area):
+        raise ValueError(
+            f"Action {ctx.action.id} cannot move {ctx.target.actor_id} into a full area."
+        )
+    return ctx.destination_area
+
+
 def _run_clear_condition_step(
     resolution: ProcedureResolution,
     step: ClearConditionStep,
@@ -698,8 +633,7 @@ def _finalize_procedure_action(
 
 def _resolve_procedure(ctx: ActionResolutionContext) -> EncounterState:
     procedure = ctx.action.procedure
-    if procedure is None:
-        return _resolve_effect(ctx)
+    assert procedure is not None
     before = ProcedureResolution.build(ctx)
     resolution = before
     for step in procedure.steps:
@@ -724,277 +658,6 @@ def _resolve_procedure(ctx: ActionResolutionContext) -> EncounterState:
     return _finalize_procedure_action(ctx, before, resolution)
 
 
-def _handle_attack_effect(ctx: ActionResolutionContext, effect: AttackEffect) -> EncounterState:
-    weapon = attack_weapon(effect, ctx.actor, ctx.ruleset)
-    if weapon is None:
-        raise ValueError(f"Actor {ctx.actor.actor_id} attempted an attack without a weapon.")
-    actor = (
-        _spend_attack_resource(ctx.actor, effect, ctx.ruleset)
-        if effect.skill == "shoot"
-        else ctx.actor
-    )
-    state = update_actor(ctx.state, actor)
-    modifier, difficulty = attack_modifier_and_difficulty(
-        state, actor, ctx.target, effect, ctx.ruleset
-    )
-    result = roll_check(
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        modifier=modifier,
-        difficulty=difficulty,
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    actor_after = _consume_attack_conditions(state.actor(actor.actor_id))
-    state = update_actor(state, actor_after)
-    if result.is_success:
-        return apply_attack_hit(
-            state,
-            target=ctx.target,
-            weapon=weapon,
-            roller=ctx.roller,
-            ruleset=ctx.ruleset,
-            critical=result.is_critical,
-            event=f"{ctx.actor.actor_id} hits {ctx.target.actor_id} for {{damage}}.",
-        )
-    return append_event(state, f"{ctx.actor.actor_id} misses {ctx.target.actor_id}.")
-
-
-def _resolve_heal_result(
-    ctx: ActionResolutionContext, effect: HealEffect
-) -> tuple[EncounterState, ActorState, RollResult]:
-    actor = ctx.actor
-    state = ctx.state
-    if ctx.action.id == "first_aid":
-        actor = _spend_bandage(actor)
-        state = update_actor(state, actor)
-    modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
-    if "healing_hands" in actor.talent_ids and "healing_hands" not in actor.talent_state.used:
-        result = RollResult(kept=[6, 6], total=999, is_success=True, is_critical=True)
-        actor = replace(
-            actor,
-            talent_state=TalentState(used=actor.talent_state.used | {"healing_hands"}),
-        )
-        state = update_actor(state, actor)
-        return state, actor, result
-    result = roll_check(
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        modifier=modifier,
-        difficulty=difficulty_value(ctx.ruleset, effect.difficulty),
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    return state, actor, result
-
-
-def _handle_heal_effect(ctx: ActionResolutionContext, effect: HealEffect) -> EncounterState:
-    state, actor, result = _resolve_heal_result(ctx, effect)
-    if not result.is_success:
-        return append_event(state, f"{actor.actor_id} fails to heal {ctx.target.actor_id}.")
-    amount = effect.amount + (1 if result.is_critical else 0)
-    updated_target = heal_target(ctx.target, amount, ctx.ruleset)
-    if ctx.action.id == "grit":
-        updated_target = remove_condition(updated_target, "bleeding")
-    state = update_actor(state, updated_target)
-    return append_event(state, f"{actor.actor_id} heals {ctx.target.actor_id} for {amount}.")
-
-
-def _handle_buff_effect(ctx: ActionResolutionContext, effect: BuffEffect) -> EncounterState:
-    result = _resolve_skill_effect_result(
-        effect,
-        actor=ctx.actor,
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    if not result.is_success:
-        return append_event(
-            ctx.state, f"{ctx.actor.actor_id} fails to rally {ctx.target.actor_id}."
-        )
-    updated_target = replace(
-        ctx.target,
-        conditions=(
-            *ctx.target.conditions,
-            ConditionState(id=effect.condition_id, rounds_remaining=effect.duration_rounds),
-        ),
-    )
-    if result.is_critical and effect.crit_heal_amount > 0:
-        updated_target = heal_target(updated_target, effect.crit_heal_amount, ctx.ruleset)
-    state = update_actor(ctx.state, updated_target)
-    return append_event(state, f"{ctx.actor.actor_id} rallies {ctx.target.actor_id}.")
-
-
-def _handle_stress_effect(ctx: ActionResolutionContext, effect: StressEffect) -> EncounterState:
-    result = _resolve_skill_effect_result(
-        effect,
-        actor=ctx.actor,
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    if not result.is_success or not uses_stress_track(ctx.target):
-        return ctx.state
-    updated_target = transition_actor_state(
-        replace(ctx.target, stress=ctx.target.stress + effect.amount), ctx.ruleset
-    )
-    state = update_actor(ctx.state, updated_target)
-    return append_event(state, f"{ctx.actor.actor_id} rattles {ctx.target.actor_id}.")
-
-
-def _handle_debuff_attack_effect(
-    ctx: ActionResolutionContext, effect: DebuffAttackEffect
-) -> EncounterState:
-    result = _resolve_skill_effect_result(
-        effect,
-        actor=ctx.actor,
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    return _apply_condition_result(
-        ctx.state,
-        actor=ctx.actor,
-        target=ctx.target,
-        result=result,
-        duration_rounds=effect.duration_rounds,
-    )
-
-
-def _handle_contest_debuff_effect(
-    ctx: ActionResolutionContext, effect: ContestDebuffEffect
-) -> EncounterState:
-    result = _resolve_contest_effect_result(
-        effect,
-        actor=ctx.actor,
-        target=ctx.target,
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    return _apply_condition_result(
-        ctx.state,
-        actor=ctx.actor,
-        target=ctx.target,
-        result=result,
-        duration_rounds=effect.duration_rounds,
-    )
-
-
-def _handle_remove_condition_effect(
-    ctx: ActionResolutionContext, effect: RemoveConditionEffect
-) -> EncounterState:
-    updated_actor = remove_condition(ctx.actor, effect.condition_id)
-    state = update_actor(ctx.state, updated_actor)
-    return append_event(state, f"{ctx.actor.actor_id} stands up.")
-
-
-def _handle_contest_condition_effect(
-    ctx: ActionResolutionContext, effect: ContestConditionEffect
-) -> EncounterState:
-    result = _resolve_contest_effect_result(
-        effect,
-        actor=ctx.actor,
-        target=ctx.target,
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    if not result.is_success:
-        return append_event(
-            ctx.state, f"{ctx.actor.actor_id} fails to topple {ctx.target.actor_id}."
-        )
-    recipient = ctx.actor if effect.apply_to == "self" else ctx.target
-    updated_recipient = _append_condition(
-        recipient,
-        effect.condition_id,
-        effect.duration_rounds,
-    )
-    state = update_actor(ctx.state, updated_recipient)
-    if effect.apply_to == "self":
-        return append_event(state, f"{ctx.actor.actor_id} feints against {ctx.target.actor_id}.")
-    return append_event(state, f"{ctx.actor.actor_id} puts {ctx.target.actor_id} on the ground.")
-
-
-def _validate_move_destination(ctx: ActionResolutionContext) -> str:
-    if ctx.destination_area is None:
-        raise ValueError(f"Action {ctx.action.id} requires a destination area.")
-    if ctx.destination_area not in connected_area_ids(ctx.state, ctx.target.area_id):
-        raise ValueError(
-            f"Action {ctx.action.id} cannot move {ctx.target.actor_id} to {ctx.destination_area}."
-        )
-    if not can_enter_area(ctx.state, ctx.destination_area):
-        raise ValueError(
-            f"Action {ctx.action.id} cannot move {ctx.target.actor_id} into a full area."
-        )
-    return ctx.destination_area
-
-
-def _handle_contest_move_effect(
-    ctx: ActionResolutionContext, effect: ContestMoveEffect
-) -> EncounterState:
-    destination_area = _validate_move_destination(ctx)
-    result = _resolve_contest_effect_result(
-        effect,
-        actor=ctx.actor,
-        target=ctx.target,
-        roller=ctx.roller,
-        ruleset=ctx.ruleset,
-        push=ctx.push,
-        roll_mode=ctx.roll_mode,
-    )
-    if not result.is_success:
-        return append_event(
-            ctx.state, f"{ctx.actor.actor_id} fails to shove {ctx.target.actor_id}."
-        )
-    state = _move_target(ctx.state, ctx.target, destination_area)
-    moved_target = state.actor(ctx.target.actor_id)
-    if result.is_critical and effect.crit_condition_id is not None:
-        moved_target = replace(
-            moved_target,
-            conditions=(
-                *moved_target.conditions,
-                ConditionState(
-                    id=effect.crit_condition_id,
-                    rounds_remaining=effect.crit_duration_rounds,
-                ),
-            ),
-        )
-        state = update_actor(state, moved_target)
-    return append_event(
-        state, f"{ctx.actor.actor_id} shoves {ctx.target.actor_id} to {destination_area}."
-    )
-
-
-def _resolve_effect(ctx: ActionResolutionContext) -> EncounterState:
-    effect = ctx.effect
-    state: EncounterState
-    if isinstance(effect, AttackEffect):
-        state = _handle_attack_effect(ctx, effect)
-    elif isinstance(effect, HealEffect):
-        state = _handle_heal_effect(ctx, effect)
-    elif isinstance(effect, BuffEffect):
-        state = _handle_buff_effect(ctx, effect)
-    elif isinstance(effect, StressEffect):
-        state = _handle_stress_effect(ctx, effect)
-    elif isinstance(effect, DebuffAttackEffect):
-        state = _handle_debuff_attack_effect(ctx, effect)
-    elif isinstance(effect, ContestDebuffEffect):
-        state = _handle_contest_debuff_effect(ctx, effect)
-    elif isinstance(effect, RemoveConditionEffect):
-        state = _handle_remove_condition_effect(ctx, effect)
-    elif isinstance(effect, ContestConditionEffect):
-        state = _handle_contest_condition_effect(ctx, effect)
-    else:
-        state = _handle_contest_move_effect(ctx, effect)
-    return state
-
-
 def apply_action_effect(
     state: EncounterState,
     actor: ActorState,
@@ -1015,7 +678,7 @@ def apply_action_effect(
         push=push,
         destination_area=destination_area,
     )
-    state = _resolve_procedure(ctx) if action.procedure is not None else _resolve_effect(ctx)
+    state = _resolve_procedure(ctx)
     if push:
         state = run_stress_test(state, state.actor(actor.actor_id), roller, ruleset)
     return state
