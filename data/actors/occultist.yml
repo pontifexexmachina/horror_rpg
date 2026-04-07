@@ -17,3 +17,7 @@ actions: [attack, shriek, taunt]
 weapon_id: pistol
 talents: []
 starting_band: near
+starting_ammo:
+  sidearm: 6
+starting_bandages: 1
+starting_medkits: 0

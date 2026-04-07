@@ -4,7 +4,7 @@ This note treats the simulator as first-class design infrastructure for Dead By 
 
 The goal is not to build a novelty tool after the game is "done." The goal is to design the game so that simulation is a normal part of rules development, balance work, and monster generation from the start.
 
-This note builds on [book_line_plan.md](C:\projects\horror_rpg\notes\book_line_plan.md), especially the idea that the Rules Compendium and the simulator should share a canonical mechanical layer.
+This note builds on [book_line_plan.md](C:\\projects\\horror_rpg\\notes\\agent_generated\\design\\book_line_plan.md), especially the idea that the Rules Compendium and the simulator should share a canonical mechanical layer.
 
 ## Why The Simulator Comes First
 

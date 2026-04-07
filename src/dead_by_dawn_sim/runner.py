@@ -21,6 +21,7 @@ from dead_by_dawn_sim.state import (
     EncounterState,
     append_event,
     build_actor_state,
+    synchronize_engagements,
 )
 
 
@@ -54,7 +55,7 @@ class EncounterResult:
     winner: str
     rounds: int
     actor_metadata: dict[str, ActorMetadata]
-    actor_snapshots: dict[str, dict[str, int | str]]
+    actor_snapshots: dict[str, dict[str, int | str | dict[str, int]]]
     actor_contributions: dict[str, ContributionStats]
     action_counts: dict[str, int]
     push_count: int
@@ -68,6 +69,11 @@ class EncounterRunner:
     def build_state(self, scenario_id: str, seed: int) -> EncounterState:
         state, _ = self._build_state_bundle(scenario_id, seed)
         return state
+
+    def build_state_bundle(
+        self, scenario_id: str, seed: int
+    ) -> tuple[EncounterState, dict[str, ActorMetadata]]:
+        return self._build_state_bundle(scenario_id, seed)
 
     def _build_state_bundle(
         self, scenario_id: str, seed: int
@@ -91,6 +97,7 @@ class EncounterRunner:
                         template=template,
                         ruleset=self.ruleset,
                         name=name,
+                        start_area=entry.start_area or scenario.areas[0].id,
                     )
                     metadata[actor_id] = ActorMetadata(
                         actor_id=actor_id,
@@ -112,11 +119,16 @@ class EncounterRunner:
             )
         )
         state = EncounterState(
+            scenario_id=scenario_id,
+            objective=scenario.objective,
+            areas={area.id: area for area in scenario.areas},
+            connections=tuple(scenario.connections),
             actors=actors,
             round_number=1,
             initiative_order=initiative,
             active_actor_id=None,
         )
+        state = synchronize_engagements(state)
         state = append_event(
             state,
             "Scenario "
@@ -126,13 +138,60 @@ class EncounterRunner:
         return state, metadata
 
     def run(self, scenario_id: str, seed: int) -> EncounterResult:
-        state, metadata = self._build_state_bundle(scenario_id, seed)
+        result, _ = self.run_with_final_state(scenario_id=scenario_id, seed=seed)
+        return result
+
+    def run_with_final_state(
+        self,
+        *,
+        scenario_id: str,
+        seed: int,
+        state: EncounterState | None = None,
+        metadata: dict[str, ActorMetadata] | None = None,
+    ) -> tuple[EncounterResult, EncounterState]:
+        if state is None or metadata is None:
+            state, metadata = self._build_state_bundle(scenario_id, seed)
+        return self._run_state(
+            scenario_id=scenario_id,
+            seed=seed,
+            state=state,
+            metadata=metadata,
+        )
+
+    def run_from_state(
+        self,
+        *,
+        scenario_id: str,
+        seed: int,
+        state: EncounterState,
+        metadata: dict[str, ActorMetadata],
+    ) -> EncounterResult:
+        result, _ = self._run_state(
+            scenario_id=scenario_id,
+            seed=seed,
+            state=state,
+            metadata=metadata,
+        )
+        return result
+
+    def _run_state(
+        self,
+        *,
+        scenario_id: str,
+        seed: int,
+        state: EncounterState,
+        metadata: dict[str, ActorMetadata],
+    ) -> tuple[EncounterResult, EncounterState]:
         roller = RandomDiceRoller(Random(seed))
         action_counts: dict[str, int] = {}
         contributions = {actor_id: ContributionStats() for actor_id in metadata}
         push_count = 0
         for round_number in range(1, self.ruleset.core.max_rounds + 1):
             state = EncounterState(
+                scenario_id=state.scenario_id,
+                objective=state.objective,
+                areas=state.areas,
+                connections=state.connections,
                 actors=state.actors,
                 round_number=round_number,
                 initiative_order=state.initiative_order,
@@ -144,16 +203,19 @@ class EncounterRunner:
                 state = start_turn(state, actor_id, self.ruleset)
                 winner = determine_winner(state)
                 if winner is not None:
-                    return self._finish(
+                    return (
+                        self._finish(
+                            state,
+                            scenario_id,
+                            seed,
+                            winner,
+                            round_number,
+                            metadata,
+                            contributions,
+                            action_counts,
+                            push_count,
+                        ),
                         state,
-                        scenario_id,
-                        seed,
-                        winner,
-                        round_number,
-                        metadata,
-                        contributions,
-                        action_counts,
-                        push_count,
                     )
                 if not legal_actions_for_actor(state, actor_id, self.ruleset):
                     state = end_turn(state, actor_id, roller, self.ruleset)
@@ -178,7 +240,25 @@ class EncounterRunner:
                     )
                     winner = determine_winner(state)
                     if winner is not None:
-                        return self._finish(
+                        return (
+                            self._finish(
+                                state,
+                                scenario_id,
+                                seed,
+                                winner,
+                                round_number,
+                                metadata,
+                                contributions,
+                                action_counts,
+                                push_count,
+                            ),
+                            state,
+                        )
+                state = end_turn(state, actor_id, roller, self.ruleset)
+                winner = determine_winner(state)
+                if winner is not None:
+                    return (
+                        self._finish(
                             state,
                             scenario_id,
                             seed,
@@ -188,32 +268,23 @@ class EncounterRunner:
                             contributions,
                             action_counts,
                             push_count,
-                        )
-                state = end_turn(state, actor_id, roller, self.ruleset)
-                winner = determine_winner(state)
-                if winner is not None:
-                    return self._finish(
+                        ),
                         state,
-                        scenario_id,
-                        seed,
-                        winner,
-                        round_number,
-                        metadata,
-                        contributions,
-                        action_counts,
-                        push_count,
                     )
         final_winner = determine_winner(state) or "draw"
-        return self._finish(
+        return (
+            self._finish(
+                state,
+                scenario_id,
+                seed,
+                final_winner,
+                self.ruleset.core.max_rounds,
+                metadata,
+                contributions,
+                action_counts,
+                push_count,
+            ),
             state,
-            scenario_id,
-            seed,
-            final_winner,
-            self.ruleset.core.max_rounds,
-            metadata,
-            contributions,
-            action_counts,
-            push_count,
         )
 
     def _accumulate_contribution(
@@ -291,6 +362,10 @@ class EncounterRunner:
                 "status": actor.status.value,
                 "stress": actor.stress,
                 "shrouds": actor.shrouds,
+                "area_id": actor.area_id,
+                "ammo": dict(actor.ammo),
+                "bandages": actor.bandages,
+                "medkits": actor.medkits,
             }
             for actor_id, actor in state.actors.items()
         }

@@ -16,4 +16,8 @@ skills:
 actions: [brawl_attack, taunt]
 weapon_id: bat
 talents: []
+death_mode: die_at_zero
 starting_band: near
+starting_ammo: {}
+starting_bandages: 0
+starting_medkits: 0

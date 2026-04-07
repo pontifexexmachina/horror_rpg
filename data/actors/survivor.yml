@@ -17,3 +17,7 @@ actions: [attack, grit]
 weapon_id: pistol
 talents: [final_girl]
 starting_band: near
+starting_ammo:
+  sidearm: 6
+starting_bandages: 1
+starting_medkits: 0

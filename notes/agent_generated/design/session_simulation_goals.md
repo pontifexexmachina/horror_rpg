@@ -21,6 +21,27 @@ That means isolated encounter results are necessary but not sufficient.
 
 The simulator should treat encounter balance as one layer inside a larger session-pressure model.
 
+## Compounding Matters More Than Fight Fairness
+
+Dead By Dawn should assume that a session contains multiple meaningful encounters, not one balanced duel.
+
+That means single-encounter odds compound brutally.
+
+If a house contains 5 meaningful combat encounters and the party has a 93.3% chance to win each one independently, the chance of surviving all 5 is only about 70%.
+
+That is already too low for the default expectation of a normal playable session.
+
+So the design target should not be "make each fight roughly fair."
+The design target should be "make most fights strongly favorable to the PCs, while still making repeated success costly."
+
+This is a foundational balancing principle for the game:
+
+- encounter survival odds for the PCs should usually be very high
+- session-level danger should come from attrition, resource depletion, stress, wounds, positioning, and the occasional spike
+- if encounter win rates are merely moderate, session failure rates will explode through compounding
+
+In other words, Dead By Dawn should optimize for costly success across a chain of encounters, not for even one-fight parity.
+
 ## Primary Design Question
 
 The main question should become:
@@ -201,6 +222,16 @@ For a baseline 4-PC party across a standard session mix:
 - the party should usually reach the climax degraded
 - clean, unscarred victories should be uncommon
 - total-party collapse should be possible but not the default
+
+### Encounter Success
+
+At the encounter level:
+
+- the PCs should win the vast majority of fights
+- many of those wins should still carry real costs
+- a standard encounter that is merely "coin-flippy" is usually a failure state for the wider session model
+
+The game should rely on compounding attrition, not repeated near-even combat odds, to create danger.
 
 ### Stress Success
 

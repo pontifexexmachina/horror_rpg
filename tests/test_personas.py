@@ -31,10 +31,35 @@ def test_personas_make_different_choices_in_same_state() -> None:
 def test_bruiser_advances_instead_of_gritting_at_full_hp() -> None:
     ruleset = load_ruleset()
     runner = EncounterRunner(ruleset)
-    state = runner.build_state("four_pc_vs_slasher", seed=1)
+    state = runner.build_state("hallway_ambush", seed=1)
     bruiser_id = next(
         actor_id for actor_id in state.actors if actor_id.startswith("team_a_bruiser")
     )
     legal = legal_actions_for_actor(state, bruiser_id, ruleset)
     choice = PERSONA_REGISTRY["butt_kicker"].choose_action(legal, state, ruleset)
     assert choice.action_id == "advance"
+    assert choice.destination_area == "hallway"
+
+
+def test_runner_persona_moves_toward_exit_when_escape_is_objective() -> None:
+    ruleset = load_ruleset()
+    runner = EncounterRunner(ruleset)
+    state = runner.build_state("ballroom_escape", seed=1)
+    survivor_id = next(
+        actor_id for actor_id in state.actors if actor_id.startswith("team_a_survivor")
+    )
+    legal = legal_actions_for_actor(state, survivor_id, ruleset)
+    choice = PERSONA_REGISTRY["power_gamer"].choose_action(legal, state, ruleset)
+    assert choice.action_id == "advance"
+    assert choice.destination_area == "ballroom"
+
+
+def test_monster_persona_moves_to_intercept_exit_route() -> None:
+    ruleset = load_ruleset()
+    runner = EncounterRunner(ruleset)
+    state = runner.build_state("ballroom_escape", seed=1)
+    terror_id = next(actor_id for actor_id in state.actors if actor_id.startswith("team_b_terror"))
+    legal = legal_actions_for_actor(state, terror_id, ruleset)
+    choice = PERSONA_REGISTRY["panic_engine"].choose_action(legal, state, ruleset)
+    assert choice.action_id == "advance"
+    assert choice.destination_area == "ballroom"

@@ -1,19 +1,23 @@
 id: terror
 name: Terror
-role: panic_engine
+role: panic
 default_persona: panic_engine
 stats:
   might: 0
-  speed: 1
+  speed: 2
   wits: 2
 skills:
   brawl: 0
   shoot: 0
-  brace: 1
+  brace: 0
   cure: 0
   clever: 2
-  chat: 1
-actions: [shriek, taunt]
+  chat: 2
+actions: [shriek]
 weapon_id: null
 talents: []
-starting_band: near
+death_mode: die_at_zero
+starting_band: far
+starting_ammo: {}
+starting_bandages: 0
+starting_medkits: 0

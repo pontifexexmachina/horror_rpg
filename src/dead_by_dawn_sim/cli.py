@@ -8,6 +8,7 @@ from typing import Any
 from dead_by_dawn_sim.experiments import ExperimentRunner
 from dead_by_dawn_sim.rules import count_ruleset_entities, load_ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
+from dead_by_dawn_sim.session import SessionRunner
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -24,6 +25,15 @@ def _parser() -> argparse.ArgumentParser:
     benchmark_parser.add_argument("--runs", type=int, required=True)
     benchmark_parser.add_argument("--seed", type=int, default=0)
     benchmark_parser.add_argument("--output")
+    session_parser = subparsers.add_parser("session")
+    session_parser.add_argument("--plan", required=True)
+    session_parser.add_argument("--seed", type=int, required=True)
+    session_parser.add_argument("--output")
+    session_benchmark_parser = subparsers.add_parser("session-benchmark")
+    session_benchmark_parser.add_argument("--plan", required=True)
+    session_benchmark_parser.add_argument("--runs", type=int, required=True)
+    session_benchmark_parser.add_argument("--seed", type=int, default=0)
+    session_benchmark_parser.add_argument("--output")
     return parser
 
 
@@ -88,6 +98,34 @@ def main(argv: list[str] | None = None) -> int:
                 "runs": report.runs,
                 "metrics": report.metrics,
                 "scenario_breakdown": report.scenario_breakdown,
+            },
+            args.output,
+        )
+        return 0
+    if args.command == "session":
+        result = SessionRunner(ruleset).run_plan(args.plan, args.seed)
+        _write_output(
+            {
+                "rules_version": ruleset.version,
+                "plan_id": result.plan_id,
+                "seed": result.seed,
+                "completed_scenarios": result.completed_scenarios,
+                "medkits_spent": result.medkits_spent,
+                "final_snapshots": result.final_snapshots,
+                "encounter_results": list(result.encounter_results),
+            },
+            args.output,
+        )
+        return 0
+    if args.command == "session-benchmark":
+        report = ExperimentRunner(ruleset).run_session_plan(args.plan, args.runs, seed=args.seed)
+        _write_output(
+            {
+                "rules_version": report.rules_version,
+                "plan_id": report.plan_id,
+                "seed_policy": report.seed_policy,
+                "runs": report.runs,
+                "metrics": report.metrics,
             },
             args.output,
         )

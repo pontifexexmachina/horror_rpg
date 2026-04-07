@@ -6,6 +6,7 @@ from dead_by_dawn_sim.cli import main
 from dead_by_dawn_sim.experiments import ExperimentRunner
 from dead_by_dawn_sim.rules import load_ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
+from dead_by_dawn_sim.session import SessionRunner
 
 
 def test_runner_is_seed_reproducible() -> None:
@@ -54,6 +55,24 @@ def test_scenario_contributions_expose_party_roles() -> None:
     assert "avg_healing_done" in medic
 
 
+def test_session_runner_carries_resources_forward() -> None:
+    ruleset = load_ruleset()
+    result = SessionRunner(ruleset).run_plan("core_night", seed=3)
+    assert result.completed_scenarios == 3
+    assert result.medkits_spent >= 0
+    assert "team_a_medic_2" in result.final_snapshots
+    medic_snapshot = result.final_snapshots["team_a_medic_2"]
+    assert "medkits" in medic_snapshot
+    assert "ammo" in medic_snapshot
+
+
+def test_session_benchmark_report_contains_resource_metrics() -> None:
+    report = ExperimentRunner(load_ruleset()).run_session_plan("core_night", runs=2, seed=9)
+    assert "avg_medkits_spent" in report.metrics
+    assert "avg_remaining_sidearm_ammo" in report.metrics
+    assert "final_team_status_rates" in report.metrics
+
+
 def test_cli_validate_and_run_commands(capsys: CaptureFixture[str]) -> None:
     assert main(["validate"]) == 0
     validate_output = capsys.readouterr().out
@@ -67,3 +86,10 @@ def test_cli_validate_and_run_commands(capsys: CaptureFixture[str]) -> None:
     assert '"action_frequencies"' in benchmark_output
     assert '"team_status_rates"' in benchmark_output
     assert '"archetype_contributions"' in benchmark_output
+    assert main(["session", "--plan", "core_night", "--seed", "5"]) == 0
+    session_output = capsys.readouterr().out
+    assert '"plan_id": "core_night"' in session_output
+    assert '"final_snapshots"' in session_output
+    assert main(["session-benchmark", "--plan", "core_night", "--runs", "1", "--seed", "5"]) == 0
+    session_benchmark_output = capsys.readouterr().out
+    assert '"avg_medkits_spent"' in session_benchmark_output

@@ -4,3 +4,4 @@ skill: shoot
 damage_die: 6
 tags: []
 max_range: far
+ammo_kind: sidearm

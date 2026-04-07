@@ -1,0 +1,5 @@
+id: spatial
+name: Spatial Benchmark Suite
+scenario_ids:
+  - hallway_ambush
+  - ballroom_escape

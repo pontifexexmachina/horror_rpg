@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.rules import Ruleset
-from dead_by_dawn_sim.state import ActorState, EncounterState
+from dead_by_dawn_sim.state import ActorState, EncounterState, shortest_path_distance
 
 
 @dataclass(frozen=True)
@@ -45,6 +45,8 @@ def _score_action(
             score += persona.push_threshold
             score += _push_adjustment(actor, ruleset, persona)
 
+    score += _objective_adjustment(choice, state, persona)
+
     if actor.hp <= max(2, actor.max_hp // 3):
         score += persona.weights.get("low_hp_modifier", 0.0)
     if actor.stress >= ruleset.core.stress.panic_threshold:
@@ -69,6 +71,12 @@ def _context_adjustment(
         if target.status.value in {"wounded", "critical"}:
             adjustment += persona.weights.get("rescue", 0.5)
 
+    if "stabilize" in action.tags:
+        if actor.status.value == "wounded":
+            adjustment += persona.weights.get("stabilize_urgency", 3.0)
+        else:
+            adjustment -= 5.0
+
     if "stress" in action.tags:
         adjustment += max(
             0, ruleset.core.stress.panic_threshold - target.stress
@@ -83,6 +91,82 @@ def _context_adjustment(
         adjustment += persona.weights.get("pressure", 0.4)
 
     return adjustment
+
+
+def _objective_adjustment(choice: ActionChoice, state: EncounterState, persona: Persona) -> float:
+    actor = state.actor(choice.actor_id)
+    objective = state.objective
+    if objective.type == "reach_exit" and objective.area_id is not None:
+        return _reach_exit_adjustment(
+            choice, state, actor, objective.area_id, objective.team, persona
+        )
+    if objective.type == "hold_out" and objective.area_id is not None:
+        return _hold_out_adjustment(
+            choice, state, actor, objective.area_id, objective.team, persona
+        )
+    return 0.0
+
+
+def _reach_exit_adjustment(
+    choice: ActionChoice,
+    state: EncounterState,
+    actor: ActorState,
+    exit_area: str,
+    runner_team: str,
+    persona: Persona,
+) -> float:
+    if actor.team == runner_team:
+        if choice.action_id in {"advance", "fall_back"} and choice.destination_area is not None:
+            before = shortest_path_distance(state, actor.area_id, exit_area)
+            after = shortest_path_distance(state, choice.destination_area, exit_area)
+            if before is not None and after is not None:
+                return (before - after) * persona.weights.get("objective_progress", 3.0)
+        distance = shortest_path_distance(state, actor.area_id, exit_area)
+        if choice.action_id not in {"advance", "fall_back"} and actor.area_id == exit_area:
+            return persona.weights.get("hold_exit", 1.5)
+        if (
+            choice.action_id not in {"advance", "fall_back"}
+            and actor.area_id != exit_area
+            and not actor.engaged_with
+            and distance is not None
+        ):
+            return -distance * persona.weights.get("objective_delay_penalty", 2.2)
+        return 0.0
+
+    target = state.actor(choice.target_id)
+    if choice.action_id in {"advance", "fall_back"} and choice.destination_area is not None:
+        before = shortest_path_distance(state, actor.area_id, exit_area)
+        after = shortest_path_distance(state, choice.destination_area, exit_area)
+        if before is not None and after is not None:
+            return (before - after) * persona.weights.get("objective_intercept", 2.0)
+    if target.team == runner_team:
+        target_distance = shortest_path_distance(state, target.area_id, exit_area)
+        if target_distance == 0:
+            return persona.weights.get("deny_objective", 2.5)
+        if target_distance == 1:
+            return persona.weights.get("intercept_runner", 1.2)
+    return 0.0
+
+
+def _hold_out_adjustment(
+    choice: ActionChoice,
+    state: EncounterState,
+    actor: ActorState,
+    hold_area: str,
+    holder_team: str,
+    persona: Persona,
+) -> float:
+    if choice.action_id in {"advance", "fall_back"} and choice.destination_area is not None:
+        before = shortest_path_distance(state, actor.area_id, hold_area)
+        after = shortest_path_distance(state, choice.destination_area, hold_area)
+        if before is not None and after is not None:
+            weight_key = (
+                "objective_progress" if actor.team == holder_team else "objective_intercept"
+            )
+            return (before - after) * persona.weights.get(weight_key, 2.0)
+    if actor.area_id == hold_area:
+        return persona.weights.get("hold_ground", 1.0 if actor.team == holder_team else 0.5)
+    return 0.0
 
 
 def _push_adjustment(actor: ActorState, ruleset: Ruleset, persona: Persona) -> float:
@@ -109,12 +193,17 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 4.0,
             "heal": 1.0,
+            "stabilize": 1.2,
             "control": 0.8,
             "stress": 0.5,
             "finisher": 2.5,
             "close_distance": 2.0,
             "pressure": 0.7,
             "heal_urgency": 0.5,
+            "stabilize_urgency": 2.5,
+            "objective_progress": 3.4,
+            "objective_delay_penalty": 2.8,
+            "hold_exit": 1.8,
         },
         1.2,
     ),
@@ -123,11 +212,18 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 5.0,
             "heal": 0.2,
+            "stabilize": 1.5,
             "control": 0.1,
             "finisher": 1.8,
             "close_distance": 4.0,
             "pressure": 1.0,
             "panic_push_penalty": -1.5,
+            "stabilize_urgency": 3.4,
+            "objective_progress": 2.0,
+            "objective_delay_penalty": 1.8,
+            "objective_intercept": 2.3,
+            "deny_objective": 2.0,
+            "intercept_runner": 1.2,
         },
         1.4,
     ),
@@ -136,6 +232,7 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 2.5,
             "heal": 2.0,
+            "stabilize": 2.8,
             "control": 3.0,
             "setup": 1.0,
             "finisher": 1.2,
@@ -143,6 +240,12 @@ PERSONA_REGISTRY: dict[str, Persona] = {
             "heal_urgency": 1.0,
             "rescue": 2.5,
             "control_setup": 1.0,
+            "stabilize_urgency": 4.0,
+            "objective_progress": 2.6,
+            "objective_delay_penalty": 2.2,
+            "objective_intercept": 2.6,
+            "deny_objective": 2.5,
+            "hold_ground": 1.5,
         },
         0.8,
     ),
@@ -151,14 +254,19 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 2.0,
             "heal": 2.5,
+            "stabilize": 2.0,
             "control": 1.4,
             "close_distance": 0.8,
             "heal_urgency": 0.8,
             "rescue": 1.6,
             "control_setup": 0.8,
+            "stabilize_urgency": 3.2,
             "low_hp_modifier": -1.0,
             "high_stress_modifier": -1.5,
             "panic_push_penalty": -3.0,
+            "objective_progress": 2.4,
+            "objective_delay_penalty": 1.8,
+            "hold_exit": 1.2,
         },
         -0.5,
     ),
@@ -167,11 +275,15 @@ PERSONA_REGISTRY: dict[str, Persona] = {
         {
             "attack": 2.4,
             "heal": 1.8,
+            "stabilize": 1.5,
             "control": 0.5,
             "advance": 0.7,
             "close_distance": 1.2,
             "heal_urgency": 0.6,
             "rescue": 1.2,
+            "stabilize_urgency": 2.4,
+            "objective_progress": 1.6,
+            "objective_delay_penalty": 1.5,
         },
         -0.2,
     ),
@@ -184,6 +296,10 @@ PERSONA_REGISTRY: dict[str, Persona] = {
             "finisher": 1.4,
             "close_distance": 3.0,
             "pressure": 0.8,
+            "stabilize_urgency": 2.0,
+            "objective_intercept": 2.8,
+            "deny_objective": 3.0,
+            "intercept_runner": 1.8,
         },
         0.6,
     ),
@@ -197,6 +313,10 @@ PERSONA_REGISTRY: dict[str, Persona] = {
             "close_distance": 2.0,
             "control_setup": 1.2,
             "control_repeat_penalty": 1.8,
+            "objective_intercept": 2.4,
+            "deny_objective": 2.7,
+            "intercept_runner": 1.6,
+            "hold_ground": 1.0,
         },
         0.4,
     ),
@@ -211,6 +331,8 @@ PERSONA_REGISTRY: dict[str, Persona] = {
             "stress_setup": 0.2,
             "control_setup": 0.4,
             "control_repeat_penalty": 1.0,
+            "objective_intercept": 2.0,
+            "deny_objective": 2.2,
         },
         0.2,
     ),
@@ -223,6 +345,8 @@ PERSONA_REGISTRY: dict[str, Persona] = {
             "advance": 1.0,
             "close_distance": 2.8,
             "pressure": 0.7,
+            "objective_intercept": 2.6,
+            "deny_objective": 3.0,
         },
         0.7,
     ),

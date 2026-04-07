@@ -17,3 +17,6 @@ actions: [brawl_attack, grit]
 weapon_id: bat
 talents: [final_girl]
 starting_band: near
+starting_ammo: {}
+starting_bandages: 0
+starting_medkits: 0

@@ -17,3 +17,7 @@ actions: [attack, first_aid, grit]
 weapon_id: pistol
 talents: [healing_hands]
 starting_band: near
+starting_ammo:
+  sidearm: 6
+starting_bandages: 3
+starting_medkits: 2

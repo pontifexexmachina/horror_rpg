@@ -1,0 +1,5 @@
+id: steadied
+name: Steadied
+tags: [stabilized]
+damage_per_turn: 0
+attack_modifier: 0

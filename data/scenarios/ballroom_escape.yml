@@ -1,0 +1,50 @@
+id: ballroom_escape
+name: Ballroom Escape
+description: An open ballroom with long sightlines and a reachable side exit.
+areas:
+  - id: gallery
+    name: Upstairs Gallery
+    tags: [open, elevated]
+  - id: ballroom
+    name: Ballroom Floor
+    tags: [open, lit]
+  - id: stage
+    name: Stage
+    tags: [open, elevated]
+  - id: side_exit
+    name: Side Exit
+    tags: [exit, narrow]
+connections:
+  - id: gallery_to_ballroom
+    from_area: gallery
+    to_area: ballroom
+    tags: [open]
+    bidirectional: true
+  - id: ballroom_to_stage
+    from_area: ballroom
+    to_area: stage
+    tags: [open]
+    bidirectional: true
+  - id: ballroom_to_exit
+    from_area: ballroom
+    to_area: side_exit
+    tags: [open]
+    bidirectional: true
+objective:
+  type: reach_exit
+  area_id: side_exit
+  team: team_a
+team_a:
+  - template_id: survivor
+    persona_id: power_gamer
+    start_area: gallery
+  - template_id: medic
+    persona_id: tactician
+    start_area: gallery
+team_b:
+  - template_id: slasher
+    persona_id: brute
+    start_area: ballroom
+  - template_id: terror
+    persona_id: panic_engine
+    start_area: stage

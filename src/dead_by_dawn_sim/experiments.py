@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from statistics import mean
 
 from dead_by_dawn_sim.rules import Ruleset
@@ -9,6 +10,9 @@ from dead_by_dawn_sim.runner import (
     EncounterResult,
     EncounterRunner,
 )
+from dead_by_dawn_sim.session import SessionResult, SessionRunner
+
+Snapshot = Mapping[str, object]
 
 
 class BenchmarkReport:
@@ -30,10 +34,28 @@ class BenchmarkReport:
         self.scenario_breakdown = scenario_breakdown
 
 
+class SessionBenchmarkReport:
+    def __init__(
+        self,
+        *,
+        plan_id: str,
+        rules_version: str,
+        seed_policy: str,
+        runs: int,
+        metrics: dict[str, object],
+    ) -> None:
+        self.plan_id = plan_id
+        self.rules_version = rules_version
+        self.seed_policy = seed_policy
+        self.runs = runs
+        self.metrics = metrics
+
+
 class ExperimentRunner:
     def __init__(self, ruleset: Ruleset) -> None:
         self.ruleset = ruleset
         self.runner = EncounterRunner(ruleset)
+        self.session_runner = SessionRunner(ruleset)
 
     def run_benchmark_suite(self, suite_id: str, runs: int, seed: int = 0) -> BenchmarkReport:
         suite = self.ruleset.benchmark_suites[suite_id]
@@ -57,6 +79,16 @@ class ExperimentRunner:
             scenario_breakdown=scenario_breakdown,
         )
 
+    def run_session_plan(self, plan_id: str, runs: int, seed: int = 0) -> SessionBenchmarkReport:
+        results = [self.session_runner.run_plan(plan_id, seed + offset) for offset in range(runs)]
+        return SessionBenchmarkReport(
+            plan_id=plan_id,
+            rules_version=self.ruleset.version,
+            seed_policy=f"start={seed}",
+            runs=runs,
+            metrics=self._summarize_session_results(results),
+        )
+
     def _clamp_rate(self, value: float) -> float:
         return max(0.0, min(1.0, value))
 
@@ -67,10 +99,25 @@ class ExperimentRunner:
         index = round((len(ordered) - 1) * percentile)
         return float(ordered[index])
 
-    def _status_rates_from_snapshots(
-        self,
-        snapshots: list[dict[str, int | str]],
-    ) -> dict[str, float]:
+    def _snapshot_status(self, snapshot: Snapshot) -> str:
+        value = snapshot["status"]
+        return value if isinstance(value, str) else str(value)
+
+    def _snapshot_int(self, snapshot: Snapshot, key: str) -> int:
+        value = snapshot[key]
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            return int(value)
+        raise TypeError(f"Snapshot field {key} is not numeric: {value!r}")
+
+    def _snapshot_ammo(self, snapshot: Snapshot) -> dict[str, int]:
+        value = snapshot.get("ammo")
+        if isinstance(value, Mapping):
+            return {str(key): int(amount) for key, amount in value.items()}
+        return {}
+
+    def _status_rates_from_snapshots(self, snapshots: Sequence[Snapshot]) -> dict[str, float]:
         total = len(snapshots)
         if total == 0:
             return {
@@ -81,12 +128,24 @@ class ExperimentRunner:
                 "broken": 0.0,
             }
         return {
-            "normal": sum(1 for snapshot in snapshots if snapshot["status"] == "normal") / total,
-            "wounded": sum(1 for snapshot in snapshots if snapshot["status"] == "wounded") / total,
-            "critical": sum(1 for snapshot in snapshots if snapshot["status"] == "critical")
+            "normal": sum(
+                1 for snapshot in snapshots if self._snapshot_status(snapshot) == "normal"
+            )
             / total,
-            "dead": sum(1 for snapshot in snapshots if snapshot["status"] == "dead") / total,
-            "broken": sum(1 for snapshot in snapshots if snapshot["status"] == "broken") / total,
+            "wounded": sum(
+                1 for snapshot in snapshots if self._snapshot_status(snapshot) == "wounded"
+            )
+            / total,
+            "critical": sum(
+                1 for snapshot in snapshots if self._snapshot_status(snapshot) == "critical"
+            )
+            / total,
+            "dead": sum(1 for snapshot in snapshots if self._snapshot_status(snapshot) == "dead")
+            / total,
+            "broken": sum(
+                1 for snapshot in snapshots if self._snapshot_status(snapshot) == "broken"
+            )
+            / total,
         }
 
     def _team_status_rates(
@@ -220,12 +279,12 @@ class ExperimentRunner:
         draw_rate = draws / len(results)
         team_b_win_rate = self._clamp_rate(1 - team_a_win_rate - draw_rate)
         stress_values = [
-            int(snapshot["stress"])
+            self._snapshot_int(snapshot, "stress")
             for result in results
             for snapshot in result.actor_snapshots.values()
         ]
         shroud_values = [
-            int(snapshot["shrouds"])
+            self._snapshot_int(snapshot, "shrouds")
             for result in results
             for snapshot in result.actor_snapshots.values()
         ]
@@ -255,8 +314,8 @@ class ExperimentRunner:
             snapshot for result in results for snapshot in result.actor_snapshots.values()
         ]
         rounds = [result.rounds for result in results]
-        stress_values = [int(snapshot["stress"]) for snapshot in total_actors]
-        shroud_values = [int(snapshot["shrouds"]) for snapshot in total_actors]
+        stress_values = [self._snapshot_int(snapshot, "stress") for snapshot in total_actors]
+        shroud_values = [self._snapshot_int(snapshot, "shrouds") for snapshot in total_actors]
         draws = sum(1 for result in results if result.winner == "draw")
         team_a_wins = sum(1 for result in results if result.winner == "team_a")
         team_a_win_rate = team_a_wins / len(results)
@@ -277,4 +336,34 @@ class ExperimentRunner:
             "avg_pushes_per_encounter": mean([result.push_count for result in results]),
             "action_frequencies": self._action_frequencies(results),
             "archetype_contributions": self._summarize_archetype_contributions(results),
+        }
+
+    def _summarize_session_results(self, results: list[SessionResult]) -> dict[str, object]:
+        final_snapshots = [
+            snapshot for result in results for snapshot in result.final_snapshots.values()
+        ]
+        encounter_counts = [result.completed_scenarios for result in results]
+        medkits_spent = [result.medkits_spent for result in results]
+        remaining_bandages = [
+            self._snapshot_int(snapshot, "bandages") for snapshot in final_snapshots
+        ]
+        remaining_medkits = [
+            self._snapshot_int(snapshot, "medkits") for snapshot in final_snapshots
+        ]
+        remaining_sidearm_ammo = [
+            self._snapshot_ammo(snapshot).get("sidearm", 0) for snapshot in final_snapshots
+        ]
+        return {
+            "avg_completed_scenarios": mean(encounter_counts),
+            "avg_medkits_spent": mean(medkits_spent),
+            "avg_remaining_bandages": mean(remaining_bandages),
+            "avg_remaining_medkits": mean(remaining_medkits),
+            "avg_remaining_sidearm_ammo": mean(remaining_sidearm_ammo),
+            "final_team_status_rates": self._status_rates_from_snapshots(final_snapshots),
+            "avg_final_stress": mean(
+                [self._snapshot_int(snapshot, "stress") for snapshot in final_snapshots]
+            ),
+            "avg_final_hp": mean(
+                [self._snapshot_int(snapshot, "hp") for snapshot in final_snapshots]
+            ),
         }

@@ -1,0 +1,6 @@
+id: core_night
+name: Core Night
+scenario_ids:
+  - four_pc_vs_slasher
+  - four_pc_vs_control_mix
+  - four_pc_vs_brute_pair
