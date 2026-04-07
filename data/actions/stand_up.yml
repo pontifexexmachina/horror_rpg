@@ -1,0 +1,10 @@
+id: stand_up
+name: Stand Up
+action_cost: 1
+tags: [recovery, positioning]
+range: self
+allow_push: false
+effect:
+  type: remove_condition
+  target: self
+  condition_id: prone

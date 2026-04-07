@@ -1,0 +1,5 @@
+id: feinting
+name: Feinting
+tags: [setup]
+damage_per_turn: 0
+attack_modifier: 0

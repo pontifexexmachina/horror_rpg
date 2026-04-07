@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from dead_by_dawn_sim.combat_support import attack_weapon, has_condition
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
     AttackEffect,
@@ -27,10 +28,10 @@ class ActionChoice:
     destination_area: str | None = None
 
 
-def _has_ammo_for_attack(actor: ActorState, ruleset: Ruleset) -> bool:
-    if actor.weapon_id is None:
+def _has_ammo_for_attack(actor: ActorState, attack: AttackEffect, ruleset: Ruleset) -> bool:
+    weapon = attack_weapon(attack, actor, ruleset)
+    if weapon is None:
         return False
-    weapon = ruleset.weapons[actor.weapon_id]
     if weapon.ammo_kind is None:
         return True
     return actor.ammo.get(weapon.ammo_kind, 0) > 0
@@ -42,7 +43,7 @@ def _action_is_contextually_available(
     ruleset: Ruleset,
 ) -> bool:
     if isinstance(action.effect, AttackEffect) and action.effect.skill == "shoot":
-        return _has_ammo_for_attack(actor, ruleset)
+        return _has_ammo_for_attack(actor, action.effect, ruleset)
     if isinstance(action.effect, HealEffect) and action.id == "first_aid":
         return actor.bandages > 0
     if isinstance(action.effect, HealEffect) and action.id == "grit":
@@ -84,11 +85,13 @@ def _can_target(
     if action.range == "far":
         return _is_same_area(actor, target) or _is_connected_target(state, actor, target)
     if action.range == "enemy":
-        if actor.weapon_id is not None:
-            max_range = ruleset.weapons[actor.weapon_id].max_range
-            if max_range == "engaged":
+        if isinstance(action.effect, AttackEffect):
+            weapon = attack_weapon(action.effect, actor, ruleset)
+            if weapon is None:
+                return False
+            if weapon.max_range == "engaged":
                 return target.actor_id in actor.engaged_with
-            if max_range == "near":
+            if weapon.max_range == "near":
                 return _is_same_area(actor, target)
         return _is_same_area(actor, target) or _is_connected_target(state, actor, target)
     return False
@@ -152,6 +155,15 @@ def legal_actions_for_actor(
                         push=True,
                     )
                 )
+    if has_condition(actor, "prone") and "stand_up" in ruleset.actions:
+        legal.append(
+            ActionChoice(
+                actor_id=actor_id,
+                action_id="stand_up",
+                target_id=actor_id,
+            )
+        )
+
     move_targets = [
         area_id
         for area_id in connected_area_ids(state, actor.area_id)

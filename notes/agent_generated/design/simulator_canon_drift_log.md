@@ -33,6 +33,12 @@ When the two disagree, we should record the disagreement here rather than silent
 - Simulator: successful `Grit` now clears `Bleeding`.
 - Why it matters: it makes Bleeding materially stronger in the simulator if omitted.
 
+### Stable state behavior
+- Status: `accidental divergence`
+- Manuscript: a critical success on the critical-condition recovery roll puts you at Stable and 0 HP, but does not fully specify how Stable behaves if it takes damage before being healed.
+- Simulator: now has an explicit `stable` status at 0 HP that cannot act or continue making death-track checks, and healing moves it back to `normal`.
+- Why it matters: the simulator now matches the intended recovery milestone much better, but the manuscript still needs to clarify edge behavior for a Stable character under further harm.
+
 ### Monster death handling
 - Status: `intentional divergence`
 - Manuscript: currently describes the PC wound/critical/shroud track, but does not clearly separate ordinary monsters from PCs.
@@ -60,7 +66,7 @@ When the two disagree, we should record the disagreement here rather than silent
 ### Universal fallback melee attacks
 - Status: `intentional divergence`
 - Manuscript: some player builds do not currently read as having a clear last-resort attack once they run out of ammo.
-- Simulator: all player templates now include `brawl_attack` as a fallback melee option, with bruisers remaining much better at it.
+- Simulator: all player templates now include a distinct `unarmed_attack` fallback melee option, while real melee specialists keep their weapon-based attacks.
 - Why it matters: this removed misleading endgame churn where some PCs had no damaging action left and defaulted into weak support/control loops.
 - Why the simulator changed: desperate violence should remain available even when a character is out of ammunition.
 - Recommended direction: manuscript should explicitly give every PC a fallback melee/basic attack, even if some archetypes are poor at it.
@@ -105,23 +111,32 @@ When the two disagree, we should record the disagreement here rather than silent
 ### Prone
 - Status: `resolved`
 - Manuscript includes `Prone`.
-- Simulator now has a `prone` condition and uses it to grant attackers advantage.
+- Simulator now has a persistent `prone` condition, grants attackers advantage against prone targets, and requires a separate `stand_up` action to recover.
 
 ### Feint
-- Status: `missing in sim`
+- Status: `resolved`
 - Manuscript includes `Feint`.
-- Simulator does not yet model it.
+- Simulator now models it as an opposed setup action that grants advantage on the next attack against the feinted target.
 
 ### Reaction attacks
 - Status: `resolved`
 - Manuscript includes reaction attacks from movement and standing.
-- Simulator now models reaction attacks when leaving engagement.
-- Remaining gap: standing from prone does not yet trigger any special reaction handling because the simulator does not model stand-up as a separate action yet.
+- Simulator now models reaction attacks when leaving engagement and when standing up from prone while engaged.
 
 ### Taunt targeting penalty
 - Status: `resolved`
 - Manuscript gives the taunted target disadvantage on actions against combatants other than the taunter on its next turn.
 - Simulator now models that behavior with condition source tracking plus real disadvantage.
+
+### Taunt opposed roll
+- Status: `resolved`
+- Manuscript resolves `Taunt` against the target's Wits.
+- Simulator now models `Taunt` as an opposed test instead of a flat difficulty check.
+
+### One weapon attack per turn
+- Status: `resolved`
+- Manuscript limits each combat turn to a single weapon attack.
+- Simulator now enforces that limit in the turn loop instead of allowing multiple attack actions in the same turn.
 
 ### Several talents
 - Status: `missing in sim`
@@ -138,12 +153,12 @@ These are manuscript changes for the author to decide and apply.
 4. Add an explicit rule for ordinary monsters vs. elite/nemesis enemies at 0 HP.
 5. Decide whether monsters use the stress system at all, and if not, say so explicitly.
 6. Add a real resource/inventory section covering ammo, bandages, medkits, and between-scene recovery if those remain core.
-7. Give every PC a fallback melee/basic attack for out-of-ammo situations.
+7. Give every PC a fallback melee/basic attack for out-of-ammo situations, ideally as a distinct unarmed/basic attack rather than reusing stronger melee weapon attacks.
 8. Decide whether the game's core spatial model is squares or areas, and make that explicit.
 9. If areas are primary, frame grid play as an optional precision module.
 10. Decide whether action costs are part of the real combat procedure, and if so, explain the action budget clearly.
 11. Decide how `Shriek` cadence is limited if it remains a major fear move.
-12. If `Rally`, `Shove`, `Trip`, `Feint`, `Prone`, and reactions remain in the book, either keep them as future-facing placeholders very explicitly or expect the simulator to implement them soon.
+12. Clarify exactly how `Stable` behaves if a character takes damage before being healed, since the manuscript currently names the state without fully specifying that edge case.
 13. Revisit the talent list so the manuscript only promises talents we intend to support or soon implement.
 
 ## Simulator Fix Plan
@@ -157,16 +172,15 @@ These are implementation tasks for the simulator, independent of manuscript edit
 4. Decide what cadence limit `Shriek` should ultimately use: high action cost, once-per-turn, target lockout, or something else.
 
 ### Next fidelity work once canon is chosen
-5. Implement `Feint`.
-6. Decide whether standing from prone should be a distinct action and, if so, add the matching reaction handling.
-7. Add the remaining first-pass talents that materially affect combat math.
-8. Add player-side stress-focused reporting so benchmark stress metrics are not diluted by monster-side zeros.
+5. Clarify the manuscript's remaining ambiguity around what further harm does to a `Stable` character before healing.
+6. Add the remaining first-pass talents that materially affect combat math.
+7. Add player-side stress-focused reporting so benchmark stress metrics are not diluted by monster-side zeros.
 
 ### Session and horror quality work after core rules match
-9. Add longer-arc stress recovery testing between encounters or sessions.
-10. Add scavenging/replenishment nodes instead of only between-scene medkit spending.
-11. Add more horror-specific experiment outputs such as per-session PC death frequency, breakdown incidence, and end-of-session shroud burden.
-12. Add monster-specific behavior rules beyond generic persona weighting where needed.
+8. Add longer-arc stress recovery testing between encounters or sessions.
+9. Add scavenging/replenishment nodes instead of only between-scene medkit spending.
+10. Add more horror-specific experiment outputs such as per-session PC death frequency, breakdown incidence, and end-of-session shroud burden.
+11. Add monster-specific behavior rules beyond generic persona weighting where needed.
 
 ## Working Rule
 

@@ -20,6 +20,7 @@ class ActorStatus(str, Enum):
     NORMAL = "normal"
     WOUNDED = "wounded"
     CRITICAL = "critical"
+    STABLE = "stable"
     DEAD = "dead"
     BROKEN = "broken"
 
@@ -220,6 +221,19 @@ def append_event(state: EncounterState, message: str) -> EncounterState:
     return replace(state, events=(*state.events, message))
 
 
+def snapshot_actor(actor: ActorState) -> dict[str, int | str | dict[str, int]]:
+    return {
+        "hp": actor.hp,
+        "status": actor.status.value,
+        "stress": actor.stress,
+        "shrouds": actor.shrouds,
+        "area_id": actor.area_id,
+        "ammo": dict(actor.ammo),
+        "bandages": actor.bandages,
+        "medkits": actor.medkits,
+    }
+
+
 def synchronize_engagements(state: EncounterState) -> EncounterState:
     updated: dict[str, ActorState] = {}
     for actor_id, actor in state.actors.items():
@@ -229,7 +243,8 @@ def synchronize_engagements(state: EncounterState) -> EncounterState:
             if other.actor_id != actor_id
             and other.team != actor.team
             and other.area_id == actor.area_id
-            and other.status not in {ActorStatus.DEAD, ActorStatus.BROKEN}
+            and other.status
+            not in {ActorStatus.CRITICAL, ActorStatus.STABLE, ActorStatus.DEAD, ActorStatus.BROKEN}
         )
         updated[actor_id] = replace(actor, engaged_with=engaged)
     return replace(state, actors=updated)

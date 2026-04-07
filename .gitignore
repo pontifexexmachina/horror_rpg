@@ -10,3 +10,6 @@ __pycache__/
 .uv-cache/
 tools/
 pytest-cache-files-*/
+.claude/
+.npm-cache/
+.prek/

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
@@ -38,8 +39,8 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _to_jsonable(value: Any) -> Any:
-    if hasattr(value, "__dataclass_fields__") and not isinstance(value, type):
-        return {key: _to_jsonable(item) for key, item in vars(value).items()}
+    if is_dataclass(value) and not isinstance(value, type):
+        return _to_jsonable(asdict(value))
     if isinstance(value, dict):
         return {key: _to_jsonable(item) for key, item in value.items()}
     if isinstance(value, list | tuple):

@@ -80,4 +80,4 @@ This game can probably afford to have the most involved light mechanics of any T
 
 (I don't know if more involved makes them better, I just think we should be thoughtful about how we use light and make it feel like an important part of the game.)
 
-So that's stealth. You also mentioned occult powers. I am starting to think that maybe Control (another Remedy game, noticing a pattern here) 
+So that's stealth. You also mentioned occult powers. I am starting to think that maybe Control (another Remedy game, noticing a pattern here) is the model for "supernatural" abilities. The key is that supernatural abilities should not be clearly better than any other perk chain.

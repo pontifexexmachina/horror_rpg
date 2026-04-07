@@ -48,6 +48,7 @@ class CoreRules(BaseModel):
 class AttackEffect(BaseModel):
     type: Literal["attack"]
     uses_weapon: bool = True
+    weapon_id: str | None = None
     stat: Literal["might", "speed", "wits"]
     skill: str
 
@@ -91,6 +92,16 @@ class DebuffAttackEffect(BaseModel):
     target: Literal["enemy"]
 
 
+class ContestDebuffEffect(BaseModel):
+    type: Literal["contest_debuff"]
+    amount: int
+    duration_rounds: int
+    stat: Literal["might", "speed", "wits"]
+    skill: str
+    target: Literal["enemy"]
+    defense_stat: Literal["might", "speed", "wits"]
+
+
 class ContestConditionEffect(BaseModel):
     type: Literal["contest_condition"]
     stat: Literal["might", "speed", "wits"]
@@ -99,6 +110,7 @@ class ContestConditionEffect(BaseModel):
     defense_stat: Literal["might", "speed", "wits"]
     condition_id: str
     duration_rounds: int
+    apply_to: Literal["target", "self"] = "target"
 
 
 class ContestMoveEffect(BaseModel):
@@ -111,14 +123,22 @@ class ContestMoveEffect(BaseModel):
     crit_duration_rounds: int = 0
 
 
+class RemoveConditionEffect(BaseModel):
+    type: Literal["remove_condition"]
+    target: Literal["self"]
+    condition_id: str
+
+
 ActionEffect = (
     AttackEffect
     | HealEffect
     | BuffEffect
     | StressEffect
     | DebuffAttackEffect
+    | ContestDebuffEffect
     | ContestConditionEffect
     | ContestMoveEffect
+    | RemoveConditionEffect
 )
 
 
@@ -326,12 +346,18 @@ def validate_ruleset(ruleset: Ruleset) -> None:
     for action in ruleset.actions.values():
         effect = action.effect
         condition_id = None
-        if isinstance(effect, BuffEffect | ContestConditionEffect):
+        if isinstance(effect, BuffEffect | ContestConditionEffect | RemoveConditionEffect):
             condition_id = effect.condition_id
         elif isinstance(effect, ContestMoveEffect):
             condition_id = effect.crit_condition_id
         if condition_id is not None and condition_id not in ruleset.conditions:
             raise ValueError(f"Action {action.id} references unknown condition {condition_id}.")
+        if (
+            isinstance(effect, AttackEffect)
+            and effect.weapon_id is not None
+            and effect.weapon_id not in ruleset.weapons
+        ):
+            raise ValueError(f"Action {action.id} references unknown weapon {effect.weapon_id}.")
     for scenario in ruleset.scenarios.values():
         area_ids = [area.id for area in scenario.areas]
         if len(area_ids) != len(set(area_ids)):

@@ -14,13 +14,14 @@ from dead_by_dawn_sim.engine import (
     start_turn,
 )
 from dead_by_dawn_sim.personas import PERSONA_REGISTRY
-from dead_by_dawn_sim.rules import Ruleset, ScenarioSideEntry
+from dead_by_dawn_sim.rules import AttackEffect, Ruleset, ScenarioSideEntry
 from dead_by_dawn_sim.state import (
     ActorState,
     ActorStatus,
     EncounterState,
     append_event,
     build_actor_state,
+    snapshot_actor,
     synchronize_engagements,
 )
 
@@ -63,7 +64,7 @@ class EncounterResult:
 
 
 def _choice_action_cost(choice: ActionChoice, ruleset: Ruleset) -> int:
-    if choice.action_id in {"advance", "fall_back"}:
+    if choice.action_id in {"advance", "fall_back", "stand_up"}:
         return 1
     return ruleset.actions[choice.action_id].action_cost
 
@@ -76,6 +77,12 @@ def _affordable_actions(
         for choice in legal_actions
         if _choice_action_cost(choice, ruleset) <= remaining_actions
     ]
+
+
+def _is_attack_choice(choice: ActionChoice, ruleset: Ruleset) -> bool:
+    if choice.action_id in {"advance", "fall_back", "stand_up"}:
+        return False
+    return isinstance(ruleset.actions[choice.action_id].effect, AttackEffect)
 
 
 class EncounterRunner:
@@ -240,11 +247,18 @@ class EncounterRunner:
                     continue
                 persona = PERSONA_REGISTRY[metadata[actor_id].persona_id]
                 remaining_actions = actions_per_turn(state, actor_id, self.ruleset)
+                attack_used = False
                 while remaining_actions > 0:
                     legal_actions = legal_actions_for_actor(state, actor_id, self.ruleset)
                     affordable_actions = _affordable_actions(
                         legal_actions, self.ruleset, remaining_actions
                     )
+                    if attack_used:
+                        affordable_actions = [
+                            choice
+                            for choice in affordable_actions
+                            if not _is_attack_choice(choice, self.ruleset)
+                        ]
                     if not affordable_actions:
                         break
                     choice = persona.choose_action(affordable_actions, state, self.ruleset)
@@ -255,6 +269,8 @@ class EncounterRunner:
                     previous_state = state
                     state = resolve_action(state, choice, roller, self.ruleset)
                     remaining_actions -= action_cost
+                    if _is_attack_choice(choice, self.ruleset):
+                        attack_used = True
                     contributions[choice.actor_id] = self._accumulate_contribution(
                         contributions[choice.actor_id],
                         choice=choice,
@@ -380,19 +396,7 @@ class EncounterRunner:
         action_counts: dict[str, int],
         push_count: int,
     ) -> EncounterResult:
-        snapshots = {
-            actor_id: {
-                "hp": actor.hp,
-                "status": actor.status.value,
-                "stress": actor.stress,
-                "shrouds": actor.shrouds,
-                "area_id": actor.area_id,
-                "ammo": dict(actor.ammo),
-                "bandages": actor.bandages,
-                "medkits": actor.medkits,
-            }
-            for actor_id, actor in state.actors.items()
-        }
+        snapshots = {actor_id: snapshot_actor(actor) for actor_id, actor in state.actors.items()}
         return EncounterResult(
             scenario_id=scenario_id,
             seed=seed,
@@ -412,6 +416,7 @@ def _status_rank(status: ActorStatus) -> int:
         ActorStatus.NORMAL: 0,
         ActorStatus.WOUNDED: 1,
         ActorStatus.CRITICAL: 2,
-        ActorStatus.DEAD: 3,
-        ActorStatus.BROKEN: 3,
+        ActorStatus.STABLE: 3,
+        ActorStatus.DEAD: 4,
+        ActorStatus.BROKEN: 4,
     }[status]

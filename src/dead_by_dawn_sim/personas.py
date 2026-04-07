@@ -34,6 +34,10 @@ def _score_action(
             score += persona.weights.get("close_distance", 0.0)
         if choice.action_id == "fall_back" and actor.hp <= max(2, actor.max_hp // 3):
             score += persona.weights.get("escape", 0.0)
+    elif choice.action_id == "stand_up":
+        score += persona.weights.get("stand_up", 1.5)
+        if actor.engaged_with:
+            score += persona.weights.get("stand_up_urgency", 1.0)
     else:
         action = ruleset.actions[choice.action_id]
         for tag in action.tags:
@@ -103,11 +107,36 @@ def _context_adjustment(
         if target.max_hp - target.hp > 0:
             adjustment += persona.weights.get("rally_urgency", 0.4)
 
+    if choice.action_id == "feint":
+        adjustment += persona.weights.get("setup", 0.6)
+
     if choice.action_id == "trip":
         if any(condition.id == "prone" for condition in target.conditions):
             adjustment -= 4.0
         else:
-            adjustment += persona.weights.get("trip_urgency", 0.3)
+            active_allies_in_area = sum(
+                1
+                for candidate in state.actors.values()
+                if candidate.team == actor.team
+                and candidate.area_id == actor.area_id
+                and candidate.status
+                not in {
+                    ActorStatus.DEAD,
+                    ActorStatus.CRITICAL,
+                    ActorStatus.STABLE,
+                    ActorStatus.BROKEN,
+                }
+            )
+            adjustment -= persona.weights.get("trip_baseline_penalty", 2.5)
+            adjustment += max(0, active_allies_in_area - 1) * persona.weights.get(
+                "trip_teamwork_bonus", 0.4
+            )
+            if target.hp <= max(2, target.max_hp // 2):
+                adjustment -= persona.weights.get("trip_finish_penalty", 1.5)
+            else:
+                adjustment += persona.weights.get("trip_urgency", 0.3)
+            if actor.hp <= max(2, actor.max_hp // 3):
+                adjustment -= persona.weights.get("trip_risk_penalty", 0.8)
 
     if choice.action_id == "shove" and choice.destination_area is not None:
         if choice.destination_area != actor.area_id:
@@ -126,7 +155,8 @@ def _active_enemies(state: EncounterState, team: str) -> list[ActorState]:
         candidate
         for candidate in state.actors.values()
         if candidate.team != team
-        and candidate.status not in {ActorStatus.DEAD, ActorStatus.CRITICAL, ActorStatus.BROKEN}
+        and candidate.status
+        not in {ActorStatus.DEAD, ActorStatus.CRITICAL, ActorStatus.STABLE, ActorStatus.BROKEN}
     ]
 
 
@@ -144,6 +174,8 @@ def _closeout_adjustment(
         if before is not None and after is not None and after < before:
             return persona.weights.get("closeout_pursuit", 3.0) * (before - after)
         return 0.0
+    if choice.action_id == "stand_up":
+        return -persona.weights.get("closeout_delay", 2.0)
 
     action = ruleset.actions[choice.action_id]
     target = state.actor(choice.target_id)
@@ -152,16 +184,18 @@ def _closeout_adjustment(
             return persona.weights.get("closeout_attack", 3.5)
         if choice.action_id == "trip":
             return -persona.weights.get("closeout_trip_penalty", 3.5)
+        if choice.action_id == "feint":
+            return -persona.weights.get("closeout_delay", 2.0)
         if "control" in action.tags or "stress" in action.tags:
             return -persona.weights.get("closeout_delay", 2.0)
         return 0.0
 
-    if "heal" in action.tags and target.status.value in {"wounded", "critical"}:
+    if "heal" in action.tags and target.status.value in {"wounded", "critical", "stable"}:
         return persona.weights.get("closeout_rescue", 1.5)
     if (
         choice.action_id == "rally"
         and target.actor_id != actor.actor_id
-        and target.status.value in {"wounded", "critical"}
+        and target.status.value in {"wounded", "critical", "stable"}
     ):
         return persona.weights.get("closeout_rescue", 1.0)
     if choice.action_id == "rally":
@@ -201,7 +235,7 @@ def _reach_exit_adjustment(
         if choice.action_id not in {"advance", "fall_back"} and actor.area_id == exit_area:
             return persona.weights.get("hold_exit", 1.5)
         if (
-            choice.action_id not in {"advance", "fall_back"}
+            choice.action_id not in {"advance", "fall_back", "stand_up"}
             and actor.area_id != exit_area
             and not actor.engaged_with
             and distance is not None
@@ -257,7 +291,7 @@ def _has_attack_option(state: EncounterState, ruleset: Ruleset, actor_id: str) -
     from dead_by_dawn_sim.actions import legal_actions_for_actor
 
     return any(
-        choice.action_id not in {"advance", "fall_back"}
+        choice.action_id not in {"advance", "fall_back", "stand_up"}
         and "attack" in ruleset.actions[choice.action_id].tags
         for choice in legal_actions_for_actor(state, actor_id, ruleset)
     )

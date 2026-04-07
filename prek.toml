@@ -1,0 +1,12 @@
+[[repos]]
+repo = "local"
+
+hooks = [
+  { id = "ruff-check", name = "ruff check", language = "python", additional_dependencies = [".[dev]"], entry = "ruff check --fix --exit-non-zero-on-fix", types_or = ["python", "pyi"] },
+  { id = "ruff-format", name = "ruff format", language = "python", additional_dependencies = [".[dev]"], entry = "ruff format --check", types_or = ["python", "pyi"] },
+  { id = "basedpyright", name = "basedpyright", language = "python", additional_dependencies = [".[dev]"], entry = "basedpyright", pass_filenames = false },
+  { id = "module-size", name = "simulator module size guard", language = "python", entry = "python tools/check_module_sizes.py", pass_filenames = false },
+  { id = "pytest", name = "pytest", language = "python", additional_dependencies = [".[dev]"], entry = "pytest", pass_filenames = false, stages = ["pre-push"] },
+  { id = "vulture", name = "vulture unused code scan", language = "python", additional_dependencies = [".[dev]"], entry = "vulture", args = ["src", "tests", "--min-confidence", "80", "--exclude", "docs/,_book/,notes/"], pass_filenames = false, stages = ["pre-push"] },
+  { id = "jscpd", name = "jscpd copy-paste detector", language = "node", additional_dependencies = ["jscpd"], entry = "jscpd", args = ["--min-lines", "5", "--min-tokens", "50", "--threshold", "1", "src", "tests"], pass_filenames = false, stages = ["pre-push"] },
+]

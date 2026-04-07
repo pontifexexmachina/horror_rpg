@@ -12,8 +12,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "basedpyright>=1.29.1,<2.0.0",
+  "prek>=0.3.2,<0.4.0",
   "pytest>=8.3.0,<9.0.0",
   "ruff>=0.11.0,<0.12.0",
+  "vulture>=2.14,<3.0",
 ]
 
 [project.scripts]
@@ -42,15 +44,30 @@ select = [
   "F",
   "I",
   "B",
+  "C90",
   "UP",
   "N",
   "ARG",
+  "PLR",
   "RUF",
+  "SIM",
 ]
 ignore = [
   "ARG001",
   "E501",
+  "PLR0913",
+  "PLR2004",
 ]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"src/dead_by_dawn_sim/actions.py" = ["C901", "PLR0911", "PLR0912"]
+"src/dead_by_dawn_sim/engine.py" = ["C901", "PLR0912", "PLR0915"]
+"src/dead_by_dawn_sim/personas.py" = ["C901", "PLR0911", "PLR0912", "PLR0915"]
+"src/dead_by_dawn_sim/rules.py" = ["C901", "PLR0912"]
+"src/dead_by_dawn_sim/runner.py" = ["C901"]
 
 [tool.ruff.format]
 quote-style = "double"

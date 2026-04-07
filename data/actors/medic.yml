@@ -15,7 +15,7 @@ skills:
   cure: 2
   clever: 1
   chat: 1
-actions: [attack, brawl_attack, first_aid, grit, rally, shove, trip]
+actions: [attack, unarmed_attack, first_aid, grit, rally, shove, trip]
 weapon_id: pistol
 talents: [healing_hands]
 starting_band: near

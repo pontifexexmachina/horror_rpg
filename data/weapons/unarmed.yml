@@ -1,0 +1,7 @@
+id: unarmed
+name: Unarmed
+skill: brawl
+damage_die: 4
+tags: []
+max_range: engaged
+ammo_kind: null

@@ -5,11 +5,10 @@ tags: [control]
 range: far
 allow_push: true
 effect:
-  type: debuff_attack
+  type: contest_debuff
   amount: -1
   duration_rounds: 1
-  difficulty: challenging
   stat: wits
   skill: chat
   target: enemy
-
+  defense_stat: wits

@@ -1,12 +1,18 @@
 from __future__ import annotations
 
-from _pytest.capture import CaptureFixture
+from dataclasses import replace as dc_replace
 
+from _pytest.capture import CaptureFixture
+from _pytest.monkeypatch import MonkeyPatch
+
+from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.cli import main
 from dead_by_dawn_sim.experiments import ExperimentRunner
-from dead_by_dawn_sim.rules import load_ruleset
+from dead_by_dawn_sim.personas import PERSONA_REGISTRY
+from dead_by_dawn_sim.rules import Ruleset, load_ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
 from dead_by_dawn_sim.session import SessionRunner
+from dead_by_dawn_sim.state import EncounterState, synchronize_engagements, update_actor
 
 
 def test_runner_is_seed_reproducible() -> None:
@@ -105,6 +111,51 @@ def test_runner_respects_action_costs_for_shriek() -> None:
     action_frequencies = scenario["action_frequencies"]
     assert isinstance(action_frequencies, dict)
     assert "shriek" in action_frequencies
+
+
+class _AttackSpamPersona:
+    def choose_action(
+        self,
+        legal_actions: list[ActionChoice],
+        _state: EncounterState,
+        _ruleset: Ruleset,
+    ) -> ActionChoice:
+        for action_id in ("attack", "unarmed_attack", "fall_back"):
+            for choice in legal_actions:
+                if choice.action_id == action_id:
+                    return choice
+        return legal_actions[0]
+
+
+def test_runner_allows_only_one_attack_per_turn(monkeypatch: MonkeyPatch) -> None:
+    ruleset = load_ruleset()
+    limited_ruleset = dc_replace(
+        ruleset,
+        core=ruleset.core.model_copy(update={"max_rounds": 1}),
+    )
+    runner = EncounterRunner(limited_ruleset)
+    state, metadata = runner.build_state_bundle("single_pc_vs_slasher", seed=4)
+    actor_id = next(actor_id for actor_id in state.actors if actor_id.startswith("team_a"))
+    target_id = next(actor_id for actor_id in state.actors if actor_id.startswith("team_b"))
+    engaged_state = synchronize_engagements(
+        update_actor(
+            state, dc_replace(state.actor(actor_id), area_id=state.actor(target_id).area_id)
+        )
+    )
+    custom_metadata = {
+        key: (dc_replace(value, persona_id="attack_spam") if key == actor_id else value)
+        for key, value in metadata.items()
+    }
+    monkeypatch.setitem(PERSONA_REGISTRY, "attack_spam", _AttackSpamPersona())
+    result = runner.run_from_state(
+        scenario_id="single_pc_vs_slasher",
+        seed=4,
+        state=engaged_state,
+        metadata=custom_metadata,
+    )
+    assert (
+        result.action_counts.get("attack", 0) + result.action_counts.get("unarmed_attack", 0) == 1
+    )
 
 
 def test_validate_loads_updated_shriek_cost() -> None:

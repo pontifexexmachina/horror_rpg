@@ -14,6 +14,17 @@ from dead_by_dawn_sim.rules import (
 )
 
 
+def _assert_invalid_scenario(data: dict[str, object], match: str) -> None:
+    ruleset = load_ruleset()
+    invalid = ScenarioDefinition.model_validate(data)
+    broken_ruleset = replace(
+        ruleset,
+        scenarios={**ruleset.scenarios, invalid.id: invalid},
+    )
+    with pytest.raises(ValueError, match=match):
+        validate_ruleset(broken_ruleset)
+
+
 def test_load_ruleset_from_repo_data() -> None:
     ruleset = load_ruleset()
     counts = count_ruleset_entities(ruleset)
@@ -63,8 +74,7 @@ def test_unknown_effect_type_is_rejected() -> None:
 
 
 def test_validate_ruleset_rejects_unknown_start_area() -> None:
-    ruleset = load_ruleset()
-    invalid = ScenarioDefinition.model_validate(
+    _assert_invalid_scenario(
         {
             "id": "bad_start_area",
             "name": "Bad Start Area",
@@ -72,19 +82,13 @@ def test_validate_ruleset_rejects_unknown_start_area() -> None:
             "areas": [{"id": "foyer", "name": "Foyer"}],
             "team_a": [{"template_id": "survivor", "start_area": "nowhere"}],
             "team_b": [{"template_id": "slasher", "start_area": "foyer"}],
-        }
+        },
+        "unknown start area",
     )
-    broken_ruleset = replace(
-        ruleset,
-        scenarios={**ruleset.scenarios, invalid.id: invalid},
-    )
-    with pytest.raises(ValueError, match="unknown start area"):
-        validate_ruleset(broken_ruleset)
 
 
 def test_validate_ruleset_rejects_unknown_connection_endpoint() -> None:
-    ruleset = load_ruleset()
-    invalid = ScenarioDefinition.model_validate(
+    _assert_invalid_scenario(
         {
             "id": "bad_connection",
             "name": "Bad Connection",
@@ -93,11 +97,6 @@ def test_validate_ruleset_rejects_unknown_connection_endpoint() -> None:
             "connections": [{"id": "foyer_to_void", "from_area": "foyer", "to_area": "void"}],
             "team_a": [{"template_id": "survivor", "start_area": "foyer"}],
             "team_b": [{"template_id": "slasher", "start_area": "foyer"}],
-        }
+        },
+        "unknown area endpoint",
     )
-    broken_ruleset = replace(
-        ruleset,
-        scenarios={**ruleset.scenarios, invalid.id: invalid},
-    )
-    with pytest.raises(ValueError, match="unknown area endpoint"):
-        validate_ruleset(broken_ruleset)

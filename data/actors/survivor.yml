@@ -11,11 +11,12 @@ skills:
   brawn: 1
   shoot: 2
   stunt: 1
+  sneak: 2
   brace: 1
   cure: 0
   clever: 0
   chat: 0
-actions: [attack, brawl_attack, grit, rally, shove, trip]
+actions: [attack, unarmed_attack, feint, grit, rally, shove, trip]
 weapon_id: pistol
 talents: [final_girl]
 starting_band: near

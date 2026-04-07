@@ -4,7 +4,13 @@ from dataclasses import dataclass, replace
 
 from dead_by_dawn_sim.rules import Ruleset
 from dead_by_dawn_sim.runner import EncounterResult, EncounterRunner
-from dead_by_dawn_sim.state import ActorState, ActorStatus, EncounterState, synchronize_engagements
+from dead_by_dawn_sim.state import (
+    ActorState,
+    ActorStatus,
+    EncounterState,
+    snapshot_actor,
+    synchronize_engagements,
+)
 
 
 @dataclass(frozen=True)
@@ -102,7 +108,7 @@ class SessionRunner:
             medkits_spent += spent
 
         final_snapshots = {
-            actor_id: self._snapshot(actor) for actor_id, actor in carried_team_a.items()
+            actor_id: snapshot_actor(actor) for actor_id, actor in carried_team_a.items()
         }
         return SessionResult(
             plan_id=plan_id,
@@ -124,7 +130,7 @@ class SessionRunner:
             treatable = [
                 actor
                 for actor in actors.values()
-                if actor.status in {ActorStatus.WOUNDED, ActorStatus.CRITICAL}
+                if actor.status in {ActorStatus.WOUNDED, ActorStatus.CRITICAL, ActorStatus.STABLE}
                 or actor.hp < actor.max_hp
             ]
             if not treatable:
@@ -132,7 +138,11 @@ class SessionRunner:
             target = min(treatable, key=lambda actor: (actor.hp, actor.stress, actor.actor_id))
             healed_hp = min(target.max_hp, target.hp + 2)
             next_status = target.status
-            if healed_hp > 0 and target.status in {ActorStatus.WOUNDED, ActorStatus.CRITICAL}:
+            if healed_hp > 0 and target.status in {
+                ActorStatus.WOUNDED,
+                ActorStatus.CRITICAL,
+                ActorStatus.STABLE,
+            }:
                 next_status = ActorStatus.NORMAL
             actors[target.actor_id] = replace(target, hp=healed_hp, status=next_status)
             pool -= 1
@@ -144,15 +154,3 @@ class SessionRunner:
             updated[actor_id] = replace(actor, medkits=actor.medkits - deduction)
             remaining -= deduction
         return updated, spent
-
-    def _snapshot(self, actor: ActorState) -> dict[str, int | str | dict[str, int]]:
-        return {
-            "hp": actor.hp,
-            "status": actor.status.value,
-            "stress": actor.stress,
-            "shrouds": actor.shrouds,
-            "area_id": actor.area_id,
-            "ammo": dict(actor.ammo),
-            "bandages": actor.bandages,
-            "medkits": actor.medkits,
-        }
