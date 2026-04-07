@@ -11,3 +11,13 @@ effect:
   stat: wits
   skill: cure
   target: ally
+procedure:
+  steps:
+    - type: check
+      difficulty: challenging
+      stat: wits
+      skill: cure
+    - type: heal
+      target: target
+      amount: 1
+      when: success

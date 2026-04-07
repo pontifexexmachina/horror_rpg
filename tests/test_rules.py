@@ -7,6 +7,13 @@ from pydantic import ValidationError
 
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
+    ApplyConditionStep,
+    ApplyHealingStep,
+    AttackRollStep,
+    CheckRollStep,
+    ClearConditionStep,
+    ContestRollStep,
+    MoveTargetStep,
     ScenarioDefinition,
     count_ruleset_entities,
     load_ruleset,
@@ -100,3 +107,30 @@ def test_validate_ruleset_rejects_unknown_connection_endpoint() -> None:
         },
         "unknown area endpoint",
     )
+
+
+def test_actions_expose_declarative_procedures() -> None:
+    ruleset = load_ruleset()
+
+    rally_steps = ruleset.actions["rally"].procedure
+    assert rally_steps is not None
+    assert isinstance(rally_steps.steps[0], CheckRollStep)
+    assert isinstance(rally_steps.steps[1], ApplyConditionStep)
+    assert isinstance(rally_steps.steps[2], ApplyHealingStep)
+
+    trip_steps = ruleset.actions["trip"].procedure
+    assert trip_steps is not None
+    assert isinstance(trip_steps.steps[0], ContestRollStep)
+    assert isinstance(trip_steps.steps[1], ApplyConditionStep)
+
+    shove_steps = ruleset.actions["shove"].procedure
+    assert shove_steps is not None
+    assert isinstance(shove_steps.steps[1], MoveTargetStep)
+
+    attack_steps = ruleset.actions["attack"].procedure
+    assert attack_steps is not None
+    assert isinstance(attack_steps.steps[0], AttackRollStep)
+
+    stand_up_steps = ruleset.actions["stand_up"].procedure
+    assert stand_up_steps is not None
+    assert isinstance(stand_up_steps.steps[0], ClearConditionStep)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, TypeVar, cast
+from typing import Annotated, Literal, TypeVar, cast
 
 import yaml
 from pydantic import BaseModel, Field, model_validator
@@ -129,6 +129,95 @@ class RemoveConditionEffect(BaseModel):
     condition_id: str
 
 
+ActionOutcome = Literal["always", "success", "critical"]
+ProcedureTarget = Literal["self", "target"]
+MoveDestination = Literal["choice"]
+
+
+class AttackRollStep(BaseModel):
+    type: Literal["attack"]
+    uses_weapon: bool = True
+    weapon_id: str | None = None
+    stat: Literal["might", "speed", "wits"]
+    skill: str
+
+
+class CheckRollStep(BaseModel):
+    type: Literal["check"]
+    difficulty: Literal["challenging", "formidable"]
+    stat: Literal["might", "speed", "wits"]
+    skill: str
+
+
+class ContestRollStep(BaseModel):
+    type: Literal["contest"]
+    stat: Literal["might", "speed", "wits"]
+    skill: str
+    defense_stat: Literal["might", "speed", "wits"]
+
+
+class ApplyConditionStep(BaseModel):
+    type: Literal["apply_condition"]
+    target: ProcedureTarget
+    condition_id: str
+    duration_rounds: int
+    when: ActionOutcome = "success"
+
+
+class ApplyHealingStep(BaseModel):
+    type: Literal["heal"]
+    target: ProcedureTarget
+    amount: int
+    when: ActionOutcome = "success"
+
+
+class ApplyStressStep(BaseModel):
+    type: Literal["stress"]
+    target: ProcedureTarget
+    amount: int
+    when: ActionOutcome = "success"
+
+
+class ApplyAttackModifierStep(BaseModel):
+    type: Literal["apply_attack_modifier"]
+    target: ProcedureTarget
+    amount: int
+    duration_rounds: int
+    when: ActionOutcome = "success"
+
+
+class ClearConditionStep(BaseModel):
+    type: Literal["clear_condition"]
+    target: ProcedureTarget
+    condition_id: str
+    when: ActionOutcome = "always"
+
+
+class MoveTargetStep(BaseModel):
+    type: Literal["move_target"]
+    target: Literal["target"] = "target"
+    destination: MoveDestination = "choice"
+    when: ActionOutcome = "success"
+
+
+ActionProcedureStep = Annotated[
+    AttackRollStep
+    | CheckRollStep
+    | ContestRollStep
+    | ApplyConditionStep
+    | ApplyHealingStep
+    | ApplyStressStep
+    | ApplyAttackModifierStep
+    | ClearConditionStep
+    | MoveTargetStep,
+    Field(discriminator="type"),
+]
+
+
+class ActionProcedure(BaseModel):
+    steps: list[ActionProcedureStep] = Field(default_factory=list)
+
+
 ActionEffect = (
     AttackEffect
     | HealEffect
@@ -150,6 +239,7 @@ class ActionDefinition(BaseModel):
     range: Literal["engaged", "near", "far", "self", "ally", "enemy"]
     allow_push: bool
     effect: ActionEffect = Field(discriminator="type")
+    procedure: ActionProcedure | None = None
 
 
 class ConditionDefinition(BaseModel):

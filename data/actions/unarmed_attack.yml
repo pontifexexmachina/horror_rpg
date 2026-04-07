@@ -10,3 +10,10 @@ effect:
   weapon_id: unarmed
   stat: might
   skill: brawl
+procedure:
+  steps:
+    - type: attack
+      uses_weapon: false
+      weapon_id: unarmed
+      stat: might
+      skill: brawl

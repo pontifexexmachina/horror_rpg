@@ -8,3 +8,9 @@ effect:
   type: remove_condition
   target: self
   condition_id: prone
+procedure:
+  steps:
+    - type: clear_condition
+      target: self
+      condition_id: prone
+      when: always

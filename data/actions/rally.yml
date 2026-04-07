@@ -13,3 +13,18 @@ effect:
   condition_id: inspired
   duration_rounds: 1
   crit_heal_amount: 1
+procedure:
+  steps:
+    - type: check
+      difficulty: formidable
+      stat: wits
+      skill: chat
+    - type: apply_condition
+      target: target
+      condition_id: inspired
+      duration_rounds: 1
+      when: success
+    - type: heal
+      target: target
+      amount: 1
+      when: critical

@@ -12,4 +12,18 @@ effect:
   defense_stat: might
   crit_condition_id: prone
   crit_duration_rounds: 1
-
+procedure:
+  steps:
+    - type: contest
+      stat: might
+      skill: brawn
+      defense_stat: might
+    - type: move_target
+      target: target
+      destination: choice
+      when: success
+    - type: apply_condition
+      target: target
+      condition_id: prone
+      duration_rounds: 1
+      when: critical

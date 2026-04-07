@@ -11,3 +11,13 @@ effect:
   stat: might
   skill: brace
   target: self
+procedure:
+  steps:
+    - type: check
+      difficulty: formidable
+      stat: might
+      skill: brace
+    - type: heal
+      target: self
+      amount: 2
+      when: success

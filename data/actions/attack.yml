@@ -9,3 +9,9 @@ effect:
   uses_weapon: true
   stat: speed
   skill: shoot
+procedure:
+  steps:
+    - type: attack
+      uses_weapon: true
+      stat: speed
+      skill: shoot

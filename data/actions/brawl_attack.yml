@@ -9,3 +9,9 @@ effect:
   uses_weapon: true
   stat: might
   skill: brawl
+procedure:
+  steps:
+    - type: attack
+      uses_weapon: true
+      stat: might
+      skill: brawl

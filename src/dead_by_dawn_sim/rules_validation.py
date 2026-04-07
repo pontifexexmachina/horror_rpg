@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dead_by_dawn_sim.rules import (
+    ApplyConditionStep,
     AttackEffect,
+    AttackRollStep,
     BuffEffect,
+    ClearConditionStep,
     ContestConditionEffect,
     ContestMoveEffect,
     RemoveConditionEffect,
@@ -25,6 +28,28 @@ def _validate_actor_templates(ruleset: Ruleset) -> None:
                 raise ValueError(f"Actor {actor.id} references unknown talent {talent_id}.")
 
 
+def _validate_action_procedure(ruleset: Ruleset, action_id: str) -> None:
+    action = ruleset.actions[action_id]
+    if action.procedure is None:
+        return
+    for step in action.procedure.steps:
+        step_condition_id = None
+        if isinstance(step, ApplyConditionStep | ClearConditionStep):
+            step_condition_id = step.condition_id
+        if step_condition_id is not None and step_condition_id not in ruleset.conditions:
+            raise ValueError(
+                f"Action {action.id} procedure references unknown condition {step_condition_id}."
+            )
+        if (
+            isinstance(step, AttackRollStep)
+            and step.weapon_id is not None
+            and step.weapon_id not in ruleset.weapons
+        ):
+            raise ValueError(
+                f"Action {action.id} procedure references unknown weapon {step.weapon_id}."
+            )
+
+
 def _validate_actions(ruleset: Ruleset) -> None:
     for action in ruleset.actions.values():
         effect = action.effect
@@ -41,6 +66,7 @@ def _validate_actions(ruleset: Ruleset) -> None:
             and effect.weapon_id not in ruleset.weapons
         ):
             raise ValueError(f"Action {action.id} references unknown weapon {effect.weapon_id}.")
+        _validate_action_procedure(ruleset, action.id)
 
 
 def _validate_scenarios(ruleset: Ruleset) -> None:

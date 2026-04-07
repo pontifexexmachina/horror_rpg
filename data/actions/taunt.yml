@@ -12,3 +12,14 @@ effect:
   skill: chat
   target: enemy
   defense_stat: wits
+procedure:
+  steps:
+    - type: contest
+      stat: wits
+      skill: chat
+      defense_stat: wits
+    - type: apply_attack_modifier
+      target: target
+      amount: -1
+      duration_rounds: 1
+      when: success

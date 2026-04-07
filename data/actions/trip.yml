@@ -12,4 +12,14 @@ effect:
   defense_stat: speed
   condition_id: prone
   duration_rounds: 1
-
+procedure:
+  steps:
+    - type: contest
+      stat: speed
+      skill: stunt
+      defense_stat: speed
+    - type: apply_condition
+      target: target
+      condition_id: prone
+      duration_rounds: 1
+      when: success

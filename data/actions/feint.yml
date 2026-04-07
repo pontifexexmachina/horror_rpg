@@ -13,3 +13,14 @@ effect:
   condition_id: feinting
   duration_rounds: 1
   apply_to: self
+procedure:
+  steps:
+    - type: contest
+      stat: speed
+      skill: sneak
+      defense_stat: wits
+    - type: apply_condition
+      target: self
+      condition_id: feinting
+      duration_rounds: 1
+      when: success

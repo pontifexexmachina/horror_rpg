@@ -11,4 +11,13 @@ effect:
   stat: wits
   skill: clever
   target: enemy
-
+procedure:
+  steps:
+    - type: check
+      difficulty: challenging
+      stat: wits
+      skill: clever
+    - type: stress
+      target: target
+      amount: 2
+      when: success
