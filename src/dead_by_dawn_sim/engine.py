@@ -34,6 +34,7 @@ from dead_by_dawn_sim.rules import (
     BuffEffect,
     ContestConditionEffect,
     ContestDebuffEffect,
+    ContestMoveEffect,
     DebuffAttackEffect,
     HealEffect,
     RemoveConditionEffect,
@@ -310,6 +311,50 @@ def _apply_attack_hit(
     return append_event(state, event.format(damage=damage))
 
 
+def _resolve_skill_effect_result(
+    effect: BuffEffect | StressEffect | DebuffAttackEffect,
+    *,
+    actor: ActorState,
+    roller: DiceRoller,
+    ruleset: Ruleset,
+    push: bool,
+    roll_mode: RollMode,
+) -> RollResult:
+    return _resolve_effect_check(
+        actor=actor,
+        stat=effect.stat,
+        skill=effect.skill,
+        difficulty_name=effect.difficulty,
+        roller=roller,
+        ruleset=ruleset,
+        push=push,
+        roll_mode=roll_mode,
+    )
+
+
+def _resolve_contest_effect_result(
+    effect: ContestDebuffEffect | ContestConditionEffect | ContestMoveEffect,
+    *,
+    actor: ActorState,
+    target: ActorState,
+    roller: DiceRoller,
+    ruleset: Ruleset,
+    push: bool,
+    roll_mode: RollMode,
+) -> ContestResult:
+    return _resolve_effect_contest(
+        actor=actor,
+        target=target,
+        stat=effect.stat,
+        skill=effect.skill,
+        defense_stat=effect.defense_stat,
+        roller=roller,
+        ruleset=ruleset,
+        push=push,
+        roll_mode=roll_mode,
+    )
+
+
 def _apply_rattled(
     state: EncounterState,
     *,
@@ -410,11 +455,9 @@ def _apply_action_effect(
         else:
             state = append_event(state, f"{actor.actor_id} fails to heal {target.actor_id}.")
     elif isinstance(effect, BuffEffect):
-        result = _resolve_effect_check(
+        result = _resolve_skill_effect_result(
+            effect,
             actor=actor,
-            stat=effect.stat,
-            skill=effect.skill,
-            difficulty_name=effect.difficulty,
             roller=roller,
             ruleset=ruleset,
             push=push,
@@ -435,11 +478,9 @@ def _apply_action_effect(
         else:
             state = append_event(state, f"{actor.actor_id} fails to rally {target.actor_id}.")
     elif isinstance(effect, StressEffect):
-        result = _resolve_effect_check(
+        result = _resolve_skill_effect_result(
+            effect,
             actor=actor,
-            stat=effect.stat,
-            skill=effect.skill,
-            difficulty_name=effect.difficulty,
             roller=roller,
             ruleset=ruleset,
             push=push,
@@ -452,11 +493,9 @@ def _apply_action_effect(
             state = update_actor(state, updated_target)
             state = append_event(state, f"{actor.actor_id} rattles {target.actor_id}.")
     elif isinstance(effect, DebuffAttackEffect):
-        result = _resolve_effect_check(
+        result = _resolve_skill_effect_result(
+            effect,
             actor=actor,
-            stat=effect.stat,
-            skill=effect.skill,
-            difficulty_name=effect.difficulty,
             roller=roller,
             ruleset=ruleset,
             push=push,
@@ -467,12 +506,10 @@ def _apply_action_effect(
                 state, actor=actor, target=target, duration_rounds=effect.duration_rounds
             )
     elif isinstance(effect, ContestDebuffEffect):
-        result = _resolve_effect_contest(
+        result = _resolve_contest_effect_result(
+            effect,
             actor=actor,
             target=target,
-            stat=effect.stat,
-            skill=effect.skill,
-            defense_stat=effect.defense_stat,
             roller=roller,
             ruleset=ruleset,
             push=push,
@@ -487,12 +524,10 @@ def _apply_action_effect(
         state = update_actor(state, updated_actor)
         state = append_event(state, f"{actor.actor_id} stands up.")
     elif isinstance(effect, ContestConditionEffect):
-        result = _resolve_effect_contest(
+        result = _resolve_contest_effect_result(
+            effect,
             actor=actor,
             target=target,
-            stat=effect.stat,
-            skill=effect.skill,
-            defense_stat=effect.defense_stat,
             roller=roller,
             ruleset=ruleset,
             push=push,
@@ -523,12 +558,10 @@ def _apply_action_effect(
             )
         if not can_enter_area(state, destination_area):
             raise ValueError(f"Action {action.id} cannot move {target.actor_id} into a full area.")
-        result = _resolve_effect_contest(
+        result = _resolve_contest_effect_result(
+            effect,
             actor=actor,
             target=target,
-            stat=effect.stat,
-            skill=effect.skill,
-            defense_stat=effect.defense_stat,
             roller=roller,
             ruleset=ruleset,
             push=push,

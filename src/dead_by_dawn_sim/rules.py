@@ -331,70 +331,9 @@ def load_ruleset(data_dir: str | Path = "data") -> Ruleset:
 
 
 def validate_ruleset(ruleset: Ruleset) -> None:
-    for actor in ruleset.actors.values():
-        for action_id in actor.actions:
-            if action_id not in ruleset.actions:
-                raise ValueError(f"Actor {actor.id} references unknown action {action_id}.")
-        if actor.weapon_id is not None and actor.weapon_id not in ruleset.weapons:
-            raise ValueError(f"Actor {actor.id} references unknown weapon {actor.weapon_id}.")
-        for ammo_kind in actor.starting_ammo:
-            if not ammo_kind:
-                raise ValueError(f"Actor {actor.id} has an empty ammo kind key.")
-        for talent_id in actor.talents:
-            if talent_id not in ruleset.talents:
-                raise ValueError(f"Actor {actor.id} references unknown talent {talent_id}.")
-    for action in ruleset.actions.values():
-        effect = action.effect
-        condition_id = None
-        if isinstance(effect, BuffEffect | ContestConditionEffect | RemoveConditionEffect):
-            condition_id = effect.condition_id
-        elif isinstance(effect, ContestMoveEffect):
-            condition_id = effect.crit_condition_id
-        if condition_id is not None and condition_id not in ruleset.conditions:
-            raise ValueError(f"Action {action.id} references unknown condition {condition_id}.")
-        if (
-            isinstance(effect, AttackEffect)
-            and effect.weapon_id is not None
-            and effect.weapon_id not in ruleset.weapons
-        ):
-            raise ValueError(f"Action {action.id} references unknown weapon {effect.weapon_id}.")
-    for scenario in ruleset.scenarios.values():
-        area_ids = [area.id for area in scenario.areas]
-        if len(area_ids) != len(set(area_ids)):
-            raise ValueError(f"Scenario {scenario.id} defines duplicate area ids.")
-        area_id_set = set(area_ids)
-        for side in [scenario.team_a, scenario.team_b]:
-            for entry in side:
-                if entry.template_id not in ruleset.actors:
-                    msg = (
-                        f"Scenario {scenario.id} references unknown actor template "
-                        f"{entry.template_id}."
-                    )
-                    raise ValueError(msg)
-                if entry.start_area not in area_id_set:
-                    raise ValueError(
-                        f"Scenario {scenario.id} references unknown start area {entry.start_area}."
-                    )
-        for connection in scenario.connections:
-            if connection.from_area not in area_id_set or connection.to_area not in area_id_set:
-                raise ValueError(
-                    f"Scenario {scenario.id} has a connection with an unknown area endpoint."
-                )
-        if scenario.objective.area_id is not None and scenario.objective.area_id not in area_id_set:
-            raise ValueError(
-                f"Scenario {scenario.id} objective references unknown area {scenario.objective.area_id}."
-            )
-    for suite in ruleset.benchmark_suites.values():
-        for scenario_id in suite.scenario_ids:
-            if scenario_id not in ruleset.scenarios:
-                msg = f"Benchmark suite {suite.id} references unknown scenario {scenario_id}."
-                raise ValueError(msg)
-    for plan in ruleset.session_plans.values():
-        for scenario_id in plan.scenario_ids:
-            if scenario_id not in ruleset.scenarios:
-                raise ValueError(
-                    f"Session plan {plan.id} references unknown scenario {scenario_id}."
-                )
+    from dead_by_dawn_sim.rules_validation import validate_ruleset as _validate_ruleset
+
+    _validate_ruleset(ruleset)
 
 
 def count_ruleset_entities(ruleset: Ruleset) -> dict[str, int]:
