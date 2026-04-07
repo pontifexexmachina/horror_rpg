@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from dead_by_dawn_sim.state import EncounterState, append_event
 
 if TYPE_CHECKING:
-    from dead_by_dawn_sim.action_procedure_runtime import (
+    from dead_by_dawn_sim.action_procedure_types import (
         ActionResolutionContext,
         ProcedureResolution,
     )

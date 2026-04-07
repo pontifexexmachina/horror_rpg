@@ -1,0 +1,164 @@
+from __future__ import annotations
+
+from typing import Literal
+
+from pydantic import BaseModel, Field, model_validator
+
+
+class DifficultyRules(BaseModel):
+    challenging: int
+    formidable: int
+
+
+class PushRules(BaseModel):
+    extra_die: int = 1
+    keep: int = 2
+
+
+class StressRules(BaseModel):
+    starting: int
+    panic_threshold: int
+    breakdown_threshold: int
+
+
+class DeathRules(BaseModel):
+    wounded_to_critical_difficulty: Literal["challenging", "formidable"]
+    critical_stabilize_difficulty: Literal["challenging", "formidable"]
+    shrouds_to_die: int
+
+
+class CoreRules(BaseModel):
+    version: str
+    check_dice: int
+    save_dice: int
+    keep_dice: int
+    hp_base: int
+    defense_base: int
+    crit_on_doubles: bool
+    difficulties: DifficultyRules
+    push: PushRules
+    stress: StressRules
+    death: DeathRules
+    max_rounds: int = 10
+
+
+class ConditionDefinition(BaseModel):
+    id: str
+    name: str
+    tags: list[str]
+    attack_modifier: int = 0
+    damage_per_turn: int = 0
+
+
+class WeaponDefinition(BaseModel):
+    id: str
+    name: str
+    skill: str
+    damage_die: int
+    tags: list[str]
+    max_range: Literal["engaged", "near", "far"]
+    ammo_kind: str | None = None
+
+
+class TalentEffect(BaseModel):
+    type: Literal["final_girl", "healing_hands"]
+
+
+class TalentDefinition(BaseModel):
+    id: str
+    name: str
+    tags: list[str]
+    effect: TalentEffect
+
+
+DeathMode = Literal["pc_track", "die_at_zero"]
+StressMode = Literal["track", "ignore"]
+
+
+class ActorTemplate(BaseModel):
+    id: str
+    name: str
+    role: str
+    default_persona: str
+    stats: dict[Literal["might", "speed", "wits"], int]
+    skills: dict[str, int]
+    actions: list[str]
+    weapon_id: str | None = None
+    talents: list[str] = Field(default_factory=list)
+    death_mode: DeathMode = "pc_track"
+    stress_mode: StressMode = "track"
+    starting_band: Literal["engaged", "near", "far"] = "near"
+    starting_ammo: dict[str, int] = Field(default_factory=dict)
+    starting_bandages: int = 0
+    starting_medkits: int = 0
+
+
+class AreaDefinition(BaseModel):
+    id: str
+    name: str
+    tags: list[str] = Field(default_factory=list)
+    occupancy_limit: int | None = None
+
+
+class ConnectionDefinition(BaseModel):
+    id: str
+    from_area: str
+    to_area: str
+    tags: list[str] = Field(default_factory=list)
+    bidirectional: bool = True
+
+
+class ObjectiveDefinition(BaseModel):
+    type: Literal["defeat_enemies", "reach_exit", "hold_out"] = "defeat_enemies"
+    area_id: str | None = None
+    rounds: int | None = None
+    team: Literal["team_a", "team_b"] = "team_a"
+
+
+class ScenarioSideEntry(BaseModel):
+    template_id: str
+    persona_id: str | None = None
+    count: int = 1
+    start_area: str | None = None
+
+
+class ScenarioDefinition(BaseModel):
+    id: str
+    name: str
+    description: str
+    areas: list[AreaDefinition] = Field(default_factory=list)
+    connections: list[ConnectionDefinition] = Field(default_factory=list)
+    objective: ObjectiveDefinition = Field(default_factory=ObjectiveDefinition)
+    team_a: list[ScenarioSideEntry]
+    team_b: list[ScenarioSideEntry]
+
+    @model_validator(mode="after")
+    def _normalize_legacy_layout(self) -> ScenarioDefinition:
+        if not self.areas:
+            self.areas = [AreaDefinition(id="arena", name="Arena")]
+        default_area = self.areas[0].id
+        normalized_team_a: list[ScenarioSideEntry] = []
+        normalized_team_b: list[ScenarioSideEntry] = []
+        for entry in self.team_a:
+            if entry.start_area is None:
+                entry = entry.model_copy(update={"start_area": default_area})
+            normalized_team_a.append(entry)
+        for entry in self.team_b:
+            if entry.start_area is None:
+                entry = entry.model_copy(update={"start_area": default_area})
+            normalized_team_b.append(entry)
+        self.team_a = normalized_team_a
+        self.team_b = normalized_team_b
+        return self
+
+
+class BenchmarkSuite(BaseModel):
+    id: str
+    name: str
+    scenario_ids: list[str]
+
+
+class SessionPlan(BaseModel):
+    id: str
+    name: str
+    scenario_ids: list[str]

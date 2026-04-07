@@ -4,14 +4,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT / "src" / "dead_by_dawn_sim"
-DEFAULT_MAX_LINES = 350
-LINE_LIMIT_OVERRIDES = {
-    "engine_effect_handlers.py": 750,
-    "experiments.py": 380,
-    "personas.py": 500,
-    "rules.py": 425,
-    "runner.py": 450,
-}
+DEFAULT_MAX_LINES = 300
+LINE_LIMIT_OVERRIDES = {}
 
 
 def main() -> int:
