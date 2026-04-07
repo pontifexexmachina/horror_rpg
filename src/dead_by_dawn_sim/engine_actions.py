@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from dead_by_dawn_sim.actions import ActionChoice
-from dead_by_dawn_sim.combat_support import attack_weapon
-from dead_by_dawn_sim.dice import DiceRoller
-from dead_by_dawn_sim.engine_effect_handlers import (
+from dead_by_dawn_sim.action_procedure_runtime import (
     apply_action_effect,
     apply_attack_hit,
     attack_modifier_and_difficulty,
     roll_mode_for_action,
 )
+from dead_by_dawn_sim.actions import ActionChoice
+from dead_by_dawn_sim.combat_support import attack_weapon
+from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.engine_rolls import roll_check
 from dead_by_dawn_sim.rules import (
     ActionDefinition,

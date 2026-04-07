@@ -22,12 +22,16 @@ Actions should move toward an explicit `procedure` field that describes executio
 
 Each non-roll step can declare `when: always|success|critical` so the data carries the success table instead of Python branches.
 
-## Migration Strategy
+## Current State
 
-1. Keep the legacy `effect` field as a compatibility shim while we migrate runtime execution.
-2. Add `procedure` to every existing action YAML so the declarative source of truth starts taking shape immediately.
-3. Teach the engine to execute `procedure` for migrated actions, falling back to `effect` only for unmigrated actions.
-4. Once all actions execute from `procedure`, remove the legacy effect union and collapse the remaining bespoke handlers into interpreter primitives.
+The simulator now executes actions directly from `procedure`, and the legacy `effect` model has been removed. The remaining architectural work is about keeping the procedure vocabulary small and separating mechanical execution from narration.
+
+## Design Guardrails
+
+1. New actions must be expressible as procedure steps in YAML.
+2. Adding a new primitive requires showing that existing steps cannot express the mechanic cleanly.
+3. Runtime modules should own state transitions, not action-specific prose.
+4. Narration should stay in a dedicated layer so the procedure runtime remains mechanically focused.
 
 ## What This Buys Us
 

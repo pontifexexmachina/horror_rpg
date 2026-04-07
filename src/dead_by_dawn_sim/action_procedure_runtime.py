@@ -3,6 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Literal
 
+from dead_by_dawn_sim.action_procedure_narration import (
+    narrate_attack_hit,
+    narrate_attack_miss,
+    narrate_procedure_action,
+    narrate_rattled_aim,
+)
 from dead_by_dawn_sim.combat_support import attack_weapon, has_condition
 from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.engine_rolls import (
@@ -41,7 +47,6 @@ from dead_by_dawn_sim.state import (
     ConditionState,
     EncounterState,
     TalentState,
-    append_event,
     area_has_tag,
     can_enter_area,
     connected_area_ids,
@@ -262,7 +267,7 @@ def apply_attack_hit(
     if "bleed" in weapon.tags:
         updated_target = _append_condition(updated_target, "bleeding", 3)
     state = update_actor(state, updated_target)
-    return append_event(state, event.format(damage=damage))
+    return narrate_attack_hit(state, event.format(damage=damage))
 
 
 def _apply_rattled(
@@ -279,7 +284,7 @@ def _apply_rattled(
         source_actor_id=actor.actor_id,
     )
     state = update_actor(state, updated_target)
-    return append_event(state, f"{actor.actor_id} rattles {target.actor_id}'s aim.")
+    return narrate_rattled_aim(state, actor.actor_id, target.actor_id)
 
 
 def _move_target(
@@ -452,7 +457,7 @@ def _run_attack_step(
             event=f"{resolution.actor.actor_id} hits {resolution.target.actor_id} for {{damage}}.",
         )
     else:
-        state = append_event(state, f"{resolution.actor.actor_id} misses {resolution.target.actor_id}.")
+        state = narrate_attack_miss(state, resolution.actor.actor_id, resolution.target.actor_id)
     return resolution.with_state(
         state,
         actor_id=resolution.actor.actor_id,
@@ -588,44 +593,7 @@ def _finalize_procedure_action(
     before: ProcedureResolution,
     after: ProcedureResolution,
 ) -> EncounterState:
-    last_roll = after.last_roll
-    actor_id = before.actor.actor_id
-    target_id = before.target.actor_id
-    state = after.state
-    if ctx.action.id in {"attack", "brawl_attack", "unarmed_attack", "taunt"}:
-        state = after.state
-    elif ctx.action.id in {"first_aid", "grit"}:
-        if last_roll is None or not last_roll.is_success:
-            state = append_event(after.state, f"{actor_id} fails to heal {target_id}.")
-        else:
-            healed_amount = after.target.hp - before.target.hp
-            state = append_event(after.state, f"{actor_id} heals {target_id} for {healed_amount}.")
-    elif ctx.action.id == "rally":
-        if last_roll is None or not last_roll.is_success:
-            state = append_event(after.state, f"{actor_id} fails to rally {target_id}.")
-        else:
-            state = append_event(after.state, f"{actor_id} rallies {target_id}.")
-    elif ctx.action.id == "shriek":
-        if last_roll is not None and last_roll.is_success and uses_stress_track(before.target):
-            state = append_event(after.state, f"{actor_id} rattles {target_id}.")
-    elif ctx.action.id == "trip":
-        if last_roll is None or not last_roll.is_success:
-            state = append_event(after.state, f"{actor_id} fails to topple {target_id}.")
-        else:
-            state = append_event(after.state, f"{actor_id} puts {target_id} on the ground.")
-    elif ctx.action.id == "feint":
-        if last_roll is None or not last_roll.is_success:
-            state = append_event(after.state, f"{actor_id} fails to topple {target_id}.")
-        else:
-            state = append_event(after.state, f"{actor_id} feints against {target_id}.")
-    elif ctx.action.id == "shove":
-        if last_roll is None or not last_roll.is_success:
-            state = append_event(after.state, f"{actor_id} fails to shove {target_id}.")
-        else:
-            state = append_event(after.state, f"{actor_id} shoves {target_id} to {after.target.area_id}.")
-    elif ctx.action.id == "stand_up":
-        state = append_event(after.state, f"{actor_id} stands up.")
-    return state
+    return narrate_procedure_action(ctx, before, after, uses_stress_track(before.target))
 
 
 def _resolve_procedure(ctx: ActionResolutionContext) -> EncounterState:
