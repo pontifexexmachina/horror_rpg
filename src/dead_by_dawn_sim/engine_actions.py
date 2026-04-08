@@ -125,10 +125,10 @@ def resolve_action(
         actor,
         target,
         action,
-        roller,
-        ruleset,
-        choice.push,
-        choice.destination_area,
+        roller=roller,
+        ruleset=ruleset,
+        push=choice.push,
+        destination_area=choice.destination_area,
     )
 
     if action.reaction_timing == "after" and reactors:

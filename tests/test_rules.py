@@ -5,6 +5,9 @@ from dataclasses import replace
 import pytest
 from pydantic import ValidationError
 
+from dead_by_dawn_sim.rules_action_models import ActionDefinition as _ActionDefinition
+from dead_by_dawn_sim.rules_content_models import ActorTemplate, CoreRules, ScenarioDefinition as _ScenarioDefinition
+
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
     AmmoAtLeastRequirement,

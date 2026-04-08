@@ -6,6 +6,7 @@ from statistics import mean
 from typing import TYPE_CHECKING
 
 from dead_by_dawn_sim.runner_types import ActorMetadata, ContributionStats, EncounterResult
+from dead_by_dawn_sim.state import ActorStatus
 
 if TYPE_CHECKING:
     from dead_by_dawn_sim.session import SessionResult
@@ -31,9 +32,6 @@ class SessionBenchmarkReport:
     runs: int
     metrics: dict[str, object]
 
-
-def _clamp_rate(value: float) -> float:
-    return max(0.0, min(1.0, value))
 
 
 def _percentile(values: list[int], percentile: float) -> float:
@@ -68,13 +66,13 @@ def _snapshot_resources(snapshot: Snapshot) -> dict[str, int]:
 def _status_rates_from_snapshots(snapshots: Sequence[Snapshot]) -> dict[str, float]:
     total = len(snapshots)
     if total == 0:
-        return {"normal": 0.0, "wounded": 0.0, "critical": 0.0, "dead": 0.0, "broken": 0.0}
+        return {s.value: 0.0 for s in (ActorStatus.NORMAL, ActorStatus.WOUNDED, ActorStatus.CRITICAL, ActorStatus.DEAD, ActorStatus.BROKEN)}
     return {
-        "normal": sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == "normal") / total,
-        "wounded": sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == "wounded") / total,
-        "critical": sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == "critical") / total,
-        "dead": sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == "dead") / total,
-        "broken": sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == "broken") / total,
+        ActorStatus.NORMAL.value: sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == ActorStatus.NORMAL) / total,
+        ActorStatus.WOUNDED.value: sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == ActorStatus.WOUNDED) / total,
+        ActorStatus.CRITICAL.value: sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == ActorStatus.CRITICAL) / total,
+        ActorStatus.DEAD.value: sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == ActorStatus.DEAD) / total,
+        ActorStatus.BROKEN.value: sum(1 for snapshot in snapshots if _snapshot_status(snapshot) == ActorStatus.BROKEN) / total,
     }
 
 
@@ -198,10 +196,10 @@ def summarize_benchmark_suite_results(results: list[EncounterResult]) -> dict[st
     team_a_wins = sum(1 for result in results if result.winner == "team_a")
     team_a_win_rate = team_a_wins / len(results)
     draw_rate = draws / len(results)
-    team_b_win_rate = _clamp_rate(1 - team_a_win_rate - draw_rate)
+    team_b_win_rate = max(0.0, min(1.0, 1 - team_a_win_rate - draw_rate))
     return {
-        "win_rate_team_a": _clamp_rate(team_a_win_rate),
-        "draw_rate": _clamp_rate(draw_rate),
+        "win_rate_team_a": max(0.0, min(1.0, team_a_win_rate)),
+        "draw_rate": max(0.0, min(1.0, draw_rate)),
         "win_rate_team_b": team_b_win_rate,
         "avg_rounds": mean(rounds),
         "p50_rounds": _percentile(rounds, 0.5),
@@ -223,7 +221,7 @@ def summarize_scenario_results(results: list[EncounterResult]) -> dict[str, obje
     draws = sum(1 for result in results if result.winner == "draw")
     team_a_win_rate = wins / len(results)
     draw_rate = draws / len(results)
-    team_b_win_rate = _clamp_rate(1 - team_a_win_rate - draw_rate)
+    team_b_win_rate = max(0.0, min(1.0, 1 - team_a_win_rate - draw_rate))
     stress_values = [
         _snapshot_int(snapshot, "stress")
         for result in results
@@ -239,8 +237,8 @@ def summarize_scenario_results(results: list[EncounterResult]) -> dict[str, obje
         "avg_rounds": mean(rounds),
         "p50_rounds": _percentile(rounds, 0.5),
         "p90_rounds": _percentile(rounds, 0.9),
-        "team_a_win_rate": _clamp_rate(team_a_win_rate),
-        "draw_rate": _clamp_rate(draw_rate),
+        "team_a_win_rate": max(0.0, min(1.0, team_a_win_rate)),
+        "draw_rate": max(0.0, min(1.0, draw_rate)),
         "team_b_win_rate": team_b_win_rate,
         "avg_stress": mean(stress_values),
         "max_stress": float(max(stress_values)),

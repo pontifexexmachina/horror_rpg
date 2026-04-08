@@ -102,6 +102,7 @@ def apply_action_effect(
     actor: ActorState,
     target: ActorState,
     action: ActionDefinition,
+    *,
     roller: DiceRoller,
     ruleset: Ruleset,
     push: bool,

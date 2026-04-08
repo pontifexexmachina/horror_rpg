@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from dead_by_dawn_sim.combat_support import attack_weapon
 from dead_by_dawn_sim.state import ActorState, update_actor
 
+from dead_by_dawn_sim.action_procedure_steps import procedure_result_applies
+
 if TYPE_CHECKING:
     from dead_by_dawn_sim.action_procedure_types import ProcedureResolution
     from dead_by_dawn_sim.rules import AttackRollStep, Ruleset, SpendAmmoStep, SpendResourceStep
@@ -39,19 +41,11 @@ def spend_resource(actor: ActorState, resource: str, amount: int) -> ActorState:
     return replace(actor, resources=next_resources)
 
 
-def _step_applies(when: str, resolution: ProcedureResolution) -> bool:
-    if when == "always" or resolution.last_roll is None:
-        return True
-    if when == "success":
-        return resolution.last_roll.is_success
-    return resolution.last_roll.is_critical
-
-
 def run_spend_resource_step(
     resolution: ProcedureResolution,
     step: SpendResourceStep,
 ) -> ProcedureResolution:
-    if not _step_applies(step.when, resolution):
+    if not procedure_result_applies(resolution.last_roll, step.when):
         return resolution
     actor = spend_resource(resolution.actor, step.resource, step.amount)
     state = update_actor(resolution.state, actor)
@@ -68,7 +62,7 @@ def run_spend_ammo_step(
     ruleset: Ruleset,
     step: SpendAmmoStep,
 ) -> ProcedureResolution:
-    if not _step_applies(step.when, resolution):
+    if not procedure_result_applies(resolution.last_roll, step.when):
         return resolution
     if action_attack_step is None:
         raise ValueError("Action cannot spend ammo without an attack step.")

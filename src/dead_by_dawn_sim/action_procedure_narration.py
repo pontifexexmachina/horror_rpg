@@ -11,18 +11,6 @@ if TYPE_CHECKING:
     )
 
 
-def narrate_attack_hit(state: EncounterState, message: str) -> EncounterState:
-    return append_event(state, message)
-
-
-def narrate_attack_miss(state: EncounterState, actor_id: str, target_id: str) -> EncounterState:
-    return append_event(state, f"{actor_id} misses {target_id}.")
-
-
-def narrate_rattled_aim(state: EncounterState, actor_id: str, target_id: str) -> EncounterState:
-    return append_event(state, f"{actor_id} rattles {target_id}'s aim.")
-
-
 def _heal_message(
     before: ProcedureResolution,
     after: ProcedureResolution,
@@ -54,13 +42,13 @@ def _shriek_message(
     before: ProcedureResolution,
     after: ProcedureResolution,
     target_uses_stress_track: bool,
-) -> str | None:
+) -> str:
     actor_id = before.actor.actor_id
     target_id = before.target.actor_id
     last_roll = after.last_roll
     if last_roll is not None and last_roll.is_success and target_uses_stress_track:
         return f"{actor_id} rattles {target_id}."
-    return None
+    return ""
 
 
 def _trip_message(
@@ -134,6 +122,6 @@ def narrate_procedure_action(
     if handler is None:
         return after.state
     message = handler(before, after, target_uses_stress_track)
-    if message is None:
+    if not message:
         return after.state
     return append_event(after.state, message)
