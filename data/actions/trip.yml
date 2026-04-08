@@ -2,6 +2,8 @@ id: trip
 name: Trip
 action_cost: 1
 tags: [control, setup]
+behavior_tags: [control_setup]
+narration_id: trip
 range: engaged
 allow_push: true
 procedure:

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from dead_by_dawn_sim.actions import ActionChoice
-from dead_by_dawn_sim.rules import Ruleset
-from dead_by_dawn_sim.runner_types import ActorMetadata
-from dead_by_dawn_sim.state import EncounterState
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.actions import ActionChoice
+    from dead_by_dawn_sim.rules import Ruleset
+    from dead_by_dawn_sim.runner_types import ActorMetadata
+    from dead_by_dawn_sim.state import EncounterState
 
 
 class ActorPolicy(Protocol):

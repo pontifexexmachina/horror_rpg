@@ -3,19 +3,21 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field, replace
 from enum import Enum
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-from dead_by_dawn_sim.rules import (
-    ActorTemplate,
-    AreaDefinition,
-    ConnectionDefinition,
-    DeathMode,
-    ObjectiveDefinition,
-    Ruleset,
-    StressMode,
-)
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.rules import (
+        ActorTemplate,
+        AreaDefinition,
+        ConnectionDefinition,
+        DeathMode,
+        ObjectiveDefinition,
+        Ruleset,
+        StressMode,
+    )
+    from dead_by_dawn_sim.rules_content_models import ResourceId
 
-CONSUMABLE_RESOURCE_IDS = frozenset({"bandages", "medkits"})
+CONSUMABLE_RESOURCE_IDS: frozenset[ResourceId] = frozenset({"bandages", "medkits"})
 
 
 class ActorStatus(str, Enum):
@@ -224,12 +226,12 @@ def build_actor_state(
         shrouds=0,
         status=ActorStatus.NORMAL,
         weapon_id=template.weapon_id,
-        resources=dict(template.starting_resources),
+        resources={str(resource_id): amount for resource_id, amount in template.starting_resources.items()},
         action_ids=tuple(template.actions),
         talent_ids=tuple(template.talents),
         talent_state=TalentState(),
-        conditions=tuple(),
-        attack_modifiers=tuple(),
+        conditions=(),
+        attack_modifiers=(),
         death_mode=template.death_mode,
         stress_mode=template.stress_mode,
         area_id=start_area,
@@ -275,3 +277,5 @@ def synchronize_engagements(state: EncounterState) -> EncounterState:
         )
         updated[actor_id] = replace(actor, engaged_with=engaged)
     return replace(state, actors=updated)
+
+

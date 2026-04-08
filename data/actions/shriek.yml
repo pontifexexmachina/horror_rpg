@@ -2,6 +2,8 @@ id: shriek
 name: Shriek
 action_cost: 2
 tags: [stress, control]
+behavior_tags: [stress, control_pressure]
+narration_id: shriek
 range: far
 allow_push: true
 procedure:

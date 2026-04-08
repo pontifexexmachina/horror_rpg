@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
 from dead_by_dawn_sim.action_procedure_runtime import (
     apply_action_effect,
@@ -8,9 +9,7 @@ from dead_by_dawn_sim.action_procedure_runtime import (
     attack_modifier_and_difficulty,
     roll_mode_for_action,
 )
-from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.combat_support import attack_weapon
-from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.engine_rolls import roll_check
 from dead_by_dawn_sim.rules import Ruleset, attack_step_for_action
 from dead_by_dawn_sim.state import (
@@ -19,6 +18,10 @@ from dead_by_dawn_sim.state import (
     EncounterState,
     append_event,
 )
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.actions import ActionChoice
+    from dead_by_dawn_sim.dice import DiceRoller
 
 INCAPACITATED_STATUSES = {
     ActorStatus.CRITICAL,

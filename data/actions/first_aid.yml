@@ -2,6 +2,8 @@ id: first_aid
 name: First Aid
 action_cost: 1
 tags: [heal, support]
+behavior_tags: [ally_support]
+narration_id: heal
 range: ally
 allow_push: true
 availability:

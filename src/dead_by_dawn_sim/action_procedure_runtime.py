@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from dead_by_dawn_sim.action_procedure_rolls import (
     apply_attack_hit,
     attack_modifier_and_difficulty,
@@ -20,7 +22,6 @@ from dead_by_dawn_sim.action_procedure_steps import (
     run_stress_step,
 )
 from dead_by_dawn_sim.action_procedure_types import ActionResolutionContext, ProcedureResolution
-from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.engine_state import run_stress_test
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
@@ -37,7 +38,10 @@ from dead_by_dawn_sim.rules import (
     SpendAmmoStep,
     SpendResourceStep,
 )
-from dead_by_dawn_sim.state import ActorState, EncounterState
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.dice import DiceRoller
+    from dead_by_dawn_sim.state import ActorState, EncounterState
 
 
 def _run_roll_like_step(

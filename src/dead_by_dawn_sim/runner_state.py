@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from random import Random
+from typing import TYPE_CHECKING
 
-from dead_by_dawn_sim.rules import Ruleset, ScenarioSideEntry
 from dead_by_dawn_sim.runner_types import ActorMetadata
 from dead_by_dawn_sim.state import (
     ActorState,
@@ -11,6 +11,9 @@ from dead_by_dawn_sim.state import (
     build_actor_state,
     synchronize_engagements,
 )
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.rules import Ruleset, ScenarioSideEntry
 
 
 def build_state_bundle(

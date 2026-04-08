@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from random import Random
+from typing import TYPE_CHECKING
 
 from dead_by_dawn_sim.actions import legal_actions_for_actor
 from dead_by_dawn_sim.dice import RandomDiceRoller
@@ -13,12 +14,14 @@ from dead_by_dawn_sim.engine import (
     start_turn,
 )
 from dead_by_dawn_sim.policies import PolicyResolver, default_policy_resolver
-from dead_by_dawn_sim.rules import Ruleset
 from dead_by_dawn_sim.runner_actions import affordable_actions, choice_action_cost, is_attack_choice
 from dead_by_dawn_sim.runner_reports import accumulate_contribution, finish_encounter
 from dead_by_dawn_sim.runner_state import build_state_bundle
 from dead_by_dawn_sim.runner_types import ActorMetadata, ContributionStats, EncounterResult
-from dead_by_dawn_sim.state import EncounterState
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.rules import Ruleset
+    from dead_by_dawn_sim.state import EncounterState
 
 
 class EncounterRunner:
@@ -83,6 +86,34 @@ class EncounterRunner:
         )
         return result
 
+    def _finish(
+        self,
+        *,
+        state: EncounterState,
+        scenario_id: str,
+        seed: int,
+        winner: str,
+        rounds: int,
+        metadata: dict[str, ActorMetadata],
+        contributions: dict[str, ContributionStats],
+        action_counts: dict[str, int],
+        push_count: int,
+    ) -> tuple[EncounterResult, EncounterState]:
+        return (
+            finish_encounter(
+                state,
+                scenario_id=scenario_id,
+                seed=seed,
+                winner=winner,
+                rounds=rounds,
+                metadata=metadata,
+                contributions=contributions,
+                action_counts=action_counts,
+                push_count=push_count,
+            ),
+            state,
+        )
+
     def _run_state(
         self,
         *,
@@ -110,19 +141,16 @@ class EncounterRunner:
                 state = start_turn(state, actor_id, self.ruleset)
                 winner = determine_winner(state)
                 if winner is not None:
-                    return (
-                        finish_encounter(
-                            state,
-                            scenario_id=scenario_id,
-                            seed=seed,
-                            winner=winner,
-                            rounds=round_number,
-                            metadata=metadata,
-                            contributions=contributions,
-                            action_counts=action_counts,
-                            push_count=push_count,
-                        ),
-                        state,
+                    return self._finish(
+                        state=state,
+                        scenario_id=scenario_id,
+                        seed=seed,
+                        winner=winner,
+                        rounds=round_number,
+                        metadata=metadata,
+                        contributions=contributions,
+                        action_counts=action_counts,
+                        push_count=push_count,
                     )
                 if not legal_actions_for_actor(state, actor_id, self.ruleset):
                     state = end_turn(state, actor_id, roller, self.ruleset)
@@ -160,26 +188,8 @@ class EncounterRunner:
                     )
                     winner = determine_winner(state)
                     if winner is not None:
-                        return (
-                            finish_encounter(
-                                state,
-                                scenario_id=scenario_id,
-                                seed=seed,
-                                winner=winner,
-                                rounds=round_number,
-                                metadata=metadata,
-                                contributions=contributions,
-                                action_counts=action_counts,
-                                push_count=push_count,
-                            ),
-                            state,
-                        )
-                state = end_turn(state, actor_id, roller, self.ruleset)
-                winner = determine_winner(state)
-                if winner is not None:
-                    return (
-                        finish_encounter(
-                            state,
+                        return self._finish(
+                            state=state,
                             scenario_id=scenario_id,
                             seed=seed,
                             winner=winner,
@@ -188,21 +198,30 @@ class EncounterRunner:
                             contributions=contributions,
                             action_counts=action_counts,
                             push_count=push_count,
-                        ),
-                        state,
+                        )
+                state = end_turn(state, actor_id, roller, self.ruleset)
+                winner = determine_winner(state)
+                if winner is not None:
+                    return self._finish(
+                        state=state,
+                        scenario_id=scenario_id,
+                        seed=seed,
+                        winner=winner,
+                        rounds=round_number,
+                        metadata=metadata,
+                        contributions=contributions,
+                        action_counts=action_counts,
+                        push_count=push_count,
                     )
         final_winner = determine_winner(state) or "draw"
-        return (
-            finish_encounter(
-                state,
-                scenario_id=scenario_id,
-                seed=seed,
-                winner=final_winner,
-                rounds=self.ruleset.core.max_rounds,
-                metadata=metadata,
-                contributions=contributions,
-                action_counts=action_counts,
-                push_count=push_count,
-            ),
-            state,
+        return self._finish(
+            state=state,
+            scenario_id=scenario_id,
+            seed=seed,
+            winner=final_winner,
+            rounds=self.ruleset.core.max_rounds,
+            metadata=metadata,
+            contributions=contributions,
+            action_counts=action_counts,
+            push_count=push_count,
         )

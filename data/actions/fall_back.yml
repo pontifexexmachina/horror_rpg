@@ -2,6 +2,7 @@ id: fall_back
 name: Fall Back
 action_cost: 1
 tags: [positioning, movement, retreat]
+behavior_tags: [movement, retreat]
 range: self
 allow_push: false
 availability:

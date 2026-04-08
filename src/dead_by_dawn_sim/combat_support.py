@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from dead_by_dawn_sim.rules import AttackRollStep, Ruleset, WeaponDefinition
-from dead_by_dawn_sim.state import ActorState
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.rules import AttackRollStep, Ruleset, WeaponDefinition
+    from dead_by_dawn_sim.state import ActorState
 
 
 def attack_weapon(

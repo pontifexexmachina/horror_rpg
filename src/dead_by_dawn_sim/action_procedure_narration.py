@@ -111,8 +111,7 @@ def _stand_up_message(
 
 
 NARRATION_HANDLERS = {
-    "first_aid": _heal_message,
-    "grit": _heal_message,
+    "heal": _heal_message,
     "rally": _rally_message,
     "shriek": _shriek_message,
     "trip": _trip_message,
@@ -128,9 +127,10 @@ def narrate_procedure_action(
     after: ProcedureResolution,
     target_uses_stress_track: bool,
 ) -> EncounterState:
-    if ctx.action.id in {"attack", "brawl_attack", "unarmed_attack", "taunt"}:
+    narration_id = ctx.action.narration_id
+    if narration_id is None:
         return after.state
-    handler = NARRATION_HANDLERS.get(ctx.action.id)
+    handler = NARRATION_HANDLERS.get(narration_id)
     if handler is None:
         return after.state
     message = handler(before, after, target_uses_stress_track)

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from random import Random
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from random import Random
 
 
 class DiceRoller:

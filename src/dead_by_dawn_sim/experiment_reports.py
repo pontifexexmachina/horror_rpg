@@ -3,9 +3,12 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from statistics import mean
+from typing import TYPE_CHECKING
 
 from dead_by_dawn_sim.runner_types import ActorMetadata, ContributionStats, EncounterResult
-from dead_by_dawn_sim.session import SessionResult
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.session import SessionResult
 
 Snapshot = Mapping[str, object]
 
@@ -76,19 +79,15 @@ def _status_rates_from_snapshots(snapshots: Sequence[Snapshot]) -> dict[str, flo
 
 
 def _team_status_rates(results: list[EncounterResult]) -> dict[str, dict[str, float]]:
-    team_a_snapshots = [
-        snapshot
-        for result in results
-        for actor_id, snapshot in result.actor_snapshots.items()
-        if actor_id.startswith("team_a_")
-    ]
-    team_b_snapshots = [
-        snapshot
-        for result in results
-        for actor_id, snapshot in result.actor_snapshots.items()
-        if actor_id.startswith("team_b_")
-    ]
-    return {"team_a": _status_rates_from_snapshots(team_a_snapshots), "team_b": _status_rates_from_snapshots(team_b_snapshots)}
+    snapshots_by_team: dict[str, list[Snapshot]] = {}
+    for result in results:
+        for actor_id, snapshot in result.actor_snapshots.items():
+            team = result.actor_metadata[actor_id].team
+            snapshots_by_team.setdefault(team, []).append(snapshot)
+    return {
+        team: _status_rates_from_snapshots(team_snapshots)
+        for team, team_snapshots in sorted(snapshots_by_team.items())
+    }
 
 
 def _action_frequencies(results: list[EncounterResult]) -> dict[str, float]:

@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import replace as dc_replace
+from typing import TYPE_CHECKING
 
-from _pytest.capture import CaptureFixture
-from _pytest.monkeypatch import MonkeyPatch
-
-from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.cli import main
 from dead_by_dawn_sim.experiments import ExperimentRunner
 from dead_by_dawn_sim.rules import Ruleset, load_ruleset
@@ -13,6 +10,12 @@ from dead_by_dawn_sim.runner import EncounterRunner
 from dead_by_dawn_sim.scripted_policies import POLICY_REGISTRY
 from dead_by_dawn_sim.session import SessionRunner
 from dead_by_dawn_sim.state import EncounterState, synchronize_engagements, update_actor
+
+if TYPE_CHECKING:
+    from _pytest.capture import CaptureFixture
+    from _pytest.monkeypatch import MonkeyPatch
+
+    from dead_by_dawn_sim.actions import ActionChoice
 
 
 def test_runner_is_seed_reproducible() -> None:

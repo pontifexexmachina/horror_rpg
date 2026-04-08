@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
-from dead_by_dawn_sim.dice import DiceRoller
-from dead_by_dawn_sim.engine_rolls import ContestResult, RollMode, RollResult
-from dead_by_dawn_sim.rules import ActionDefinition, Ruleset
-from dead_by_dawn_sim.state import ActorState, EncounterState
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.dice import DiceRoller
+    from dead_by_dawn_sim.engine_rolls import ContestResult, RollMode, RollResult
+    from dead_by_dawn_sim.rules import ActionDefinition, Ruleset
+    from dead_by_dawn_sim.state import ActorState, EncounterState
 
 
 @dataclass(frozen=True)

@@ -2,6 +2,8 @@ id: stand_up
 name: Stand Up
 action_cost: 1
 tags: [recovery, positioning]
+behavior_tags: [stand_up]
+narration_id: stand_up
 range: self
 allow_push: false
 availability:

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.policies import ActorPolicy
-from dead_by_dawn_sim.rules import Ruleset
 from dead_by_dawn_sim.scripted_policy_logic import score_action
-from dead_by_dawn_sim.state import EncounterState
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.actions import ActionChoice
+    from dead_by_dawn_sim.rules import Ruleset
+    from dead_by_dawn_sim.state import EncounterState
 
 
 @dataclass(frozen=True)

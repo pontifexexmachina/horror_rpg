@@ -2,6 +2,8 @@ id: shove
 name: Shove
 action_cost: 1
 tags: [control, reposition]
+behavior_tags: [control_reposition]
+narration_id: shove
 range: engaged
 allow_push: true
 procedure:

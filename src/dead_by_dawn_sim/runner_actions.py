@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from dead_by_dawn_sim.actions import ActionChoice
+from typing import TYPE_CHECKING
+
 from dead_by_dawn_sim.rules import Ruleset, attack_step_for_action
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.actions import ActionChoice
 
 
 def choice_action_cost(choice: ActionChoice, ruleset: Ruleset) -> int:

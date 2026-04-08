@@ -2,6 +2,7 @@ id: taunt
 name: Taunt
 action_cost: 1
 tags: [control]
+behavior_tags: [control_pressure]
 range: far
 allow_push: true
 procedure:

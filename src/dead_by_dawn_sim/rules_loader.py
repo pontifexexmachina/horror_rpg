@@ -1,8 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TypeVar, cast
+from typing import TypeVar
 
 import yaml
 from pydantic import BaseModel
@@ -53,7 +53,11 @@ def _load_map(directory: Path, model_type: type[TModel]) -> dict[str, TModel]:
             msg = f"{path} must contain a mapping at the top level."
             raise ValueError(msg)
         model = model_type.model_validate(raw)
-        identifier = cast(str, model.model_dump()["id"])
+        identifier = getattr(model, "id", None)
+        if not isinstance(identifier, str):
+            raise ValueError(f"{path} must define a string id field.")
+        if identifier in loaded:
+            raise ValueError(f"{directory} defines duplicate id {identifier}.")
         loaded[identifier] = model
     return loaded
 

@@ -155,11 +155,21 @@ class ActionDefinition(BaseModel):
     name: str
     action_cost: int
     tags: list[str]
+    behavior_tags: list[str] = Field(default_factory=list)
+    narration_id: str | None = None
     range: Literal["engaged", "near", "far", "self", "ally", "enemy"]
     allow_push: bool
     procedure: ActionProcedure
     availability: ActionAvailability = Field(default_factory=ActionAvailability)
     reaction_timing: ReactionTiming = "none"
+
+
+def action_has_tag(action: ActionDefinition, tag: str) -> bool:
+    return tag in action.tags
+
+
+def action_has_behavior(action: ActionDefinition, behavior: str) -> bool:
+    return behavior in action.behavior_tags
 
 
 def attack_step_for_action(action: ActionDefinition) -> AttackRollStep | None:
@@ -182,6 +192,48 @@ def action_target_mode(action: ActionDefinition) -> Literal["self", "ally", "ene
     if action.range == "ally":
         return "ally"
     return "enemy"
+
+
+def action_is_attack(action: ActionDefinition) -> bool:
+    return action_has_tag(action, "attack")
+
+
+def action_is_control(action: ActionDefinition) -> bool:
+    return action_has_tag(action, "control") or action_has_behavior(action, "control")
+
+
+def action_is_heal(action: ActionDefinition) -> bool:
+    return action_has_tag(action, "heal") or action_has_behavior(action, "self_heal")
+
+
+def action_is_stress(action: ActionDefinition) -> bool:
+    return action_has_tag(action, "stress") or action_has_behavior(action, "stress")
+
+
+def action_is_movement(action: ActionDefinition) -> bool:
+    return action_has_tag(action, "movement") or action_has_behavior(action, "movement")
+
+
+def action_is_reposition(action: ActionDefinition) -> bool:
+    return action_has_tag(action, "reposition") or action_has_behavior(action, "reposition")
+
+
+def action_is_recovery(action: ActionDefinition) -> bool:
+    return action_has_tag(action, "recovery") or action_has_behavior(action, "stand_up")
+
+
+def action_clears_condition(
+    action: ActionDefinition,
+    condition_id: str,
+    *,
+    target: ProcedureTarget | None = None,
+) -> bool:
+    return any(
+        isinstance(step, ClearConditionStep)
+        and step.condition_id == condition_id
+        and (target is None or step.target == target)
+        for step in action.procedure.steps
+    )
 
 
 def requires_destination_choice(action: ActionDefinition) -> bool:

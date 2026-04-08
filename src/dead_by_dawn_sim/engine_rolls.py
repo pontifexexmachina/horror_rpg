@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Literal, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
-from dead_by_dawn_sim.dice import DiceRoller
-from dead_by_dawn_sim.rules import Ruleset
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.dice import DiceRoller
+    from dead_by_dawn_sim.rules import Ruleset
 
 
 class RollResult(NamedTuple):

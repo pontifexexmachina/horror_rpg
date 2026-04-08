@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
-from dead_by_dawn_sim.rules import InterludeTreatmentRule, Ruleset
 from dead_by_dawn_sim.runner import EncounterResult, EncounterRunner
 from dead_by_dawn_sim.state import (
     ActorState,
@@ -11,6 +11,12 @@ from dead_by_dawn_sim.state import (
     snapshot_actor,
     synchronize_engagements,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from dead_by_dawn_sim.rules import InterludeTreatmentRule, Ruleset
+    from dead_by_dawn_sim.runner_types import ActorMetadata
 
 
 @dataclass(frozen=True)
@@ -31,16 +37,11 @@ class SessionRunner:
     def run_plan(self, plan_id: str, seed: int) -> SessionResult:
         plan = self.ruleset.session_plans[plan_id]
         seed_counter = seed
+        protagonist_team = "team_a"
         first_scenario_id = plan.scenario_ids[0]
         state, metadata = self.encounter_runner.build_state_bundle(first_scenario_id, seed_counter)
-        carried_team_a = {
-            actor_id: actor
-            for actor_id, actor in state.actors.items()
-            if actor_id.startswith("team_a_")
-        }
-        carried_metadata = {
-            actor_id: item for actor_id, item in metadata.items() if actor_id.startswith("team_a_")
-        }
+        carried_team = self._actors_on_team(state.actors, protagonist_team)
+        carried_metadata = self._metadata_on_team(metadata, protagonist_team)
         encounter_results: list[EncounterResult] = []
         resources_spent: dict[str, int] = {}
 
@@ -53,20 +54,22 @@ class SessionRunner:
                 scene_state, scene_metadata = self.encounter_runner.build_state_bundle(
                     scenario_id, seed_counter
                 )
-                team_a_ids = [
-                    actor_id for actor_id in scene_state.actors if actor_id.startswith("team_a_")
-                ]
-                if set(team_a_ids) != set(carried_team_a):
+                team_actor_ids = {
+                    actor_id
+                    for actor_id, actor in scene_state.actors.items()
+                    if actor.team == protagonist_team
+                }
+                if team_actor_ids != set(carried_team):
                     raise ValueError(
-                        f"Session plan {plan_id} uses incompatible team_a composition in {scenario_id}."
+                        f"Session plan {plan_id} uses incompatible {protagonist_team} composition in {scenario_id}."
                     )
                 scene_actors = dict(scene_state.actors)
-                for actor_id in team_a_ids:
-                    carried_actor = carried_team_a[actor_id]
+                for actor_id in team_actor_ids:
+                    carried_actor = carried_team[actor_id]
                     fresh_actor = scene_state.actors[actor_id]
                     scene_actors[actor_id] = replace(
                         carried_actor,
-                        conditions=tuple(),
+                        conditions=(),
                         area_id=fresh_actor.area_id,
                         engaged_with=frozenset(),
                     )
@@ -94,22 +97,14 @@ class SessionRunner:
                 metadata=scene_metadata,
             )
             encounter_results.append(result)
-            carried_team_a = {
-                actor_id: actor
-                for actor_id, actor in final_state.actors.items()
-                if actor_id.startswith("team_a_")
-            }
-            carried_metadata = {
-                actor_id: item
-                for actor_id, item in scene_metadata.items()
-                if actor_id.startswith("team_a_")
-            }
-            carried_team_a, spent = self._run_interlude(carried_team_a, plan.interlude.treatments)
+            carried_team = self._actors_on_team(final_state.actors, protagonist_team)
+            carried_metadata = self._metadata_on_team(scene_metadata, protagonist_team)
+            carried_team, spent = self._run_interlude(carried_team, plan.interlude.treatments)
             for resource_id, amount in spent.items():
                 resources_spent[resource_id] = resources_spent.get(resource_id, 0) + amount
 
         final_snapshots = {
-            actor_id: snapshot_actor(actor) for actor_id, actor in carried_team_a.items()
+            actor_id: snapshot_actor(actor) for actor_id, actor in carried_team.items()
         }
         return SessionResult(
             plan_id=plan_id,
@@ -120,13 +115,27 @@ class SessionRunner:
             completed_scenarios=len(encounter_results),
         )
 
+    def _actors_on_team(
+        self,
+        actors: Mapping[str, ActorState],
+        team: str,
+    ) -> dict[str, ActorState]:
+        return {actor_id: actor for actor_id, actor in actors.items() if actor.team == team}
+
+    def _metadata_on_team(
+        self,
+        metadata: Mapping[str, ActorMetadata],
+        team: str,
+    ) -> dict[str, ActorMetadata]:
+        return {actor_id: item for actor_id, item in metadata.items() if item.team == team}
+
     def _run_interlude(
         self,
         team_a: dict[str, ActorState],
         treatments: list[InterludeTreatmentRule],
     ) -> tuple[dict[str, ActorState], dict[str, int]]:
         actors = {
-            actor_id: replace(actor, conditions=tuple(), engaged_with=frozenset())
+            actor_id: replace(actor, conditions=(), engaged_with=frozenset())
             for actor_id, actor in team_a.items()
         }
         spent_by_resource: dict[str, int] = {}
@@ -146,7 +155,7 @@ class SessionRunner:
         available = sum(actor.resource_amount(treatment.resource) for actor in actors.values())
         spent = 0
         while available >= treatment.resource_cost:
-            target = self._select_treatment_target(actors, treatment)
+            target = self._select_treatment_target(actors)
             if target is None:
                 break
             healed_hp = min(target.max_hp, target.hp + treatment.heal_amount)
@@ -157,7 +166,7 @@ class SessionRunner:
                 ActorStatus.STABLE,
             }:
                 next_status = ActorStatus.NORMAL
-            next_conditions = tuple() if treatment.clear_conditions else target.conditions
+            next_conditions = () if treatment.clear_conditions else target.conditions
             actors[target.actor_id] = replace(
                 target,
                 hp=healed_hp,
@@ -178,9 +187,7 @@ class SessionRunner:
     def _select_treatment_target(
         self,
         actors: dict[str, ActorState],
-        treatment: InterludeTreatmentRule,
     ) -> ActorState | None:
-        del treatment
         treatable = [
             actor
             for actor in actors.values()

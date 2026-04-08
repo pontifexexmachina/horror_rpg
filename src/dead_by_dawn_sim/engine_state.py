@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
-from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.engine_rolls import difficulty_value, roll_check
-from dead_by_dawn_sim.rules import Ruleset, TalentEffect
 from dead_by_dawn_sim.state import (
     ActorState,
     ActorStatus,
@@ -13,6 +12,10 @@ from dead_by_dawn_sim.state import (
     append_event,
     update_actor,
 )
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.dice import DiceRoller
+    from dead_by_dawn_sim.rules import Ruleset, TalentEffect
 
 
 def uses_pc_death_track(actor: ActorState) -> bool:

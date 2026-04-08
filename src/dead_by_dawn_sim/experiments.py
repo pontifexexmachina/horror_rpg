@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from dead_by_dawn_sim.experiment_reports import (
     BenchmarkReport,
     SessionBenchmarkReport,
@@ -7,9 +9,11 @@ from dead_by_dawn_sim.experiment_reports import (
     summarize_scenario_results,
     summarize_session_results,
 )
-from dead_by_dawn_sim.rules import Ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
 from dead_by_dawn_sim.session import SessionRunner
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.rules import Ruleset
 
 
 class ExperimentRunner:

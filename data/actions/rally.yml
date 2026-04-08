@@ -2,6 +2,8 @@ id: rally
 name: Rally
 action_cost: 1
 tags: [support, setup]
+behavior_tags: [ally_support]
+narration_id: rally
 range: ally
 allow_push: true
 procedure:

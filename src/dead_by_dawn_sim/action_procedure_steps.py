@@ -1,25 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
+from dead_by_dawn_sim.action_procedure_effects import append_condition
 from dead_by_dawn_sim.action_procedure_narration import narrate_procedure_action
-from dead_by_dawn_sim.action_procedure_rolls import append_condition
-from dead_by_dawn_sim.action_procedure_types import ActionResolutionContext, ProcedureResolution
-from dead_by_dawn_sim.engine_rolls import ContestResult, RollResult
 from dead_by_dawn_sim.engine_state import (
     heal_target,
     remove_condition,
     transition_actor_state,
     uses_stress_track,
-)
-from dead_by_dawn_sim.rules import (
-    ApplyAttackModifierStep,
-    ApplyConditionStep,
-    ApplyHealingStep,
-    ApplyStressStep,
-    ClearConditionStep,
-    MoveTargetStep,
 )
 from dead_by_dawn_sim.state import (
     ActorState,
@@ -30,6 +20,18 @@ from dead_by_dawn_sim.state import (
     synchronize_engagements,
     update_actor,
 )
+
+if TYPE_CHECKING:
+    from dead_by_dawn_sim.action_procedure_types import ActionResolutionContext, ProcedureResolution
+    from dead_by_dawn_sim.engine_rolls import ContestResult, RollResult
+    from dead_by_dawn_sim.rules import (
+        ApplyAttackModifierStep,
+        ApplyConditionStep,
+        ApplyHealingStep,
+        ApplyStressStep,
+        ClearConditionStep,
+        MoveTargetStep,
+    )
 
 
 def procedure_recipient(resolution: ProcedureResolution, target_name: str) -> ActorState:
@@ -141,3 +143,4 @@ def finalize_procedure_action(
     after: ProcedureResolution,
 ) -> EncounterState:
     return narrate_procedure_action(ctx, before, after, uses_stress_track(before.target))
+

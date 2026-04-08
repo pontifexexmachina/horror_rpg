@@ -2,6 +2,7 @@ id: advance
 name: Advance
 action_cost: 1
 tags: [positioning, movement]
+behavior_tags: [movement, approach]
 range: self
 allow_push: false
 availability:
