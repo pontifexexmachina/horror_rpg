@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from dead_by_dawn_sim.actions import legal_actions_for_actor
-from dead_by_dawn_sim.personas import POLICY_REGISTRY
+from dead_by_dawn_sim.scripted_policies import POLICY_REGISTRY
 from dead_by_dawn_sim.state import ActorStatus, synchronize_engagements
 from tests.test_helpers import actor_id_with_prefix, build_state
 
@@ -51,7 +51,7 @@ def test_bruiser_advances_instead_of_gritting_at_full_hp() -> None:
     assert choice.destination_area == "hallway"
 
 
-def test_runner_persona_moves_toward_exit_when_escape_is_objective() -> None:
+def test_runner_policy_moves_toward_exit_when_escape_is_objective() -> None:
     ruleset, state = build_state("ballroom_escape", seed=1)
     survivor_id = actor_id_with_prefix(state, "team_a_survivor")
     legal = legal_actions_for_actor(state, survivor_id, ruleset)
@@ -60,7 +60,7 @@ def test_runner_persona_moves_toward_exit_when_escape_is_objective() -> None:
     assert choice.destination_area == "ballroom"
 
 
-def test_monster_persona_moves_to_intercept_exit_route() -> None:
+def test_monster_policy_moves_to_intercept_exit_route() -> None:
     ruleset, state = build_state("ballroom_escape", seed=1)
     terror_id = actor_id_with_prefix(state, "team_b_terror")
     legal = legal_actions_for_actor(state, terror_id, ruleset)
@@ -127,3 +127,4 @@ def test_tactician_attacks_low_hp_enemy_instead_of_tripping() -> None:
     choice = POLICY_REGISTRY["tactician"].choose_action(legal, state, ruleset)
     assert choice.action_id == "attack"
     assert choice.target_id == controller_id
+

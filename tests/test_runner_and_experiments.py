@@ -8,9 +8,9 @@ from _pytest.monkeypatch import MonkeyPatch
 from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.cli import main
 from dead_by_dawn_sim.experiments import ExperimentRunner
-from dead_by_dawn_sim.personas import POLICY_REGISTRY
 from dead_by_dawn_sim.rules import Ruleset, load_ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
+from dead_by_dawn_sim.scripted_policies import POLICY_REGISTRY
 from dead_by_dawn_sim.session import SessionRunner
 from dead_by_dawn_sim.state import EncounterState, synchronize_engagements, update_actor
 
@@ -113,7 +113,7 @@ def test_runner_respects_action_costs_for_shriek() -> None:
     assert "shriek" in action_frequencies
 
 
-class _AttackSpamPersona:
+class _AttackSpamPolicy:
     def choose_action(
         self,
         legal_actions: list[ActionChoice],
@@ -169,7 +169,7 @@ def test_runner_allows_only_one_attack_per_turn(monkeypatch: MonkeyPatch) -> Non
         key: (dc_replace(value, policy_id="attack_spam") if key == actor_id else value)
         for key, value in metadata.items()
     }
-    monkeypatch.setitem(POLICY_REGISTRY, "attack_spam", _AttackSpamPersona())
+    monkeypatch.setitem(POLICY_REGISTRY, "attack_spam", _AttackSpamPolicy())
     result = runner.run_from_state(
         scenario_id="single_pc_vs_slasher",
         seed=4,
@@ -184,3 +184,4 @@ def test_runner_allows_only_one_attack_per_turn(monkeypatch: MonkeyPatch) -> Non
 def test_validate_loads_updated_shriek_cost() -> None:
     ruleset = load_ruleset()
     assert ruleset.actions["shriek"].action_cost == 2
+

@@ -19,7 +19,7 @@ class PolicyResolver(Protocol):
 
 
 def default_policy_resolver(actor_id: str, metadata: ActorMetadata) -> ActorPolicy:
-    from dead_by_dawn_sim.personas import POLICY_REGISTRY
+    from dead_by_dawn_sim.scripted_policies import POLICY_REGISTRY
 
     try:
         return POLICY_REGISTRY[metadata.policy_id]
@@ -27,3 +27,4 @@ def default_policy_resolver(actor_id: str, metadata: ActorMetadata) -> ActorPoli
         raise KeyError(
             f"No scripted policy is registered for actor {actor_id!r} with policy_id {metadata.policy_id!r}."
         ) from exc
+

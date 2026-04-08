@@ -3,14 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from dead_by_dawn_sim.actions import ActionChoice
-from dead_by_dawn_sim.persona_logic import score_action
 from dead_by_dawn_sim.policies import ActorPolicy
 from dead_by_dawn_sim.rules import Ruleset
+from dead_by_dawn_sim.scripted_policy_logic import score_action
 from dead_by_dawn_sim.state import EncounterState
 
 
 @dataclass(frozen=True)
-class Persona(ActorPolicy):
+class ScriptedPolicy(ActorPolicy):
     id: str
     weights: dict[str, float]
     push_threshold: float
@@ -21,8 +21,8 @@ class Persona(ActorPolicy):
         return max(legal_actions, key=lambda choice: score_action(choice, state, ruleset, self))
 
 
-POLICY_REGISTRY: dict[str, Persona] = {
-    "power_gamer": Persona(
+POLICY_REGISTRY: dict[str, ScriptedPolicy] = {
+    "power_gamer": ScriptedPolicy(
         "power_gamer",
         {
             "attack": 4.0,
@@ -45,7 +45,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         1.2,
     ),
-    "butt_kicker": Persona(
+    "butt_kicker": ScriptedPolicy(
         "butt_kicker",
         {
             "attack": 5.0,
@@ -68,7 +68,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         1.4,
     ),
-    "tactician": Persona(
+    "tactician": ScriptedPolicy(
         "tactician",
         {
             "attack": 2.5,
@@ -94,7 +94,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         0.8,
     ),
-    "method_actor": Persona(
+    "method_actor": ScriptedPolicy(
         "method_actor",
         {
             "attack": 2.0,
@@ -118,7 +118,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         -0.5,
     ),
-    "casual": Persona(
+    "casual": ScriptedPolicy(
         "casual",
         {
             "attack": 2.4,
@@ -139,7 +139,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         -0.2,
     ),
-    "brute": Persona(
+    "brute": ScriptedPolicy(
         "brute",
         {
             "attack": 4.4,
@@ -157,7 +157,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         0.9,
     ),
-    "controller": Persona(
+    "controller": ScriptedPolicy(
         "controller",
         {
             "attack": 1.8,
@@ -177,7 +177,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         0.6,
     ),
-    "panic_engine": Persona(
+    "panic_engine": ScriptedPolicy(
         "panic_engine",
         {
             "attack": 1.4,
@@ -194,7 +194,7 @@ POLICY_REGISTRY: dict[str, Persona] = {
         },
         0.4,
     ),
-    "finisher": Persona(
+    "finisher": ScriptedPolicy(
         "finisher",
         {
             "attack": 3.6,
@@ -212,3 +212,4 @@ POLICY_REGISTRY: dict[str, Persona] = {
         0.9,
     ),
 }
+
