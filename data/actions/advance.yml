@@ -1,0 +1,17 @@
+id: advance
+name: Advance
+action_cost: 1
+tags: [positioning, movement]
+range: self
+allow_push: false
+availability:
+  universal: true
+  all_of:
+    - type: engaged
+      value: false
+procedure:
+  steps:
+    - type: move_target
+      target: self
+      destination: choice
+      when: always

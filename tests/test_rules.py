@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
+    ApplyAttackModifierStep,
     ApplyConditionStep,
     ApplyHealingStep,
     AttackRollStep,
@@ -36,7 +37,7 @@ def test_load_ruleset_from_repo_data() -> None:
     ruleset = load_ruleset()
     counts = count_ruleset_entities(ruleset)
     assert ruleset.version == "0.1.0"
-    assert counts["actions"] >= 7
+    assert counts["actions"] >= 9
     assert counts["session_plans"] >= 1
     assert counts["benchmark_suites"] >= 2
     assert "single_pc_vs_slasher" in ruleset.scenarios
@@ -46,6 +47,8 @@ def test_load_ruleset_from_repo_data() -> None:
     assert "core_night" in ruleset.session_plans
     assert "inspired" in ruleset.conditions
     assert "rally" in ruleset.actions
+    assert "advance" in ruleset.actions
+    assert "fall_back" in ruleset.actions
     assert ruleset.core.stress.panic_threshold == 8
     assert ruleset.core.stress.breakdown_threshold == 13
     assert ruleset.core.death.wounded_to_critical_difficulty == "formidable"
@@ -131,3 +134,8 @@ def test_actions_expose_declarative_procedures() -> None:
     stand_up_steps = ruleset.actions["stand_up"].procedure
     assert stand_up_steps is not None
     assert isinstance(stand_up_steps.steps[0], ClearConditionStep)
+
+    taunt_steps = ruleset.actions["taunt"].procedure
+    assert taunt_steps is not None
+    assert isinstance(taunt_steps.steps[1], ApplyAttackModifierStep)
+    assert isinstance(taunt_steps.steps[2], ApplyConditionStep)

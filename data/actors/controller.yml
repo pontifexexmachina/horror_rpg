@@ -1,7 +1,7 @@
 id: controller
 name: Controller
 role: controller
-default_persona: controller
+default_policy: controller
 stats:
   might: 1
   speed: 1

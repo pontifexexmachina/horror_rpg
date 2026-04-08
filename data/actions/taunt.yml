@@ -15,3 +15,8 @@ procedure:
       amount: -1
       duration_rounds: 1
       when: success
+    - type: apply_condition
+      target: target
+      condition_id: rattled
+      duration_rounds: 1
+      when: success

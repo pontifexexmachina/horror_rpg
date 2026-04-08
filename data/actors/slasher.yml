@@ -1,7 +1,7 @@
 id: slasher
 name: Slasher
 role: brute
-default_persona: brute
+default_policy: brute
 stats:
   might: 2
   speed: 1

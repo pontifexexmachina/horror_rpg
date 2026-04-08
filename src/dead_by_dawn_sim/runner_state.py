@@ -25,7 +25,7 @@ def build_state_bundle(
         counter = 1
         for entry in entries:
             template = ruleset.actors[entry.template_id]
-            persona_id = entry.persona_id or template.default_persona
+            policy_id = entry.policy_id or template.default_policy
             for _ in range(entry.count):
                 actor_id = f"{team_label}_{template.id}_{counter}"
                 name = f"{template.name} {counter}"
@@ -42,7 +42,7 @@ def build_state_bundle(
                     team=team_label,
                     name=name,
                     template_id=template.id,
-                    persona_id=persona_id,
+                    policy_id=policy_id,
                 )
                 counter += 1
 
@@ -71,7 +71,7 @@ def build_state_bundle(
     state = append_event(
         state,
         "Scenario "
-        f"{scenario_id} initialized with personas "
-        f"{ {actor_id: item.persona_id for actor_id, item in metadata.items()} }.",
+        f"{scenario_id} initialized with policies "
+        f"{ {actor_id: item.policy_id for actor_id, item in metadata.items()} }.",
     )
     return state, metadata

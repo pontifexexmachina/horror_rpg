@@ -1,0 +1,18 @@
+id: fall_back
+name: Fall Back
+action_cost: 1
+tags: [positioning, movement, retreat]
+range: self
+allow_push: false
+availability:
+  universal: true
+  all_of:
+    - type: engaged
+      value: true
+reaction_timing: after
+procedure:
+  steps:
+    - type: move_target
+      target: self
+      destination: choice
+      when: always

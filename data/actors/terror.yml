@@ -1,7 +1,7 @@
 id: terror
 name: Terror
 role: panic
-default_persona: panic_engine
+default_policy: panic_engine
 stats:
   might: 0
   speed: 2

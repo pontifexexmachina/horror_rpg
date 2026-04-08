@@ -1,7 +1,7 @@
 id: survivor
 name: Survivor
 role: player
-default_persona: power_gamer
+default_policy: power_gamer
 stats:
   might: 1
   speed: 2

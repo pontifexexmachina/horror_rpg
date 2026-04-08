@@ -3,15 +3,15 @@ name: Four PCs Talent Showdown
 description: Baseline party versus a durable finisher pair.
 team_a:
   - template_id: survivor
-    persona_id: power_gamer
+    policy_id: power_gamer
   - template_id: medic
-    persona_id: tactician
+    policy_id: tactician
   - template_id: bruiser
-    persona_id: butt_kicker
+    policy_id: butt_kicker
   - template_id: occultist
-    persona_id: method_actor
+    policy_id: method_actor
 team_b:
   - template_id: slasher
-    persona_id: finisher
+    policy_id: finisher
   - template_id: controller
-    persona_id: controller
+    policy_id: controller

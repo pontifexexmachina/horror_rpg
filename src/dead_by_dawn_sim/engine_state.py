@@ -4,7 +4,7 @@ from dataclasses import replace
 
 from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.engine_rolls import difficulty_value, roll_check
-from dead_by_dawn_sim.rules import Ruleset
+from dead_by_dawn_sim.rules import Ruleset, TalentEffect
 from dead_by_dawn_sim.state import (
     ActorState,
     ActorStatus,
@@ -21,6 +21,35 @@ def uses_pc_death_track(actor: ActorState) -> bool:
 
 def uses_stress_track(actor: ActorState) -> bool:
     return actor.stress_mode == "track"
+
+
+def talent_effect_key(effect: TalentEffect) -> str:
+    return effect.key or effect.type
+
+
+def talent_effect_for_actor(
+    actor: ActorState, ruleset: Ruleset, effect_type: str
+) -> TalentEffect | None:
+    for talent_id in actor.talent_ids:
+        talent = ruleset.talents.get(talent_id)
+        if talent is None:
+            continue
+        if talent.effect.type == effect_type:
+            return talent.effect
+    return None
+
+
+def talent_effect_used(actor: ActorState, effect: TalentEffect) -> bool:
+    return talent_effect_key(effect) in actor.talent_state.used
+
+
+def mark_talent_effect_used(actor: ActorState, effect: TalentEffect) -> ActorState:
+    if not effect.once_per_actor:
+        return actor
+    effect_key = talent_effect_key(effect)
+    if effect_key in actor.talent_state.used:
+        return actor
+    return replace(actor, talent_state=TalentState(used=actor.talent_state.used | {effect_key}))
 
 
 def actor_actions_per_turn(actor: ActorState, ruleset: Ruleset) -> int:
@@ -51,6 +80,16 @@ def decrement_conditions(actor: ActorState) -> ActorState:
                 replace(condition, rounds_remaining=condition.rounds_remaining - 1)
             )
     return replace(actor, conditions=tuple(next_conditions))
+
+
+def decrement_attack_modifiers(actor: ActorState) -> ActorState:
+    next_modifiers = []
+    for modifier in actor.attack_modifiers:
+        if modifier.rounds_remaining > 1:
+            next_modifiers.append(
+                replace(modifier, rounds_remaining=modifier.rounds_remaining - 1)
+            )
+    return replace(actor, attack_modifiers=tuple(next_modifiers))
 
 
 def remove_condition(actor: ActorState, condition_id: str) -> ActorState:
@@ -98,16 +137,14 @@ def run_stress_test(
 def apply_damage(target: ActorState, amount: int, ruleset: Ruleset) -> ActorState:
     hp_after = max(target.hp - amount, 0)
     updated = replace(target, hp=hp_after)
-    if (
-        hp_after == 0
-        and "final_girl" in target.talent_ids
-        and "final_girl" not in target.talent_state.used
-    ):
-        updated = replace(
-            updated,
-            hp=3,
-            talent_state=TalentState(used=target.talent_state.used | {"final_girl"}),
-        )
+    revive_effect = talent_effect_for_actor(target, ruleset, "revive_on_zero")
+    if hp_after == 0 and revive_effect is not None and not talent_effect_used(target, revive_effect):
+        if revive_effect.amount is None:
+            raise ValueError(
+                f"Talent effect {revive_effect.type} on {target.actor_id} requires an amount."
+            )
+        updated = replace(updated, hp=revive_effect.amount)
+        updated = mark_talent_effect_used(updated, revive_effect)
     return transition_actor_state(updated, ruleset)
 
 
@@ -174,6 +211,7 @@ def end_turn(
                     update_actor(state, actor), f"{actor.actor_id} gains a shroud."
                 )
     actor = decrement_conditions(actor)
+    actor = decrement_attack_modifiers(actor)
     state = update_actor(state, actor)
     from dead_by_dawn_sim.state import synchronize_engagements
 

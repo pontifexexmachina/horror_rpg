@@ -1,7 +1,7 @@
 id: bruiser
 name: Bruiser
 role: player
-default_persona: butt_kicker
+default_policy: butt_kicker
 stats:
   might: 2
   speed: 1

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from dead_by_dawn_sim.actions import legal_actions_for_actor
-from dead_by_dawn_sim.personas import PERSONA_REGISTRY
+from dead_by_dawn_sim.personas import POLICY_REGISTRY
 from dead_by_dawn_sim.state import ActorStatus, synchronize_engagements
 from tests.test_helpers import actor_id_with_prefix, build_state
 
@@ -36,8 +36,8 @@ def test_personas_make_different_choices_in_same_state() -> None:
         },
     )
     legal = legal_actions_for_actor(state, medic_id, ruleset)
-    tactician_choice = PERSONA_REGISTRY["tactician"].choose_action(legal, state, ruleset)
-    butt_kicker_choice = PERSONA_REGISTRY["butt_kicker"].choose_action(legal, state, ruleset)
+    tactician_choice = POLICY_REGISTRY["tactician"].choose_action(legal, state, ruleset)
+    butt_kicker_choice = POLICY_REGISTRY["butt_kicker"].choose_action(legal, state, ruleset)
     assert tactician_choice.action_id == "first_aid"
     assert butt_kicker_choice.action_id == "attack"
 
@@ -46,7 +46,7 @@ def test_bruiser_advances_instead_of_gritting_at_full_hp() -> None:
     ruleset, state = build_state("hallway_ambush", seed=1)
     bruiser_id = actor_id_with_prefix(state, "team_a_bruiser")
     legal = legal_actions_for_actor(state, bruiser_id, ruleset)
-    choice = PERSONA_REGISTRY["butt_kicker"].choose_action(legal, state, ruleset)
+    choice = POLICY_REGISTRY["butt_kicker"].choose_action(legal, state, ruleset)
     assert choice.action_id == "advance"
     assert choice.destination_area == "hallway"
 
@@ -55,7 +55,7 @@ def test_runner_persona_moves_toward_exit_when_escape_is_objective() -> None:
     ruleset, state = build_state("ballroom_escape", seed=1)
     survivor_id = actor_id_with_prefix(state, "team_a_survivor")
     legal = legal_actions_for_actor(state, survivor_id, ruleset)
-    choice = PERSONA_REGISTRY["power_gamer"].choose_action(legal, state, ruleset)
+    choice = POLICY_REGISTRY["power_gamer"].choose_action(legal, state, ruleset)
     assert choice.action_id == "advance"
     assert choice.destination_area == "ballroom"
 
@@ -64,7 +64,7 @@ def test_monster_persona_moves_to_intercept_exit_route() -> None:
     ruleset, state = build_state("ballroom_escape", seed=1)
     terror_id = actor_id_with_prefix(state, "team_b_terror")
     legal = legal_actions_for_actor(state, terror_id, ruleset)
-    choice = PERSONA_REGISTRY["panic_engine"].choose_action(legal, state, ruleset)
+    choice = POLICY_REGISTRY["panic_engine"].choose_action(legal, state, ruleset)
     assert choice.action_id == "advance"
     assert choice.destination_area == "ballroom"
 
@@ -87,7 +87,7 @@ def test_power_gamer_chases_last_enemy_instead_of_self_rallying() -> None:
     )
     state = synchronize_engagements(state)
     legal = legal_actions_for_actor(state, survivor_id, ruleset)
-    choice = PERSONA_REGISTRY["power_gamer"].choose_action(legal, state, ruleset)
+    choice = POLICY_REGISTRY["power_gamer"].choose_action(legal, state, ruleset)
     assert choice.action_id == "advance"
     assert choice.destination_area == "hallway"
 
@@ -97,7 +97,7 @@ def test_casual_bruiser_attacks_lone_enemy_instead_of_tripping() -> None:
     bruiser_id = actor_id_with_prefix(state, "team_a_bruiser")
     ruleset, _, state = _casual_state_with_lone_terror(mover=(bruiser_id, "arena"))
     legal = legal_actions_for_actor(state, bruiser_id, ruleset)
-    choice = PERSONA_REGISTRY["casual"].choose_action(legal, state, ruleset)
+    choice = POLICY_REGISTRY["casual"].choose_action(legal, state, ruleset)
     assert choice.action_id == "brawl_attack"
 
 
@@ -106,7 +106,7 @@ def test_casual_medic_attacks_lone_enemy_instead_of_rallying_healthy_ally() -> N
     medic_id = actor_id_with_prefix(state, "team_a_medic")
     ruleset, terror_id, state = _casual_state_with_lone_terror()
     legal = legal_actions_for_actor(state, medic_id, ruleset)
-    choice = PERSONA_REGISTRY["casual"].choose_action(legal, state, ruleset)
+    choice = POLICY_REGISTRY["casual"].choose_action(legal, state, ruleset)
     assert choice.action_id == "attack"
     assert choice.target_id == terror_id
 
@@ -124,6 +124,6 @@ def test_tactician_attacks_low_hp_enemy_instead_of_tripping() -> None:
     )
     state = synchronize_engagements(state)
     legal = legal_actions_for_actor(state, medic_id, ruleset)
-    choice = PERSONA_REGISTRY["tactician"].choose_action(legal, state, ruleset)
+    choice = POLICY_REGISTRY["tactician"].choose_action(legal, state, ruleset)
     assert choice.action_id == "attack"
     assert choice.target_id == controller_id

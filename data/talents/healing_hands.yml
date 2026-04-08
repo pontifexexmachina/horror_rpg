@@ -2,4 +2,7 @@ id: healing_hands
 name: Healing Hands
 tags: [healing]
 effect:
-  type: healing_hands
+  type: auto_critical_heal
+  key: healing_hands
+  once_per_actor: true
+

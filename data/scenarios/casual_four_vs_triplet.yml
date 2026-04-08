@@ -3,17 +3,17 @@ name: Casual Four vs Triplet
 description: Low-optimization party versus three varied threats.
 team_a:
   - template_id: survivor
-    persona_id: casual
+    policy_id: casual
   - template_id: medic
-    persona_id: casual
+    policy_id: casual
   - template_id: bruiser
-    persona_id: casual
+    policy_id: casual
   - template_id: occultist
-    persona_id: casual
+    policy_id: casual
 team_b:
   - template_id: slasher
-    persona_id: brute
+    policy_id: brute
   - template_id: controller
-    persona_id: controller
+    policy_id: controller
   - template_id: terror
-    persona_id: panic_engine
+    policy_id: panic_engine

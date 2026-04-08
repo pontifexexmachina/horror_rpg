@@ -1,7 +1,7 @@
 id: occultist
 name: Occultist
 role: player
-default_persona: method_actor
+default_policy: method_actor
 stats:
   might: -1
   speed: 0

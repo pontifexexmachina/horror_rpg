@@ -15,13 +15,20 @@ from dead_by_dawn_sim.engine_rolls import (
     roll_check,
     roll_contest,
 )
-from dead_by_dawn_sim.engine_state import apply_damage, remove_condition
+from dead_by_dawn_sim.engine_state import (
+    apply_damage,
+    mark_talent_effect_used,
+    remove_condition,
+    talent_effect_for_actor,
+    talent_effect_used,
+)
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
     AttackRollStep,
     CheckRollStep,
     ContestRollStep,
     Ruleset,
+    TalentEffect,
     WeaponDefinition,
     action_has_heal_steps,
 )
@@ -29,7 +36,6 @@ from dead_by_dawn_sim.state import (
     ActorState,
     ConditionState,
     EncounterState,
-    TalentState,
     area_has_tag,
     update_actor,
 )
@@ -37,10 +43,18 @@ from dead_by_dawn_sim.state import (
 RANGED_SKILLS = {"shoot"}
 
 
-def _effective_attack_modifier(actor: ActorState, ruleset: Ruleset) -> int:
+def _effective_attack_modifier(
+    actor: ActorState, target: ActorState, ruleset: Ruleset
+) -> int:
     modifier = 0
     for condition in actor.conditions:
         modifier += ruleset.conditions[condition.id].attack_modifier
+    for attack_modifier in actor.attack_modifiers:
+        if (
+            attack_modifier.source_actor_id is None
+            or attack_modifier.source_actor_id == target.actor_id
+        ):
+            modifier += attack_modifier.amount
     return modifier
 
 
@@ -89,7 +103,7 @@ def consume_attack_conditions(actor: ActorState) -> ActorState:
 
 def attack_modifier_and_difficulty(state: EncounterState, actor: ActorState, target: ActorState, effect: AttackRollStep, ruleset: Ruleset) -> tuple[int, int]:
     modifier = actor.stats[effect.stat] + actor.skills.get(effect.skill, 0)
-    modifier += _effective_attack_modifier(actor, ruleset)
+    modifier += _effective_attack_modifier(actor, target, ruleset)
     difficulty = target.defense
     if effect.skill in RANGED_SKILLS:
         if actor.area_id != target.area_id and area_has_tag(state, target.area_id, "dark"):
@@ -170,11 +184,10 @@ def apply_attack_hit(state: EncounterState, *, target: ActorState, weapon: Weapo
     return narrate_attack_hit(state, event.format(damage=damage))
 
 
-def auto_critical_heal_result(ctx: ActionResolutionContext, actor: ActorState) -> tuple[EncounterState, ActorState, RollResult]:
-    updated_actor = replace(
-        actor,
-        talent_state=TalentState(used=actor.talent_state.used | {"healing_hands"}),
-    )
+def auto_critical_heal_result(
+    ctx: ActionResolutionContext, actor: ActorState, effect: TalentEffect
+) -> tuple[EncounterState, ActorState, RollResult]:
+    updated_actor = mark_talent_effect_used(actor, effect)
     state = update_actor(ctx.state, updated_actor)
     result = RollResult(kept=[6, 6], total=999, is_success=True, is_critical=True)
     return state, updated_actor, result
@@ -186,8 +199,13 @@ def run_check_step(ctx: ActionResolutionContext, resolution: ProcedureResolution
     if ctx.action.id == "first_aid":
         actor = spend_bandage(actor)
         state = update_actor(state, actor)
-    if action_has_heal_steps(ctx.action) and "healing_hands" in actor.talent_ids and "healing_hands" not in actor.talent_state.used:
-        state, actor, result = auto_critical_heal_result(ctx, actor)
+    healing_effect = talent_effect_for_actor(actor, ctx.ruleset, "auto_critical_heal")
+    if (
+        action_has_heal_steps(ctx.action)
+        and healing_effect is not None
+        and not talent_effect_used(actor, healing_effect)
+    ):
+        state, actor, result = auto_critical_heal_result(ctx, actor, healing_effect)
         return resolution.with_state(state, actor_id=actor.actor_id, target_id=resolution.target.actor_id, last_roll=result)
     result = resolve_effect_check(
         actor=actor,
@@ -247,3 +265,4 @@ def run_attack_step(ctx: ActionResolutionContext, resolution: ProcedureResolutio
     else:
         state = narrate_attack_miss(state, resolution.actor.actor_id, resolution.target.actor_id)
     return resolution.with_state(state, actor_id=resolution.actor.actor_id, target_id=resolution.target.actor_id, last_roll=result)
+

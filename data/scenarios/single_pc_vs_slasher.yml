@@ -3,7 +3,7 @@ name: Single PC vs Slasher
 description: Baseline solo duel.
 team_a:
   - template_id: survivor
-    persona_id: power_gamer
+    policy_id: power_gamer
 team_b:
   - template_id: slasher
-    persona_id: brute
+    policy_id: brute

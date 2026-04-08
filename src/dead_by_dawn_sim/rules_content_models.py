@@ -61,8 +61,16 @@ class WeaponDefinition(BaseModel):
 
 
 class TalentEffect(BaseModel):
-    type: Literal["final_girl", "healing_hands"]
+    type: str
+    key: str | None = None
+    once_per_actor: bool = False
+    amount: int | None = None
 
+    @model_validator(mode="after")
+    def _default_key(self) -> TalentEffect:
+        if self.key is None:
+            self.key = self.type
+        return self
 
 class TalentDefinition(BaseModel):
     id: str
@@ -79,7 +87,7 @@ class ActorTemplate(BaseModel):
     id: str
     name: str
     role: str
-    default_persona: str
+    default_policy: str
     stats: dict[Literal["might", "speed", "wits"], int]
     skills: dict[str, int]
     actions: list[str]
@@ -117,7 +125,7 @@ class ObjectiveDefinition(BaseModel):
 
 class ScenarioSideEntry(BaseModel):
     template_id: str
-    persona_id: str | None = None
+    policy_id: str | None = None
     count: int = 1
     start_area: str | None = None
 

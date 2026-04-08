@@ -9,7 +9,7 @@ class ActorMetadata:
     team: str
     name: str
     template_id: str
-    persona_id: str
+    policy_id: str
 
 
 @dataclass(frozen=True)

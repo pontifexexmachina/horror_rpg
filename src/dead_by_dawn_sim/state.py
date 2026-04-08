@@ -37,6 +37,13 @@ class TalentState:
     used: frozenset[str] = field(default_factory=frozenset)
 
 
+@dataclass(frozen=True)
+class AttackModifierState:
+    amount: int
+    rounds_remaining: int
+    source_actor_id: str | None = None
+
+
 StatKey = Literal["might", "speed", "wits"]
 
 
@@ -62,6 +69,7 @@ class ActorState:
     talent_ids: tuple[str, ...]
     talent_state: TalentState
     conditions: tuple[ConditionState, ...]
+    attack_modifiers: tuple[AttackModifierState, ...]
     death_mode: DeathMode
     stress_mode: StressMode
     area_id: str
@@ -204,6 +212,7 @@ def build_actor_state(
         talent_ids=tuple(template.talents),
         talent_state=TalentState(),
         conditions=tuple(),
+        attack_modifiers=tuple(),
         death_mode=template.death_mode,
         stress_mode=template.stress_mode,
         area_id=start_area,

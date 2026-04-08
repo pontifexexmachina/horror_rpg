@@ -4,6 +4,11 @@ action_cost: 1
 tags: [heal, support]
 range: ally
 allow_push: true
+availability:
+  all_of:
+    - type: resource_at_least
+      resource: bandages
+      amount: 1
 procedure:
   steps:
     - type: check

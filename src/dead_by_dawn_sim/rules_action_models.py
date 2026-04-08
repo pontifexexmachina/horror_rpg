@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 ActionOutcome = Literal["always", "success", "critical"]
 ProcedureTarget = Literal["self", "target"]
 MoveDestination = Literal["choice"]
+ReactionTiming = Literal["none", "before", "after"]
 
 
 class AttackRollStep(BaseModel):
@@ -70,7 +71,7 @@ class ClearConditionStep(BaseModel):
 
 class MoveTargetStep(BaseModel):
     type: Literal["move_target"]
-    target: Literal["target"] = "target"
+    target: ProcedureTarget
     destination: MoveDestination = "choice"
     when: ActionOutcome = "success"
 
@@ -89,6 +90,38 @@ ActionProcedureStep = Annotated[
 ]
 
 
+class HasConditionRequirement(BaseModel):
+    type: Literal["has_condition"]
+    condition_id: str
+
+
+class MissingHpRequirement(BaseModel):
+    type: Literal["missing_hp"]
+
+
+class ResourceAtLeastRequirement(BaseModel):
+    type: Literal["resource_at_least"]
+    resource: Literal["bandages", "medkits"]
+    amount: int = 1
+
+
+class EngagedRequirement(BaseModel):
+    type: Literal["engaged"]
+    value: bool = True
+
+
+ActionRequirement = Annotated[
+    HasConditionRequirement | MissingHpRequirement | ResourceAtLeastRequirement | EngagedRequirement,
+    Field(discriminator="type"),
+]
+
+
+class ActionAvailability(BaseModel):
+    universal: bool = False
+    all_of: list[ActionRequirement] = Field(default_factory=list)
+    any_of: list[ActionRequirement] = Field(default_factory=list)
+
+
 class ActionProcedure(BaseModel):
     steps: list[ActionProcedureStep] = Field(default_factory=list)
 
@@ -101,11 +134,20 @@ class ActionDefinition(BaseModel):
     range: Literal["engaged", "near", "far", "self", "ally", "enemy"]
     allow_push: bool
     procedure: ActionProcedure
+    availability: ActionAvailability = Field(default_factory=ActionAvailability)
+    reaction_timing: ReactionTiming = "none"
 
 
 def attack_step_for_action(action: ActionDefinition) -> AttackRollStep | None:
     for step in action.procedure.steps:
         if isinstance(step, AttackRollStep):
+            return step
+    return None
+
+
+def move_step_for_action(action: ActionDefinition) -> MoveTargetStep | None:
+    for step in action.procedure.steps:
+        if isinstance(step, MoveTargetStep):
             return step
     return None
 
@@ -119,7 +161,7 @@ def action_target_mode(action: ActionDefinition) -> Literal["self", "ally", "ene
 
 
 def requires_destination_choice(action: ActionDefinition) -> bool:
-    return any(isinstance(step, MoveTargetStep) for step in action.procedure.steps)
+    return move_step_for_action(action) is not None
 
 
 def action_has_heal_steps(action: ActionDefinition) -> bool:

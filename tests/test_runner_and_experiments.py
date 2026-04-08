@@ -8,7 +8,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.cli import main
 from dead_by_dawn_sim.experiments import ExperimentRunner
-from dead_by_dawn_sim.personas import PERSONA_REGISTRY
+from dead_by_dawn_sim.personas import POLICY_REGISTRY
 from dead_by_dawn_sim.rules import Ruleset, load_ruleset
 from dead_by_dawn_sim.runner import EncounterRunner
 from dead_by_dawn_sim.session import SessionRunner
@@ -57,7 +57,7 @@ def test_scenario_contributions_expose_party_roles() -> None:
     assert "team_a_medic_2" in actor_contributions
     medic = actor_contributions["team_a_medic_2"]
     assert medic["template_id"] == "medic"
-    assert medic["persona_id"] == "tactician"
+    assert medic["policy_id"] == "tactician"
     assert "avg_healing_done" in medic
 
 
@@ -127,6 +127,29 @@ class _AttackSpamPersona:
         return legal_actions[0]
 
 
+def test_runner_accepts_custom_policy_resolver() -> None:
+    ruleset = load_ruleset()
+
+    class _AlwaysFirstPolicy:
+        def choose_action(
+            self,
+            legal_actions: list[ActionChoice],
+            state: EncounterState,
+            ruleset: Ruleset,
+        ) -> ActionChoice:
+            del state, ruleset
+            return legal_actions[0]
+
+    def resolve_policy(actor_id: str, metadata: object) -> _AlwaysFirstPolicy:
+        del actor_id, metadata
+        return _AlwaysFirstPolicy()
+
+    runner = EncounterRunner(ruleset, policy_resolver=resolve_policy)
+    result = runner.run("single_pc_vs_slasher", seed=7)
+    assert result.rounds >= 1
+    assert result.winner in {"team_a", "team_b", "draw"}
+
+
 def test_runner_allows_only_one_attack_per_turn(monkeypatch: MonkeyPatch) -> None:
     ruleset = load_ruleset()
     limited_ruleset = dc_replace(
@@ -143,10 +166,10 @@ def test_runner_allows_only_one_attack_per_turn(monkeypatch: MonkeyPatch) -> Non
         )
     )
     custom_metadata = {
-        key: (dc_replace(value, persona_id="attack_spam") if key == actor_id else value)
+        key: (dc_replace(value, policy_id="attack_spam") if key == actor_id else value)
         for key, value in metadata.items()
     }
-    monkeypatch.setitem(PERSONA_REGISTRY, "attack_spam", _AttackSpamPersona())
+    monkeypatch.setitem(POLICY_REGISTRY, "attack_spam", _AttackSpamPersona())
     result = runner.run_from_state(
         scenario_id="single_pc_vs_slasher",
         seed=4,

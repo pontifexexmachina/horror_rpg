@@ -4,12 +4,13 @@ from dataclasses import dataclass
 
 from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.persona_logic import score_action
+from dead_by_dawn_sim.policies import ActorPolicy
 from dead_by_dawn_sim.rules import Ruleset
 from dead_by_dawn_sim.state import EncounterState
 
 
 @dataclass(frozen=True)
-class Persona:
+class Persona(ActorPolicy):
     id: str
     weights: dict[str, float]
     push_threshold: float
@@ -20,7 +21,7 @@ class Persona:
         return max(legal_actions, key=lambda choice: score_action(choice, state, ruleset, self))
 
 
-PERSONA_REGISTRY: dict[str, Persona] = {
+POLICY_REGISTRY: dict[str, Persona] = {
     "power_gamer": Persona(
         "power_gamer",
         {

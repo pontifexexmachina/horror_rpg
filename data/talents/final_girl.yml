@@ -2,4 +2,8 @@ id: final_girl
 name: Final Girl
 tags: [survival]
 effect:
-  type: final_girl
+  type: revive_on_zero
+  key: final_girl
+  once_per_actor: true
+  amount: 3
+

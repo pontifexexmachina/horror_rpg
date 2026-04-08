@@ -160,7 +160,7 @@ def _summarize_actor_contributions(results: list[EncounterResult]) -> dict[str, 
             "team": metadata[actor_id].team,
             "name": metadata[actor_id].name,
             "template_id": metadata[actor_id].template_id,
-            "persona_id": metadata[actor_id].persona_id,
+            "policy_id": metadata[actor_id].policy_id,
             "encounters": appearances[actor_id],
             **_contribution_payload(totals[actor_id], appearances[actor_id]),
         }
@@ -174,16 +174,16 @@ def _summarize_archetype_contributions(results: list[EncounterResult]) -> dict[s
     for result in results:
         for actor_id, contribution in result.actor_contributions.items():
             meta = result.actor_metadata[actor_id]
-            archetype_id = f"{meta.team}:{meta.template_id}:{meta.persona_id}"
+            archetype_id = f"{meta.team}:{meta.template_id}:{meta.policy_id}"
             totals[archetype_id] = _merge_stats(totals.get(archetype_id), contribution)
             appearances[archetype_id] = appearances.get(archetype_id, 0) + 1
     summary: dict[str, dict[str, object]] = {}
     for archetype_id in sorted(totals):
-        team, template_id, persona_id = archetype_id.split(":", maxsplit=2)
+        team, template_id, policy_id = archetype_id.split(":", maxsplit=2)
         summary[archetype_id] = {
             "team": team,
             "template_id": template_id,
-            "persona_id": persona_id,
+            "policy_id": policy_id,
             "encounters": appearances[archetype_id],
             **_contribution_payload(totals[archetype_id], appearances[archetype_id]),
         }

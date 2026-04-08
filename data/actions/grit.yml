@@ -4,6 +4,11 @@ action_cost: 1
 tags: [heal, self_sustain]
 range: self
 allow_push: true
+availability:
+  any_of:
+    - type: missing_hp
+    - type: has_condition
+      condition_id: bleeding
 procedure:
   steps:
     - type: check

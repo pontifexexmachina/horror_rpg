@@ -1,7 +1,7 @@
 id: medic
 name: Medic
 role: player
-default_persona: tactician
+default_policy: tactician
 stats:
   might: 0
   speed: 1

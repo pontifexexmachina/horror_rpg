@@ -2,12 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from dead_by_dawn_sim.combat_support import attack_weapon, has_condition
+from dead_by_dawn_sim.combat_support import attack_weapon
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
+    ActionRequirement,
+    HasConditionRequirement,
+    MissingHpRequirement,
+    ResourceAtLeastRequirement,
     Ruleset,
     action_target_mode,
     attack_step_for_action,
+    move_step_for_action,
     requires_destination_choice,
 )
 from dead_by_dawn_sim.state import (
@@ -40,19 +45,30 @@ def _has_ammo_for_attack(actor: ActorState, attack: ActionDefinition, ruleset: R
     return actor.ammo.get(weapon.ammo_kind, 0) > 0
 
 
+def _requirement_applies(requirement: ActionRequirement, actor: ActorState) -> bool:
+    if isinstance(requirement, HasConditionRequirement):
+        return any(condition.id == requirement.condition_id for condition in actor.conditions)
+    if isinstance(requirement, MissingHpRequirement):
+        return actor.hp < actor.max_hp
+    if isinstance(requirement, ResourceAtLeastRequirement):
+        return getattr(actor, requirement.resource) >= requirement.amount
+    return bool(actor.engaged_with) is requirement.value
+
+
 def _action_is_contextually_available(
     action: ActionDefinition,
     actor: ActorState,
     ruleset: Ruleset,
 ) -> bool:
+    if not all(_requirement_applies(requirement, actor) for requirement in action.availability.all_of):
+        return False
+    if action.availability.any_of and not any(
+        _requirement_applies(requirement, actor) for requirement in action.availability.any_of
+    ):
+        return False
     attack_step = attack_step_for_action(action)
     if attack_step is not None and attack_step.skill == "shoot":
         return _has_ammo_for_attack(actor, action, ruleset)
-    if action.id == "first_aid":
-        return actor.bandages > 0
-    if action.id == "grit":
-        is_bleeding = any(condition.id == "bleeding" for condition in actor.conditions)
-        return actor.hp < actor.max_hp or is_bleeding
     return True
 
 
@@ -102,6 +118,14 @@ def _can_target(
     return False
 
 
+def _action_ids_for_actor(actor: ActorState, ruleset: Ruleset) -> tuple[str, ...]:
+    combined = [*actor.action_ids]
+    combined.extend(
+        action.id for action in ruleset.actions.values() if action.availability.universal
+    )
+    return tuple(dict.fromkeys(combined))
+
+
 def legal_actions_for_actor(
     state: EncounterState,
     actor_id: str,
@@ -111,17 +135,19 @@ def legal_actions_for_actor(
     if not actor.can_act:
         return []
     legal: list[ActionChoice] = []
-    for action_id in actor.action_ids:
+    for action_id in _action_ids_for_actor(actor, ruleset):
         action = ruleset.actions[action_id]
         if not _action_is_contextually_available(action, actor, ruleset):
             continue
+        move_step = move_step_for_action(action)
         for target in state.actors.values():
             if not _can_target(state, action, actor, target, ruleset):
                 continue
             if requires_destination_choice(action):
+                moved_actor = actor if move_step is not None and move_step.target == "self" else target
                 destinations = [
                     area_id
-                    for area_id in connected_area_ids(state, target.area_id)
+                    for area_id in connected_area_ids(state, moved_actor.area_id)
                     if can_enter_area(state, area_id)
                 ]
                 for destination_area in destinations:
@@ -160,38 +186,5 @@ def legal_actions_for_actor(
                         push=True,
                     )
                 )
-    if has_condition(actor, "prone") and "stand_up" in ruleset.actions:
-        legal.append(
-            ActionChoice(
-                actor_id=actor_id,
-                action_id="stand_up",
-                target_id=actor_id,
-            )
-        )
-
-    move_targets = [
-        area_id
-        for area_id in connected_area_ids(state, actor.area_id)
-        if can_enter_area(state, area_id)
-    ]
-    if actor.engaged_with:
-        for destination_area in move_targets:
-            legal.append(
-                ActionChoice(
-                    actor_id=actor_id,
-                    action_id="fall_back",
-                    target_id=actor_id,
-                    destination_area=destination_area,
-                )
-            )
-    else:
-        for destination_area in move_targets:
-            legal.append(
-                ActionChoice(
-                    actor_id=actor_id,
-                    action_id="advance",
-                    target_id=actor_id,
-                    destination_area=destination_area,
-                )
-            )
     return legal
+

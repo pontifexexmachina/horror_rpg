@@ -12,19 +12,20 @@ from dead_by_dawn_sim.actions import ActionChoice
 from dead_by_dawn_sim.combat_support import attack_weapon
 from dead_by_dawn_sim.dice import DiceRoller
 from dead_by_dawn_sim.engine_rolls import roll_check
-from dead_by_dawn_sim.rules import (
-    ActionDefinition,
-    Ruleset,
-    attack_step_for_action,
-)
+from dead_by_dawn_sim.rules import Ruleset, attack_step_for_action
 from dead_by_dawn_sim.state import (
     ActorState,
     ActorStatus,
     EncounterState,
     append_event,
-    synchronize_engagements,
-    update_actor,
 )
+
+INCAPACITATED_STATUSES = {
+    ActorStatus.CRITICAL,
+    ActorStatus.STABLE,
+    ActorStatus.DEAD,
+    ActorStatus.BROKEN,
+}
 
 
 def _mark_reaction_used(state: EncounterState, actor_id: str) -> EncounterState:
@@ -54,12 +55,7 @@ def _resolve_reaction_attacks(
             continue
         reactor = state.actor(reactor_id)
         target = state.actor(moving_actor_id)
-        if reactor.status in {
-            ActorStatus.CRITICAL,
-            ActorStatus.STABLE,
-            ActorStatus.DEAD,
-            ActorStatus.BROKEN,
-        }:
+        if reactor.status in INCAPACITATED_STATUSES:
             continue
         reaction_action_id = _reaction_attack_action_id(reactor, ruleset)
         if reaction_action_id is None:
@@ -68,9 +64,8 @@ def _resolve_reaction_attacks(
         attack_step = attack_step_for_action(action)
         if attack_step is None:
             continue
-        effect = attack_step
         modifier, difficulty = attack_modifier_and_difficulty(
-            state, reactor, target, effect, ruleset
+            state, reactor, target, attack_step, ruleset
         )
         result = roll_check(
             roller=roller,
@@ -82,7 +77,7 @@ def _resolve_reaction_attacks(
         )
         state = _mark_reaction_used(state, reactor_id)
         if result.is_success:
-            weapon = attack_weapon(effect, reactor, ruleset)
+            weapon = attack_weapon(attack_step, reactor, ruleset)
             if weapon is None:
                 continue
             state = apply_attack_hit(
@@ -101,41 +96,15 @@ def _resolve_reaction_attacks(
     return state
 
 
-def _move_actor(
-    state: EncounterState,
-    actor: ActorState,
-    destination_area: str,
-    action_id: str,
-    roller: DiceRoller,
-    ruleset: Ruleset,
+def resolve_action(
+    state: EncounterState, choice: ActionChoice, roller: DiceRoller, ruleset: Ruleset
 ) -> EncounterState:
-    reactors: tuple[str, ...] = tuple(actor.engaged_with) if action_id == "fall_back" else tuple()
-    moved_state = update_actor(
-        state,
-        replace(actor, area_id=destination_area, engaged_with=frozenset()),
-    )
-    moved_state = synchronize_engagements(moved_state)
-    if reactors:
-        moved_state = _resolve_reaction_attacks(
-            moved_state,
-            moving_actor_id=actor.actor_id,
-            reactors=reactors,
-            roller=roller,
-            ruleset=ruleset,
-        )
-    verb = "falls back" if action_id == "fall_back" else "advances"
-    return append_event(moved_state, f"{actor.actor_id} {verb} to {destination_area}.")
+    action = ruleset.actions[choice.action_id]
+    actor = state.actor(choice.actor_id)
+    target = state.actor(choice.target_id)
+    reactors = tuple(actor.engaged_with)
 
-
-def _stand_up_actor(
-    state: EncounterState,
-    actor: ActorState,
-    action: ActionDefinition,
-    roller: DiceRoller,
-    ruleset: Ruleset,
-) -> EncounterState:
-    reactors: tuple[str, ...] = tuple(actor.engaged_with)
-    if reactors:
+    if action.reaction_timing == "before" and reactors:
         state = _resolve_reaction_attacks(
             state,
             moving_actor_id=actor.actor_id,
@@ -143,44 +112,28 @@ def _stand_up_actor(
             roller=roller,
             ruleset=ruleset,
         )
-    actor = state.actor(actor.actor_id)
-    if actor.status in {
-        ActorStatus.CRITICAL,
-        ActorStatus.STABLE,
-        ActorStatus.DEAD,
-        ActorStatus.BROKEN,
-    }:
-        return state
-    return apply_action_effect(
-        state,
-        actor,
-        actor,
-        action,
-        roller,
-        ruleset,
-        False,
-        None,
-    )
+        actor = state.actor(choice.actor_id)
+        target = state.actor(choice.target_id)
+        if actor.status in INCAPACITATED_STATUSES:
+            return state
 
-
-def resolve_action(
-    state: EncounterState, choice: ActionChoice, roller: DiceRoller, ruleset: Ruleset
-) -> EncounterState:
-    actor = state.actor(choice.actor_id)
-    target = state.actor(choice.target_id)
-    if choice.action_id == "stand_up":
-        return _stand_up_actor(state, actor, ruleset.actions[choice.action_id], roller, ruleset)
-    if choice.action_id in {"advance", "fall_back"}:
-        if choice.destination_area is None:
-            raise ValueError(f"Movement action {choice.action_id} requires a destination area.")
-        return _move_actor(state, actor, choice.destination_area, choice.action_id, roller, ruleset)
-    return apply_action_effect(
+    state = apply_action_effect(
         state,
         actor,
         target,
-        ruleset.actions[choice.action_id],
+        action,
         roller,
         ruleset,
         choice.push,
         choice.destination_area,
     )
+
+    if action.reaction_timing == "after" and reactors:
+        state = _resolve_reaction_attacks(
+            state,
+            moving_actor_id=choice.actor_id,
+            reactors=reactors,
+            roller=roller,
+            ruleset=ruleset,
+        )
+    return state
