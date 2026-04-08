@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
+    AmmoAtLeastRequirement,
     ApplyAttackModifierStep,
     ApplyConditionStep,
     ApplyHealingStep,
@@ -14,8 +15,11 @@ from dead_by_dawn_sim.rules import (
     CheckRollStep,
     ClearConditionStep,
     ContestRollStep,
+    InterludeTreatmentRule,
     MoveTargetStep,
     ScenarioDefinition,
+    SpendAmmoStep,
+    SpendResourceStep,
     count_ruleset_entities,
     load_ruleset,
     validate_ruleset,
@@ -45,6 +49,9 @@ def test_load_ruleset_from_repo_data() -> None:
     assert "ballroom_escape" in ruleset.scenarios
     assert "spatial" in ruleset.benchmark_suites
     assert "core_night" in ruleset.session_plans
+    assert isinstance(ruleset.session_plans["core_night"].interlude.treatments[0], InterludeTreatmentRule)
+    assert ruleset.session_plans["core_night"].interlude.treatments[0].resource == "medkits"
+    assert ruleset.session_plans["core_night"].interlude.treatments[0].heal_amount == 2
     assert "inspired" in ruleset.conditions
     assert "rally" in ruleset.actions
     assert "advance" in ruleset.actions
@@ -55,8 +62,8 @@ def test_load_ruleset_from_repo_data() -> None:
     assert ruleset.core.death.critical_stabilize_difficulty == "challenging"
     assert ruleset.core.death.shrouds_to_die == 3
     assert ruleset.weapons["pistol"].ammo_kind == "sidearm"
-    assert ruleset.actors["medic"].starting_bandages == 3
-    assert ruleset.actors["medic"].starting_medkits == 2
+    assert ruleset.actors["medic"].starting_resources.get("bandages", 0) == 3
+    assert ruleset.actors["medic"].starting_resources.get("medkits", 0) == 2
     assert ruleset.actors["slasher"].death_mode == "die_at_zero"
     assert ruleset.actors["slasher"].stress_mode == "ignore"
     assert ruleset.actors["controller"].death_mode == "die_at_zero"
@@ -78,6 +85,18 @@ def test_missing_procedure_is_rejected() -> None:
     }
     with pytest.raises(ValidationError):
         ActionDefinition.model_validate(payload)
+
+
+def test_actor_starting_resources_require_non_empty_keys() -> None:
+    ruleset = load_ruleset()
+    medic = ruleset.actors["medic"]
+    with pytest.raises(ValidationError):
+        type(medic).model_validate(
+            {
+                **medic.model_dump(),
+                "starting_resources": {"": 1},
+            }
+        )
 
 
 def test_validate_ruleset_rejects_unknown_start_area() -> None:
@@ -127,9 +146,17 @@ def test_actions_expose_declarative_procedures() -> None:
     assert shove_steps is not None
     assert isinstance(shove_steps.steps[1], MoveTargetStep)
 
-    attack_steps = ruleset.actions["attack"].procedure
+    attack = ruleset.actions["attack"]
+    attack_steps = attack.procedure
     assert attack_steps is not None
-    assert isinstance(attack_steps.steps[0], AttackRollStep)
+    assert isinstance(attack.availability.all_of[0], AmmoAtLeastRequirement)
+    assert isinstance(attack_steps.steps[0], SpendAmmoStep)
+    assert isinstance(attack_steps.steps[1], AttackRollStep)
+
+    first_aid_steps = ruleset.actions["first_aid"].procedure
+    assert first_aid_steps is not None
+    assert isinstance(first_aid_steps.steps[0], SpendResourceStep)
+    assert isinstance(first_aid_steps.steps[1], CheckRollStep)
 
     stand_up_steps = ruleset.actions["stand_up"].procedure
     assert stand_up_steps is not None

@@ -7,6 +7,8 @@ from dead_by_dawn_sim.action_procedure_rolls import (
     run_attack_step,
     run_check_step,
     run_contest_step,
+    run_spend_ammo_step,
+    run_spend_resource_step,
 )
 from dead_by_dawn_sim.action_procedure_steps import (
     finalize_procedure_action,
@@ -30,33 +32,64 @@ from dead_by_dawn_sim.rules import (
     CheckRollStep,
     ClearConditionStep,
     ContestRollStep,
+    MoveTargetStep,
     Ruleset,
+    SpendAmmoStep,
+    SpendResourceStep,
 )
 from dead_by_dawn_sim.state import ActorState, EncounterState
+
+
+def _run_roll_like_step(
+    ctx: ActionResolutionContext,
+    resolution: ProcedureResolution,
+    step: AttackRollStep | CheckRollStep | ContestRollStep,
+) -> ProcedureResolution:
+    if isinstance(step, AttackRollStep):
+        return run_attack_step(ctx, resolution, step)
+    if isinstance(step, CheckRollStep):
+        return run_check_step(ctx, resolution, step)
+    return run_contest_step(ctx, resolution, step)
+
+
+def _run_nonmove_effect_step(
+    ctx: ActionResolutionContext,
+    resolution: ProcedureResolution,
+    step: ApplyConditionStep
+    | ApplyHealingStep
+    | ApplyStressStep
+    | ApplyAttackModifierStep
+    | SpendResourceStep
+    | SpendAmmoStep
+    | ClearConditionStep,
+) -> ProcedureResolution:
+    if isinstance(step, ApplyConditionStep):
+        next_resolution = run_apply_condition_step(resolution, step)
+    elif isinstance(step, ApplyHealingStep):
+        next_resolution = run_heal_step(ctx, resolution, step)
+    elif isinstance(step, ApplyStressStep):
+        next_resolution = run_stress_step(ctx, resolution, step)
+    elif isinstance(step, ApplyAttackModifierStep):
+        next_resolution = run_attack_modifier_step(ctx, resolution, step)
+    elif isinstance(step, SpendResourceStep):
+        next_resolution = run_spend_resource_step(ctx, resolution, step)
+    elif isinstance(step, SpendAmmoStep):
+        next_resolution = run_spend_ammo_step(ctx, resolution, step)
+    else:
+        next_resolution = run_clear_condition_step(resolution, step)
+    return next_resolution
 
 
 def _resolve_procedure(ctx: ActionResolutionContext) -> EncounterState:
     before = ProcedureResolution.build(ctx)
     resolution = before
     for step in ctx.action.procedure.steps:
-        if isinstance(step, AttackRollStep):
-            resolution = run_attack_step(ctx, resolution, step)
-        elif isinstance(step, CheckRollStep):
-            resolution = run_check_step(ctx, resolution, step)
-        elif isinstance(step, ContestRollStep):
-            resolution = run_contest_step(ctx, resolution, step)
-        elif isinstance(step, ApplyConditionStep):
-            resolution = run_apply_condition_step(resolution, step)
-        elif isinstance(step, ApplyHealingStep):
-            resolution = run_heal_step(ctx, resolution, step)
-        elif isinstance(step, ApplyStressStep):
-            resolution = run_stress_step(ctx, resolution, step)
-        elif isinstance(step, ApplyAttackModifierStep):
-            resolution = run_attack_modifier_step(ctx, resolution, step)
-        elif isinstance(step, ClearConditionStep):
-            resolution = run_clear_condition_step(resolution, step)
-        else:
+        if isinstance(step, MoveTargetStep):
             resolution = run_move_target_step(ctx, resolution, step)
+        elif isinstance(step, AttackRollStep | CheckRollStep | ContestRollStep):
+            resolution = _run_roll_like_step(ctx, resolution, step)
+        else:
+            resolution = _run_nonmove_effect_step(ctx, resolution, step)
     return finalize_procedure_action(ctx, before, resolution)
 
 

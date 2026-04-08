@@ -15,12 +15,11 @@ skills:
   cure: 0
   clever: 2
   chat: 2
-actions: [shriek]
+actions:
+- shriek
 weapon_id: null
 talents: []
 death_mode: die_at_zero
 stress_mode: ignore
 starting_band: far
-starting_ammo: {}
-starting_bandages: 0
-starting_medkits: 0
+starting_resources: {}

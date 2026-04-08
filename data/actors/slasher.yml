@@ -15,12 +15,13 @@ skills:
   cure: 0
   clever: 0
   chat: 0
-actions: [brawl_attack, shove, trip]
+actions:
+- brawl_attack
+- shove
+- trip
 weapon_id: claws
 talents: []
 death_mode: die_at_zero
 stress_mode: ignore
 starting_band: near
-starting_ammo: {}
-starting_bandages: 0
-starting_medkits: 0
+starting_resources: {}

@@ -15,11 +15,18 @@ skills:
   cure: 0
   clever: 2
   chat: 1
-actions: [attack, unarmed_attack, shriek, taunt, grit, rally, shove, trip]
+actions:
+- attack
+- unarmed_attack
+- shriek
+- taunt
+- grit
+- rally
+- shove
+- trip
 weapon_id: pistol
 talents: []
 starting_band: near
-starting_ammo:
+starting_resources:
   sidearm: 6
-starting_bandages: 1
-starting_medkits: 0
+  bandages: 1

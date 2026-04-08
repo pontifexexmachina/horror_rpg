@@ -15,6 +15,8 @@ from dead_by_dawn_sim.rules import (
     StressMode,
 )
 
+CONSUMABLE_RESOURCE_IDS = frozenset({"bandages", "medkits"})
+
 
 class ActorStatus(str, Enum):
     NORMAL = "normal"
@@ -62,9 +64,7 @@ class ActorState:
     shrouds: int
     status: ActorStatus
     weapon_id: str | None
-    ammo: dict[str, int]
-    bandages: int
-    medkits: int
+    resources: dict[str, int]
     action_ids: tuple[str, ...]
     talent_ids: tuple[str, ...]
     talent_state: TalentState
@@ -78,6 +78,25 @@ class ActorState:
     @property
     def can_act(self) -> bool:
         return self.status in {ActorStatus.NORMAL, ActorStatus.WOUNDED}
+
+    @property
+    def ammo(self) -> dict[str, int]:
+        return {
+            resource_id: amount
+            for resource_id, amount in self.resources.items()
+            if resource_id not in CONSUMABLE_RESOURCE_IDS
+        }
+
+    @property
+    def bandages(self) -> int:
+        return self.resources.get("bandages", 0)
+
+    @property
+    def medkits(self) -> int:
+        return self.resources.get("medkits", 0)
+
+    def resource_amount(self, resource_id: str) -> int:
+        return self.resources.get(resource_id, 0)
 
 
 @dataclass(frozen=True)
@@ -205,9 +224,7 @@ def build_actor_state(
         shrouds=0,
         status=ActorStatus.NORMAL,
         weapon_id=template.weapon_id,
-        ammo=dict(template.starting_ammo),
-        bandages=template.starting_bandages,
-        medkits=template.starting_medkits,
+        resources=dict(template.starting_resources),
         action_ids=tuple(template.actions),
         talent_ids=tuple(template.talents),
         talent_state=TalentState(),
@@ -237,7 +254,8 @@ def snapshot_actor(actor: ActorState) -> dict[str, int | str | dict[str, int]]:
         "stress": actor.stress,
         "shrouds": actor.shrouds,
         "area_id": actor.area_id,
-        "ammo": dict(actor.ammo),
+        "resources": dict(actor.resources),
+        "ammo": actor.ammo,
         "bandages": actor.bandages,
         "medkits": actor.medkits,
     }

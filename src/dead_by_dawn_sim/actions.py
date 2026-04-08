@@ -6,6 +6,7 @@ from dead_by_dawn_sim.combat_support import attack_weapon
 from dead_by_dawn_sim.rules import (
     ActionDefinition,
     ActionRequirement,
+    AmmoAtLeastRequirement,
     HasConditionRequirement,
     MissingHpRequirement,
     ResourceAtLeastRequirement,
@@ -33,25 +34,29 @@ class ActionChoice:
     destination_area: str | None = None
 
 
-def _has_ammo_for_attack(actor: ActorState, attack: ActionDefinition, ruleset: Ruleset) -> bool:
-    step = attack_step_for_action(attack)
-    if step is None:
-        return False
-    weapon = attack_weapon(step, actor, ruleset)
-    if weapon is None:
-        return False
-    if weapon.ammo_kind is None:
-        return True
-    return actor.ammo.get(weapon.ammo_kind, 0) > 0
 
-
-def _requirement_applies(requirement: ActionRequirement, actor: ActorState) -> bool:
+def _requirement_applies(
+    requirement: ActionRequirement,
+    actor: ActorState,
+    action: ActionDefinition,
+    ruleset: Ruleset,
+) -> bool:
     if isinstance(requirement, HasConditionRequirement):
         return any(condition.id == requirement.condition_id for condition in actor.conditions)
     if isinstance(requirement, MissingHpRequirement):
         return actor.hp < actor.max_hp
     if isinstance(requirement, ResourceAtLeastRequirement):
-        return getattr(actor, requirement.resource) >= requirement.amount
+        return actor.resource_amount(requirement.resource) >= requirement.amount
+    if isinstance(requirement, AmmoAtLeastRequirement):
+        step = attack_step_for_action(action)
+        if step is None:
+            return False
+        weapon = attack_weapon(step, actor, ruleset)
+        if weapon is None:
+            return False
+        if weapon.ammo_kind is None:
+            return True
+        return actor.ammo.get(weapon.ammo_kind, 0) >= requirement.amount
     return bool(actor.engaged_with) is requirement.value
 
 
@@ -60,16 +65,15 @@ def _action_is_contextually_available(
     actor: ActorState,
     ruleset: Ruleset,
 ) -> bool:
-    if not all(_requirement_applies(requirement, actor) for requirement in action.availability.all_of):
-        return False
-    if action.availability.any_of and not any(
-        _requirement_applies(requirement, actor) for requirement in action.availability.any_of
+    if not all(
+        _requirement_applies(requirement, actor, action, ruleset)
+        for requirement in action.availability.all_of
     ):
         return False
-    attack_step = attack_step_for_action(action)
-    if attack_step is not None and attack_step.skill == "shoot":
-        return _has_ammo_for_attack(actor, action, ruleset)
-    return True
+    return not action.availability.any_of or any(
+        _requirement_applies(requirement, actor, action, ruleset)
+        for requirement in action.availability.any_of
+    )
 
 
 def _is_same_area(actor: ActorState, target: ActorState) -> bool:

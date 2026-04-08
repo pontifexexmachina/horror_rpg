@@ -96,9 +96,14 @@ class ActorTemplate(BaseModel):
     death_mode: DeathMode = "pc_track"
     stress_mode: StressMode = "track"
     starting_band: Literal["engaged", "near", "far"] = "near"
-    starting_ammo: dict[str, int] = Field(default_factory=dict)
-    starting_bandages: int = 0
-    starting_medkits: int = 0
+    starting_resources: dict[str, int] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _validate_resources(self) -> ActorTemplate:
+        for resource_id in self.starting_resources:
+            if not resource_id:
+                raise ValueError("Actor starting resource ids must be non-empty.")
+        return self
 
 
 class AreaDefinition(BaseModel):
@@ -166,7 +171,27 @@ class BenchmarkSuite(BaseModel):
     scenario_ids: list[str]
 
 
+class InterludeTreatmentRule(BaseModel):
+    resource: str
+    resource_cost: int = 1
+    heal_amount: int = 1
+    priority: Literal["lowest_hp_then_stress"] = "lowest_hp_then_stress"
+    clear_conditions: bool = True
+    restore_to_normal_on_heal: bool = True
+
+    @model_validator(mode="after")
+    def _validate_resource(self) -> InterludeTreatmentRule:
+        if not self.resource:
+            raise ValueError("Interlude treatment resource must be non-empty.")
+        return self
+
+
+class SessionInterlude(BaseModel):
+    treatments: list[InterludeTreatmentRule] = Field(default_factory=list)
+
+
 class SessionPlan(BaseModel):
     id: str
     name: str
     scenario_ids: list[str]
+    interlude: SessionInterlude = Field(default_factory=SessionInterlude)

@@ -15,10 +15,14 @@ skills:
   cure: 0
   clever: 0
   chat: 0
-actions: [brawl_attack, grit, rally, shove, trip]
+actions:
+- brawl_attack
+- grit
+- rally
+- shove
+- trip
 weapon_id: bat
-talents: [final_girl]
+talents:
+- final_girl
 starting_band: near
-starting_ammo: {}
-starting_bandages: 0
-starting_medkits: 0
+starting_resources: {}

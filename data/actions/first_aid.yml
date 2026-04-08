@@ -11,6 +11,9 @@ availability:
       amount: 1
 procedure:
   steps:
+    - type: spend_resource
+      resource: bandages
+      amount: 1
     - type: check
       difficulty: challenging
       stat: wits

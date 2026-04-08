@@ -111,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
                 "plan_id": result.plan_id,
                 "seed": result.seed,
                 "completed_scenarios": result.completed_scenarios,
-                "medkits_spent": result.medkits_spent,
+                "resources_spent": result.resources_spent,
                 "final_snapshots": result.final_snapshots,
                 "encounter_results": list(result.encounter_results),
             },

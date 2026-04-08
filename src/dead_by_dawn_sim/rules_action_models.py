@@ -62,6 +62,19 @@ class ApplyAttackModifierStep(BaseModel):
     when: ActionOutcome = "success"
 
 
+class SpendResourceStep(BaseModel):
+    type: Literal["spend_resource"]
+    resource: str
+    amount: int = 1
+    when: ActionOutcome = "always"
+
+
+class SpendAmmoStep(BaseModel):
+    type: Literal["spend_ammo"]
+    amount: int = 1
+    when: ActionOutcome = "always"
+
+
 class ClearConditionStep(BaseModel):
     type: Literal["clear_condition"]
     target: ProcedureTarget
@@ -84,6 +97,8 @@ ActionProcedureStep = Annotated[
     | ApplyHealingStep
     | ApplyStressStep
     | ApplyAttackModifierStep
+    | SpendResourceStep
+    | SpendAmmoStep
     | ClearConditionStep
     | MoveTargetStep,
     Field(discriminator="type"),
@@ -101,7 +116,12 @@ class MissingHpRequirement(BaseModel):
 
 class ResourceAtLeastRequirement(BaseModel):
     type: Literal["resource_at_least"]
-    resource: Literal["bandages", "medkits"]
+    resource: str
+    amount: int = 1
+
+
+class AmmoAtLeastRequirement(BaseModel):
+    type: Literal["ammo_at_least"]
     amount: int = 1
 
 
@@ -111,7 +131,11 @@ class EngagedRequirement(BaseModel):
 
 
 ActionRequirement = Annotated[
-    HasConditionRequirement | MissingHpRequirement | ResourceAtLeastRequirement | EngagedRequirement,
+    HasConditionRequirement
+    | MissingHpRequirement
+    | ResourceAtLeastRequirement
+    | AmmoAtLeastRequirement
+    | EngagedRequirement,
     Field(discriminator="type"),
 ]
 

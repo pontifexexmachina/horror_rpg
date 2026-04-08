@@ -16,11 +16,18 @@ skills:
   cure: 0
   clever: 0
   chat: 0
-actions: [attack, unarmed_attack, feint, grit, rally, shove, trip]
+actions:
+- attack
+- unarmed_attack
+- feint
+- grit
+- rally
+- shove
+- trip
 weapon_id: pistol
-talents: [final_girl]
+talents:
+- final_girl
 starting_band: near
-starting_ammo:
+starting_resources:
   sidearm: 6
-starting_bandages: 1
-starting_medkits: 0
+  bandages: 1

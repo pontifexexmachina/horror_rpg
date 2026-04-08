@@ -79,7 +79,7 @@ def test_power_gamer_chases_last_enemy_instead_of_self_rallying() -> None:
         state,
         actors={
             **state.actors,
-            survivor_id: replace(state.actor(survivor_id), ammo={"sidearm": 0}),
+            survivor_id: replace(state.actor(survivor_id), resources={**state.actor(survivor_id).resources, "sidearm": 0}),
             bruiser_id: replace(state.actor(bruiser_id), area_id="hallway"),
             slasher_id: replace(state.actor(slasher_id), status=ActorStatus.DEAD, hp=0),
             controller_id: replace(state.actor(controller_id), area_id="parlor"),

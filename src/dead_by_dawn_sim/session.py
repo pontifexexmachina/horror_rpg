@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-from dead_by_dawn_sim.rules import Ruleset
+from dead_by_dawn_sim.rules import InterludeTreatmentRule, Ruleset
 from dead_by_dawn_sim.runner import EncounterResult, EncounterRunner
 from dead_by_dawn_sim.state import (
     ActorState,
@@ -19,7 +19,7 @@ class SessionResult:
     seed: int
     encounter_results: tuple[EncounterResult, ...]
     final_snapshots: dict[str, dict[str, int | str | dict[str, int]]]
-    medkits_spent: int
+    resources_spent: dict[str, int]
     completed_scenarios: int
 
 
@@ -42,7 +42,7 @@ class SessionRunner:
             actor_id: item for actor_id, item in metadata.items() if actor_id.startswith("team_a_")
         }
         encounter_results: list[EncounterResult] = []
-        medkits_spent = 0
+        resources_spent: dict[str, int] = {}
 
         for index, scenario_id in enumerate(plan.scenario_ids):
             if index == 0:
@@ -104,8 +104,9 @@ class SessionRunner:
                 for actor_id, item in scene_metadata.items()
                 if actor_id.startswith("team_a_")
             }
-            carried_team_a, spent = self._field_treat_team(carried_team_a)
-            medkits_spent += spent
+            carried_team_a, spent = self._run_interlude(carried_team_a, plan.interlude.treatments)
+            for resource_id, amount in spent.items():
+                resources_spent[resource_id] = resources_spent.get(resource_id, 0) + amount
 
         final_snapshots = {
             actor_id: snapshot_actor(actor) for actor_id, actor in carried_team_a.items()
@@ -115,42 +116,77 @@ class SessionRunner:
             seed=seed,
             encounter_results=tuple(encounter_results),
             final_snapshots=final_snapshots,
-            medkits_spent=medkits_spent,
+            resources_spent=resources_spent,
             completed_scenarios=len(encounter_results),
         )
 
-    def _field_treat_team(self, team_a: dict[str, ActorState]) -> tuple[dict[str, ActorState], int]:
+    def _run_interlude(
+        self,
+        team_a: dict[str, ActorState],
+        treatments: list[InterludeTreatmentRule],
+    ) -> tuple[dict[str, ActorState], dict[str, int]]:
         actors = {
             actor_id: replace(actor, conditions=tuple(), engaged_with=frozenset())
             for actor_id, actor in team_a.items()
         }
-        pool = sum(actor.medkits for actor in actors.values())
+        spent_by_resource: dict[str, int] = {}
+        for treatment in treatments:
+            actors, spent = self._apply_interlude_treatment(actors, treatment)
+            spent_by_resource[treatment.resource] = (
+                spent_by_resource.get(treatment.resource, 0) + spent
+            )
+        return actors, spent_by_resource
+
+    def _apply_interlude_treatment(
+        self,
+        team_a: dict[str, ActorState],
+        treatment: InterludeTreatmentRule,
+    ) -> tuple[dict[str, ActorState], int]:
+        actors = dict(team_a)
+        available = sum(actor.resource_amount(treatment.resource) for actor in actors.values())
         spent = 0
-        while pool > 0:
-            treatable = [
-                actor
-                for actor in actors.values()
-                if actor.status in {ActorStatus.WOUNDED, ActorStatus.CRITICAL, ActorStatus.STABLE}
-                or actor.hp < actor.max_hp
-            ]
-            if not treatable:
+        while available >= treatment.resource_cost:
+            target = self._select_treatment_target(actors, treatment)
+            if target is None:
                 break
-            target = min(treatable, key=lambda actor: (actor.hp, actor.stress, actor.actor_id))
-            healed_hp = min(target.max_hp, target.hp + 2)
+            healed_hp = min(target.max_hp, target.hp + treatment.heal_amount)
             next_status = target.status
-            if healed_hp > 0 and target.status in {
+            if treatment.restore_to_normal_on_heal and healed_hp > 0 and target.status in {
                 ActorStatus.WOUNDED,
                 ActorStatus.CRITICAL,
                 ActorStatus.STABLE,
             }:
                 next_status = ActorStatus.NORMAL
-            actors[target.actor_id] = replace(target, hp=healed_hp, status=next_status)
-            pool -= 1
-            spent += 1
+            next_conditions = tuple() if treatment.clear_conditions else target.conditions
+            actors[target.actor_id] = replace(
+                target,
+                hp=healed_hp,
+                status=next_status,
+                conditions=next_conditions,
+            )
+            available -= treatment.resource_cost
+            spent += treatment.resource_cost
         remaining = spent
-        updated: dict[str, ActorState] = {}
         for actor_id, actor in actors.items():
-            deduction = min(actor.medkits, remaining)
-            updated[actor_id] = replace(actor, medkits=actor.medkits - deduction)
+            deduction = min(actor.resource_amount(treatment.resource), remaining)
+            next_resources = dict(actor.resources)
+            next_resources[treatment.resource] = actor.resource_amount(treatment.resource) - deduction
+            actors[actor_id] = replace(actor, resources=next_resources)
             remaining -= deduction
-        return updated, spent
+        return actors, spent
+
+    def _select_treatment_target(
+        self,
+        actors: dict[str, ActorState],
+        treatment: InterludeTreatmentRule,
+    ) -> ActorState | None:
+        del treatment
+        treatable = [
+            actor
+            for actor in actors.values()
+            if actor.status in {ActorStatus.WOUNDED, ActorStatus.CRITICAL, ActorStatus.STABLE}
+            or actor.hp < actor.max_hp
+        ]
+        if not treatable:
+            return None
+        return min(treatable, key=lambda actor: (actor.hp, actor.stress, actor.actor_id))

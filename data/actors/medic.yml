@@ -15,11 +15,19 @@ skills:
   cure: 2
   clever: 1
   chat: 1
-actions: [attack, unarmed_attack, first_aid, grit, rally, shove, trip]
+actions:
+- attack
+- unarmed_attack
+- first_aid
+- grit
+- rally
+- shove
+- trip
 weapon_id: pistol
-talents: [healing_hands]
+talents:
+- healing_hands
 starting_band: near
-starting_ammo:
+starting_resources:
   sidearm: 6
-starting_bandages: 3
-starting_medkits: 2
+  bandages: 3
+  medkits: 2

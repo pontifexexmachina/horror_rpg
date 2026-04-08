@@ -15,9 +15,6 @@ def _validate_actor_templates(ruleset: Ruleset) -> None:
                 raise ValueError(f"Actor {actor.id} references unknown action {action_id}.")
         if actor.weapon_id is not None and actor.weapon_id not in ruleset.weapons:
             raise ValueError(f"Actor {actor.id} references unknown weapon {actor.weapon_id}.")
-        for ammo_kind in actor.starting_ammo:
-            if not ammo_kind:
-                raise ValueError(f"Actor {actor.id} has an empty ammo kind key.")
         for talent_id in actor.talents:
             if talent_id not in ruleset.talents:
                 raise ValueError(f"Actor {actor.id} references unknown talent {talent_id}.")

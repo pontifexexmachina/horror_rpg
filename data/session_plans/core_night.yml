@@ -4,3 +4,11 @@ scenario_ids:
   - four_pc_vs_slasher
   - four_pc_vs_control_mix
   - four_pc_vs_brute_pair
+interlude:
+  treatments:
+    - resource: medkits
+      resource_cost: 1
+      heal_amount: 2
+      priority: lowest_hp_then_stress
+      clear_conditions: true
+      restore_to_normal_on_heal: true

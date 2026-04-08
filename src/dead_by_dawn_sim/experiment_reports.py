@@ -55,8 +55,8 @@ def _snapshot_int(snapshot: Snapshot, key: str) -> int:
     raise TypeError(f"Snapshot field {key} is not numeric: {value!r}")
 
 
-def _snapshot_ammo(snapshot: Snapshot) -> dict[str, int]:
-    value = snapshot.get("ammo")
+def _snapshot_resources(snapshot: Snapshot) -> dict[str, int]:
+    value = snapshot.get("resources")
     if isinstance(value, Mapping):
         return {str(key): int(amount) for key, amount in value.items()}
     return {}
@@ -258,16 +258,33 @@ def summarize_scenario_results(results: list[EncounterResult]) -> dict[str, obje
 def summarize_session_results(results: list[SessionResult]) -> dict[str, object]:
     final_snapshots = [snapshot for result in results for snapshot in result.final_snapshots.values()]
     encounter_counts = [result.completed_scenarios for result in results]
-    medkits_spent = [result.medkits_spent for result in results]
-    remaining_bandages = [_snapshot_int(snapshot, "bandages") for snapshot in final_snapshots]
-    remaining_medkits = [_snapshot_int(snapshot, "medkits") for snapshot in final_snapshots]
-    remaining_sidearm_ammo = [_snapshot_ammo(snapshot).get("sidearm", 0) for snapshot in final_snapshots]
+    resource_ids = sorted(
+        {
+            resource_id
+            for result in results
+            for snapshot in result.final_snapshots.values()
+            for resource_id in _snapshot_resources(snapshot)
+        }
+        | {
+            resource_id
+            for result in results
+            for resource_id in result.resources_spent
+        }
+    )
+    avg_resources_spent = {
+        resource_id: mean([result.resources_spent.get(resource_id, 0) for result in results])
+        for resource_id in resource_ids
+    }
+    avg_remaining_resources = {
+        resource_id: mean([
+            _snapshot_resources(snapshot).get(resource_id, 0) for snapshot in final_snapshots
+        ])
+        for resource_id in resource_ids
+    }
     return {
         "avg_completed_scenarios": mean(encounter_counts),
-        "avg_medkits_spent": mean(medkits_spent),
-        "avg_remaining_bandages": mean(remaining_bandages),
-        "avg_remaining_medkits": mean(remaining_medkits),
-        "avg_remaining_sidearm_ammo": mean(remaining_sidearm_ammo),
+        "avg_resources_spent": avg_resources_spent,
+        "avg_remaining_resources": avg_remaining_resources,
         "final_team_status_rates": _status_rates_from_snapshots(final_snapshots),
         "avg_final_stress": mean([_snapshot_int(snapshot, "stress") for snapshot in final_snapshots]),
         "avg_final_hp": mean([_snapshot_int(snapshot, "hp") for snapshot in final_snapshots]),

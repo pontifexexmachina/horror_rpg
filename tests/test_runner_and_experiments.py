@@ -65,17 +65,25 @@ def test_session_runner_carries_resources_forward() -> None:
     ruleset = load_ruleset()
     result = SessionRunner(ruleset).run_plan("core_night", seed=3)
     assert result.completed_scenarios == 3
-    assert result.medkits_spent >= 0
+    assert result.resources_spent.get("medkits", 0) >= 0
     assert "team_a_medic_2" in result.final_snapshots
     medic_snapshot = result.final_snapshots["team_a_medic_2"]
-    assert "medkits" in medic_snapshot
-    assert "ammo" in medic_snapshot
+    resources = medic_snapshot["resources"]
+    assert isinstance(resources, dict)
+    assert "medkits" in resources
+    assert "sidearm" in resources
 
 
 def test_session_benchmark_report_contains_resource_metrics() -> None:
     report = ExperimentRunner(load_ruleset()).run_session_plan("core_night", runs=2, seed=9)
-    assert "avg_medkits_spent" in report.metrics
-    assert "avg_remaining_sidearm_ammo" in report.metrics
+    assert "avg_resources_spent" in report.metrics
+    assert "avg_remaining_resources" in report.metrics
+    avg_resources_spent = report.metrics["avg_resources_spent"]
+    avg_remaining_resources = report.metrics["avg_remaining_resources"]
+    assert isinstance(avg_resources_spent, dict)
+    assert isinstance(avg_remaining_resources, dict)
+    assert "medkits" in avg_resources_spent
+    assert "sidearm" in avg_remaining_resources
     assert "final_team_status_rates" in report.metrics
 
 
@@ -98,7 +106,7 @@ def test_cli_validate_and_run_commands(capsys: CaptureFixture[str]) -> None:
     assert '"final_snapshots"' in session_output
     assert main(["session-benchmark", "--plan", "core_night", "--runs", "1", "--seed", "5"]) == 0
     session_benchmark_output = capsys.readouterr().out
-    assert '"avg_medkits_spent"' in session_benchmark_output
+    assert '"avg_resources_spent"' in session_benchmark_output
 
 
 def test_runner_respects_action_costs_for_shriek() -> None:

@@ -4,8 +4,14 @@ action_cost: 1
 tags: [attack]
 range: enemy
 allow_push: true
+availability:
+  all_of:
+    - type: ammo_at_least
+      amount: 1
 procedure:
   steps:
+    - type: spend_ammo
+      amount: 1
     - type: attack
       uses_weapon: true
       stat: speed

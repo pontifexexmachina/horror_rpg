@@ -28,6 +28,8 @@ from dead_by_dawn_sim.rules import (
     CheckRollStep,
     ContestRollStep,
     Ruleset,
+    SpendAmmoStep,
+    SpendResourceStep,
     TalentEffect,
     WeaponDefinition,
     action_has_heal_steps,
@@ -58,22 +60,27 @@ def _effective_attack_modifier(
     return modifier
 
 
-def spend_attack_resource(actor: ActorState, effect: AttackRollStep, ruleset: Ruleset) -> ActorState:
+def spend_attack_ammo(actor: ActorState, effect: AttackRollStep, ruleset: Ruleset, amount: int) -> ActorState:
     weapon = attack_weapon(effect, actor, ruleset)
     if weapon is None or weapon.ammo_kind is None:
         return actor
     current = actor.ammo.get(weapon.ammo_kind, 0)
-    if current <= 0:
-        raise ValueError(f"Actor {actor.actor_id} attempted a ranged attack without ammo.")
-    next_ammo = dict(actor.ammo)
-    next_ammo[weapon.ammo_kind] = current - 1
-    return replace(actor, ammo=next_ammo)
+    if current < amount:
+        raise ValueError(f"Actor {actor.actor_id} attempted a ranged attack without enough ammo.")
+    next_resources = dict(actor.resources)
+    next_resources[weapon.ammo_kind] = current - amount
+    return replace(actor, resources=next_resources)
 
 
-def spend_bandage(actor: ActorState) -> ActorState:
-    if actor.bandages <= 0:
-        raise ValueError(f"Actor {actor.actor_id} attempted first aid without bandages.")
-    return replace(actor, bandages=actor.bandages - 1)
+def spend_resource(actor: ActorState, resource: str, amount: int) -> ActorState:
+    current = actor.resource_amount(resource)
+    if current < amount:
+        raise ValueError(
+            f"Actor {actor.actor_id} attempted to spend {amount} {resource} with only {current}."
+        )
+    next_resources = dict(actor.resources)
+    next_resources[resource] = current - amount
+    return replace(actor, resources=next_resources)
 
 
 def roll_mode_for_action(action: ActionDefinition, actor: ActorState, target: ActorState) -> RollMode:
@@ -196,9 +203,6 @@ def auto_critical_heal_result(
 def run_check_step(ctx: ActionResolutionContext, resolution: ProcedureResolution, step: CheckRollStep) -> ProcedureResolution:
     actor = resolution.actor
     state = resolution.state
-    if ctx.action.id == "first_aid":
-        actor = spend_bandage(actor)
-        state = update_actor(state, actor)
     healing_effect = talent_effect_for_actor(actor, ctx.ruleset, "auto_critical_heal")
     if (
         action_has_heal_steps(ctx.action)
@@ -239,8 +243,8 @@ def run_attack_step(ctx: ActionResolutionContext, resolution: ProcedureResolutio
     weapon = attack_weapon(step, resolution.actor, ctx.ruleset)
     if weapon is None:
         raise ValueError(f"Actor {resolution.actor.actor_id} attempted an attack without a weapon.")
-    actor = spend_attack_resource(resolution.actor, step, ctx.ruleset) if step.skill == "shoot" else resolution.actor
-    state = update_actor(resolution.state, actor)
+    actor = resolution.actor
+    state = resolution.state
     modifier, difficulty = attack_modifier_and_difficulty(state, actor, resolution.target, step, ctx.ruleset)
     result = roll_check(
         roller=ctx.roller,
@@ -266,3 +270,43 @@ def run_attack_step(ctx: ActionResolutionContext, resolution: ProcedureResolutio
         state = narrate_attack_miss(state, resolution.actor.actor_id, resolution.target.actor_id)
     return resolution.with_state(state, actor_id=resolution.actor.actor_id, target_id=resolution.target.actor_id, last_roll=result)
 
+
+
+def run_spend_resource_step(
+    ctx: ActionResolutionContext, resolution: ProcedureResolution, step: SpendResourceStep
+) -> ProcedureResolution:
+    if step.when != "always" and resolution.last_roll is not None:
+        if step.when == "success" and not resolution.last_roll.is_success:
+            return resolution
+        if step.when == "critical" and not resolution.last_roll.is_critical:
+            return resolution
+    actor = spend_resource(resolution.actor, step.resource, step.amount)
+    state = update_actor(resolution.state, actor)
+    return resolution.with_state(
+        state,
+        actor_id=actor.actor_id,
+        target_id=resolution.target.actor_id,
+    )
+
+
+def run_spend_ammo_step(
+    ctx: ActionResolutionContext, resolution: ProcedureResolution, step: SpendAmmoStep
+) -> ProcedureResolution:
+    if step.when != "always" and resolution.last_roll is not None:
+        if step.when == "success" and not resolution.last_roll.is_success:
+            return resolution
+        if step.when == "critical" and not resolution.last_roll.is_critical:
+            return resolution
+    attack_step = next(
+        (procedure_step for procedure_step in ctx.action.procedure.steps if isinstance(procedure_step, AttackRollStep)),
+        None,
+    )
+    if attack_step is None:
+        raise ValueError(f"Action {ctx.action.id} cannot spend ammo without an attack step.")
+    actor = spend_attack_ammo(resolution.actor, attack_step, ctx.ruleset, step.amount)
+    state = update_actor(resolution.state, actor)
+    return resolution.with_state(
+        state,
+        actor_id=actor.actor_id,
+        target_id=resolution.target.actor_id,
+    )
