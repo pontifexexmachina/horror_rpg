@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
+
+import yaml
 
 from dead_by_dawn_sim.policies import ActorPolicy
 from dead_by_dawn_sim.scripted_policy_logic import score_action
@@ -24,195 +27,31 @@ class ScriptedPolicy(ActorPolicy):
         return max(legal_actions, key=lambda choice: score_action(choice, state, ruleset, self))
 
 
-POLICY_REGISTRY: dict[str, ScriptedPolicy] = {
-    "power_gamer": ScriptedPolicy(
-        "power_gamer",
-        {
-            "attack": 4.0,
-            "heal": 1.0,
-            "control": 0.8,
-            "stress": 0.5,
-            "finisher": 2.5,
-            "close_distance": 2.0,
-            "pressure": 0.7,
-            "heal_urgency": 0.5,
-            "ally_strike_setup": 1.0,
-            "rally_urgency": 0.6,
-            "trip_urgency": 0.2,
-            "shove_urgency": 0.2,
-            "objective_progress": 3.4,
-            "objective_delay_penalty": 2.8,
-            "hold_exit": 1.8,
-            "grit_topoff_penalty": 4.5,
-            "grit_danger_bonus": 0.8,
-        },
-        1.2,
-    ),
-    "butt_kicker": ScriptedPolicy(
-        "butt_kicker",
-        {
-            "attack": 5.0,
-            "heal": 0.2,
-            "control": 0.1,
-            "finisher": 1.8,
-            "close_distance": 4.0,
-            "pressure": 1.0,
-            "panic_push_penalty": -1.5,
-            "trip_urgency": 0.4,
-            "shove_urgency": 0.8,
-            "break_line": 0.8,
-            "objective_progress": 2.0,
-            "objective_delay_penalty": 1.8,
-            "objective_intercept": 2.3,
-            "deny_objective": 2.0,
-            "intercept_runner": 1.2,
-            "grit_topoff_penalty": 5.0,
-            "grit_danger_bonus": 0.4,
-        },
-        1.4,
-    ),
-    "tactician": ScriptedPolicy(
-        "tactician",
-        {
-            "attack": 2.5,
-            "heal": 2.0,
-            "control": 3.0,
-            "setup": 1.0,
-            "finisher": 1.2,
-            "close_distance": 1.4,
-            "heal_urgency": 1.0,
-            "rescue": 2.5,
-            "control_setup": 1.0,
-            "ally_strike_setup": 2.0,
-            "rally_urgency": 1.2,
-            "trip_urgency": 0.2,
-            "shove_urgency": 0.4,
-            "objective_progress": 2.6,
-            "objective_delay_penalty": 2.2,
-            "objective_intercept": 2.6,
-            "deny_objective": 2.5,
-            "hold_ground": 1.5,
-            "grit_topoff_penalty": 4.0,
-            "grit_danger_bonus": 0.8,
-        },
-        0.8,
-    ),
-    "method_actor": ScriptedPolicy(
-        "method_actor",
-        {
-            "attack": 2.0,
-            "heal": 2.5,
-            "control": 1.4,
-            "close_distance": 0.8,
-            "heal_urgency": 0.8,
-            "rescue": 1.6,
-            "control_setup": 0.8,
-            "ally_strike_setup": 0.8,
-            "rally_urgency": 0.5,
-            "trip_urgency": 0.2,
-            "low_hp_modifier": -1.0,
-            "high_stress_modifier": -1.5,
-            "panic_push_penalty": -3.0,
-            "objective_progress": 2.4,
-            "objective_delay_penalty": 1.8,
-            "hold_exit": 1.2,
-            "grit_topoff_penalty": 3.0,
-            "grit_danger_bonus": 1.0,
-        },
-        -0.5,
-    ),
-    "casual": ScriptedPolicy(
-        "casual",
-        {
-            "attack": 2.4,
-            "heal": 1.8,
-            "control": 0.5,
-            "advance": 0.7,
-            "close_distance": 1.2,
-            "heal_urgency": 0.6,
-            "rescue": 1.2,
-            "ally_strike_setup": 0.6,
-            "rally_urgency": 0.4,
-            "trip_urgency": 0.1,
-            "shove_urgency": 0.2,
-            "objective_progress": 1.6,
-            "objective_delay_penalty": 1.5,
-            "grit_topoff_penalty": 3.5,
-            "grit_danger_bonus": 0.6,
-        },
-        -0.2,
-    ),
-    "brute": ScriptedPolicy(
-        "brute",
-        {
-            "attack": 4.4,
-            "advance": 2.0,
-            "control": 0.4,
-            "finisher": 1.8,
-            "close_distance": 3.0,
-            "pressure": 0.9,
-            "trip_urgency": 0.3,
-            "shove_urgency": 1.0,
-            "break_line": 1.0,
-            "objective_intercept": 2.8,
-            "deny_objective": 3.0,
-            "intercept_runner": 1.8,
-        },
-        0.9,
-    ),
-    "controller": ScriptedPolicy(
-        "controller",
-        {
-            "attack": 1.8,
-            "control": 3.6,
-            "stress": 1.2,
-            "advance": 1.0,
-            "close_distance": 2.0,
-            "control_setup": 1.2,
-            "control_repeat_penalty": 1.8,
-            "trip_urgency": 0.2,
-            "shove_urgency": 0.9,
-            "break_line": 0.7,
-            "objective_intercept": 2.4,
-            "deny_objective": 2.7,
-            "intercept_runner": 1.6,
-            "hold_ground": 1.0,
-        },
-        0.6,
-    ),
-    "panic_engine": ScriptedPolicy(
-        "panic_engine",
-        {
-            "attack": 1.4,
-            "stress": 4.8,
-            "control": 1.0,
-            "advance": 1.0,
-            "close_distance": 1.0,
-            "stress_setup": 0.2,
-            "control_setup": 0.4,
-            "control_repeat_penalty": 1.0,
-            "finisher": 0.8,
-            "objective_intercept": 2.0,
-            "deny_objective": 2.2,
-        },
-        0.4,
-    ),
-    "finisher": ScriptedPolicy(
-        "finisher",
-        {
-            "attack": 3.6,
-            "finisher": 4.8,
-            "control": 0.3,
-            "advance": 1.0,
-            "close_distance": 2.8,
-            "pressure": 0.9,
-            "trip_urgency": 0.2,
-            "shove_urgency": 0.5,
-            "break_line": 0.4,
-            "objective_intercept": 2.6,
-            "deny_objective": 3.0,
-        },
-        0.9,
-    ),
-}
+_POLICY_DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "policies" / "scripted.yml"
 
+
+def _load_policy_registry() -> dict[str, ScriptedPolicy]:
+    with _POLICY_DATA_PATH.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle)
+    if not isinstance(raw, dict):
+        raise ValueError(f"{_POLICY_DATA_PATH} must contain a mapping of policy ids.")
+
+    registry: dict[str, ScriptedPolicy] = {}
+    for policy_id, payload in raw.items():
+        if not isinstance(policy_id, str) or not isinstance(payload, dict):
+            raise ValueError(f"{_POLICY_DATA_PATH} has an invalid policy entry for {policy_id!r}.")
+        push_threshold = payload.get("push_threshold")
+        weights = payload.get("weights")
+        if not isinstance(push_threshold, int | float) or not isinstance(weights, dict):
+            raise ValueError(f"{_POLICY_DATA_PATH} policy {policy_id!r} is missing valid weights.")
+        if not all(isinstance(key, str) and isinstance(value, int | float) for key, value in weights.items()):
+            raise ValueError(f"{_POLICY_DATA_PATH} policy {policy_id!r} has non-numeric weights.")
+        registry[policy_id] = ScriptedPolicy(
+            id=policy_id,
+            weights={key: float(value) for key, value in weights.items()},
+            push_threshold=float(push_threshold),
+        )
+    return registry
+
+
+POLICY_REGISTRY = _load_policy_registry()

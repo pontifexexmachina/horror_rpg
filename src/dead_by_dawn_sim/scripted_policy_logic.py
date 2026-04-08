@@ -27,16 +27,24 @@ class ScoredPolicy(Protocol):
     def push_threshold(self) -> float: ...
 
 
+_INACTIVE = {ActorStatus.DEAD, ActorStatus.CRITICAL, ActorStatus.STABLE, ActorStatus.BROKEN}
+
+
 def score_action(
     choice: ActionChoice, state: EncounterState, ruleset: Ruleset, policy: ScoredPolicy
 ) -> float:
     actor = state.actor(choice.actor_id)
     target = state.actor(choice.target_id)
-    score = _base_action_score(choice, state, ruleset, policy, actor, target)
-    score += objective_adjustment(choice, state, ruleset, policy)
-    score += closeout_adjustment(choice, state, ruleset, policy)
-    score += _actor_state_adjustment(actor, ruleset, policy)
-    return score
+    return (
+        _base_action_score(choice, state, ruleset, policy, actor, target)
+        + objective_adjustment(choice, state, ruleset, policy)
+        + closeout_adjustment(choice, state, ruleset, policy)
+        + _actor_state_adjustment(actor, ruleset, policy)
+    )
+
+
+def _tag_score(action: ActionDefinition, policy: ScoredPolicy) -> float:
+    return sum(policy.weights.get(tag, 0.0) for tag in action.tags)
 
 
 def _base_action_score(
@@ -49,36 +57,23 @@ def _base_action_score(
 ) -> float:
     action = ruleset.actions[choice.action_id]
     if action_is_movement(action):
-        return _movement_action_score(action, state, ruleset, policy, actor, choice.actor_id)
-    if action_has_behavior(action, "stand_up"):
-        score = policy.weights.get("stand_up", 1.5)
-        if actor.engaged_with:
-            score += policy.weights.get("stand_up_urgency", 1.0)
+        score = _tag_score(action, policy)
+        if action_has_behavior(action, "approach") and not _has_attack_option(state, ruleset, choice.actor_id):
+            score += policy.weights.get("close_distance", 0.0)
+        if action_has_behavior(action, "retreat") and actor.hp <= max(2, actor.max_hp // 3):
+            score += policy.weights.get("escape", 0.0)
         return score
+    if action_has_behavior(action, "stand_up"):
+        return policy.weights.get("stand_up", 1.5) + (
+            policy.weights.get("stand_up_urgency", 1.0) if actor.engaged_with else 0.0
+        )
 
-    score = sum(policy.weights.get(tag, 0.0) for tag in action.tags)
+    score = _tag_score(action, policy)
     if target.hp <= max(2, target.max_hp // 3):
         score += policy.weights.get("finisher", 0.0)
     score += _context_adjustment(choice, state, ruleset, policy, action, actor, target)
     if choice.push:
-        score += policy.push_threshold
-        score += _push_adjustment(actor, ruleset, policy)
-    return score
-
-
-def _movement_action_score(
-    action: ActionDefinition,
-    state: EncounterState,
-    ruleset: Ruleset,
-    policy: ScoredPolicy,
-    actor: ActorState,
-    actor_id: str,
-) -> float:
-    score = sum(policy.weights.get(tag, 0.0) for tag in action.tags)
-    if action_has_behavior(action, "approach") and not _has_attack_option(state, ruleset, actor_id):
-        score += policy.weights.get("close_distance", 0.0)
-    if action_has_behavior(action, "retreat") and actor.hp <= max(2, actor.max_hp // 3):
-        score += policy.weights.get("escape", 0.0)
+        return score + policy.push_threshold + _push_adjustment(actor, ruleset, policy)
     return score
 
 
@@ -100,10 +95,11 @@ def _context_adjustment(
     actor: ActorState,
     target: ActorState,
 ) -> float:
-    adjustment = 0.0
-    adjustment += _heal_context_adjustment(action, target, policy)
+    adjustment = sum(
+        scorer(action, target, policy)
+        for scorer in (_heal_context_adjustment, _control_context_adjustment)
+    )
     adjustment += _stress_context_adjustment(action, target, ruleset, policy)
-    adjustment += _control_context_adjustment(action, target, policy)
     adjustment += _grit_context_adjustment(choice, action, actor, policy)
     adjustment += _rally_context_adjustment(action, actor, target, policy)
     adjustment += _trip_context_adjustment(action, state, actor, target, policy)
@@ -121,10 +117,9 @@ def _heal_context_adjustment(
     if not action_is_heal(action):
         return 0.0
     missing_hp = target.max_hp - target.hp
-    adjustment = -4.0 if missing_hp == 0 else missing_hp * policy.weights.get("heal_urgency", 0.2)
-    if target.status.value in {"wounded", "critical"}:
-        adjustment += policy.weights.get("rescue", 0.5)
-    return adjustment
+    return (-4.0 if missing_hp == 0 else missing_hp * policy.weights.get("heal_urgency", 0.2)) + (
+        policy.weights.get("rescue", 0.5) if target.status.value in {"wounded", "critical"} else 0.0
+    )
 
 
 def _stress_context_adjustment(
@@ -146,10 +141,9 @@ def _control_context_adjustment(
 ) -> float:
     if not action_is_control(action):
         return 0.0
-    existing_conditions = len(target.conditions)
-    adjustment = policy.weights.get("control_setup", 0.6)
-    adjustment -= existing_conditions * policy.weights.get("control_repeat_penalty", 1.2)
-    return adjustment
+    return policy.weights.get("control_setup", 0.6) - len(target.conditions) * policy.weights.get(
+        "control_repeat_penalty", 1.2
+    )
 
 
 def _grit_context_adjustment(
@@ -160,15 +154,14 @@ def _grit_context_adjustment(
 ) -> float:
     if not action_has_behavior(action, "self_heal") or choice.target_id != choice.actor_id:
         return 0.0
-    is_bleeding = any(condition.id == "bleeding" for condition in actor.conditions)
     in_real_danger = (
         actor.status in {ActorStatus.WOUNDED, ActorStatus.CRITICAL}
         or actor.hp <= max(2, actor.max_hp // 2)
-        or is_bleeding
+        or any(condition.id == "bleeding" for condition in actor.conditions)
     )
-    if not in_real_danger:
-        return -policy.weights.get("grit_topoff_penalty", 3.5)
-    return policy.weights.get("grit_danger_bonus", 0.8)
+    if in_real_danger:
+        return policy.weights.get("grit_danger_bonus", 0.8)
+    return -policy.weights.get("grit_topoff_penalty", 3.5)
 
 
 def _rally_context_adjustment(
@@ -179,14 +172,11 @@ def _rally_context_adjustment(
 ) -> float:
     if not action_has_behavior(action, "ally_support"):
         return 0.0
-    adjustment = 0.0
-    if target.actor_id == actor.actor_id:
-        adjustment -= policy.weights.get("self_rally_penalty", 3.0)
-    if target.engaged_with or target.weapon_id is not None:
-        adjustment += policy.weights.get("ally_strike_setup", 0.8)
-    if target.max_hp - target.hp > 0:
-        adjustment += policy.weights.get("rally_urgency", 0.4)
-    return adjustment
+    return (
+        (-policy.weights.get("self_rally_penalty", 3.0) if target.actor_id == actor.actor_id else 0.0)
+        + (policy.weights.get("ally_strike_setup", 0.8) if target.engaged_with or target.weapon_id is not None else 0.0)
+        + (policy.weights.get("rally_urgency", 0.4) if target.max_hp - target.hp > 0 else 0.0)
+    )
 
 
 def _trip_context_adjustment(
@@ -205,22 +195,15 @@ def _trip_context_adjustment(
         for candidate in state.actors.values()
         if candidate.team == actor.team
         and candidate.area_id == actor.area_id
-        and candidate.status
-        not in {
-            ActorStatus.DEAD,
-            ActorStatus.CRITICAL,
-            ActorStatus.STABLE,
-            ActorStatus.BROKEN,
-        }
+        and candidate.status not in _INACTIVE
     )
     adjustment = -policy.weights.get("trip_baseline_penalty", 2.5)
-    adjustment += max(0, active_allies_in_area - 1) * policy.weights.get(
-        "trip_teamwork_bonus", 0.4
+    adjustment += max(0, active_allies_in_area - 1) * policy.weights.get("trip_teamwork_bonus", 0.4)
+    adjustment += (
+        -policy.weights.get("trip_finish_penalty", 1.5)
+        if target.hp <= max(2, target.max_hp // 2)
+        else policy.weights.get("trip_urgency", 0.3)
     )
-    if target.hp <= max(2, target.max_hp // 2):
-        adjustment -= policy.weights.get("trip_finish_penalty", 1.5)
-    else:
-        adjustment += policy.weights.get("trip_urgency", 0.3)
     if actor.hp <= max(2, actor.max_hp // 3):
         adjustment -= policy.weights.get("trip_risk_penalty", 0.8)
     return adjustment
@@ -233,13 +216,9 @@ def _shove_context_adjustment(
     target: ActorState,
     policy: ScoredPolicy,
 ) -> float:
-    if not action_has_behavior(action, "control_reposition"):
+    if not action_has_behavior(action, "control_reposition") or choice.destination_area is None:
         return 0.0
-    if choice.destination_area is None:
-        return 0.0
-    adjustment = 0.0
-    if choice.destination_area != actor.area_id:
-        adjustment += policy.weights.get("shove_urgency", 0.4)
+    adjustment = policy.weights.get("shove_urgency", 0.4) if choice.destination_area != actor.area_id else 0.0
     if target.area_id == actor.area_id and choice.destination_area != actor.area_id:
         adjustment += policy.weights.get("break_line", 0.6)
     return adjustment
@@ -260,4 +239,3 @@ def _has_attack_option(state: EncounterState, ruleset: Ruleset, actor_id: str) -
         action_is_attack(ruleset.actions[choice.action_id])
         for choice in legal_actions_for_actor(state, actor_id, ruleset)
     )
-
