@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from dead_by_dawn_sim.action_procedure_resources import run_spend_ammo_step, run_spend_resource_step
 from dead_by_dawn_sim.action_procedure_rolls import (
     apply_attack_hit,
     attack_modifier_and_difficulty,
@@ -9,8 +10,6 @@ from dead_by_dawn_sim.action_procedure_rolls import (
     run_attack_step,
     run_check_step,
     run_contest_step,
-    run_spend_ammo_step,
-    run_spend_resource_step,
 )
 from dead_by_dawn_sim.action_procedure_steps import (
     finalize_procedure_action,

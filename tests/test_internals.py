@@ -8,8 +8,8 @@ import pytest
 
 from dead_by_dawn_sim.action_procedure_effects import append_condition
 from dead_by_dawn_sim.action_procedure_narration import NARRATION_HANDLERS, narrate_procedure_action
-from dead_by_dawn_sim.action_procedure_resources import run_spend_resource_step
-from dead_by_dawn_sim.action_procedure_rolls import roll_mode_for_action, run_spend_ammo_step
+from dead_by_dawn_sim.action_procedure_resources import run_spend_ammo_step, run_spend_resource_step
+from dead_by_dawn_sim.action_procedure_rolls import roll_mode_for_action
 from dead_by_dawn_sim.action_procedure_runtime import apply_action_effect
 from dead_by_dawn_sim.action_procedure_steps import procedure_result_applies
 from dead_by_dawn_sim.action_procedure_types import ActionResolutionContext, ProcedureResolution
@@ -220,15 +220,16 @@ def test_narrate_procedure_action_returns_state_unchanged_for_unknown_narration_
 def test_run_spend_resource_step_deducts_resource_on_always() -> None:
     from dead_by_dawn_sim.rules import SpendResourceStep
     ruleset = load_ruleset()
-    state = EncounterRunner(ruleset).build_state("single_pc_vs_slasher", seed=1)
-    actor_id = next(a for a in state.actors if a.startswith("team_a"))
+    ctx = _make_ctx(ruleset=ruleset, action_id="first_aid")
+    state = ctx.state
+    actor_id = ctx.actor.actor_id
     actor = state.actor(actor_id)
     # Give actor a bandage
     actor_with_bandage = dc_replace(actor, resources={**actor.resources, "bandages": 3})
     state = update_actor(state, actor_with_bandage)
     resolution = ProcedureResolution(state=state, actor=state.actor(actor_id), target=state.actor(actor_id))
     step = SpendResourceStep(type="spend_resource", resource="bandages", amount=1, when="always")
-    result = run_spend_resource_step(resolution, step)
+    result = run_spend_resource_step(ctx, resolution, step)
     assert result.actor.resources.get("bandages", 0) == 2
 
 

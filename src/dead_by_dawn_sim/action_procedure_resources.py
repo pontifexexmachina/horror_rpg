@@ -8,8 +8,10 @@ from dead_by_dawn_sim.state import ActorState, update_actor
 
 from dead_by_dawn_sim.action_procedure_steps import procedure_result_applies
 
+from dead_by_dawn_sim.rules import attack_step_for_action
+
 if TYPE_CHECKING:
-    from dead_by_dawn_sim.action_procedure_types import ProcedureResolution
+    from dead_by_dawn_sim.action_procedure_types import ActionResolutionContext, ProcedureResolution
     from dead_by_dawn_sim.rules import AttackRollStep, Ruleset, SpendAmmoStep, SpendResourceStep
 
 
@@ -42,6 +44,7 @@ def spend_resource(actor: ActorState, resource: str, amount: int) -> ActorState:
 
 
 def run_spend_resource_step(
+    _ctx: ActionResolutionContext,
     resolution: ProcedureResolution,
     step: SpendResourceStep,
 ) -> ProcedureResolution:
@@ -57,16 +60,16 @@ def run_spend_resource_step(
 
 
 def run_spend_ammo_step(
+    ctx: ActionResolutionContext,
     resolution: ProcedureResolution,
-    action_attack_step: AttackRollStep | None,
-    ruleset: Ruleset,
     step: SpendAmmoStep,
 ) -> ProcedureResolution:
     if not procedure_result_applies(resolution.last_roll, step.when):
         return resolution
+    action_attack_step = attack_step_for_action(ctx.action)
     if action_attack_step is None:
         raise ValueError("Action cannot spend ammo without an attack step.")
-    actor = spend_attack_ammo(resolution.actor, action_attack_step, ruleset, step.amount)
+    actor = spend_attack_ammo(resolution.actor, action_attack_step, ctx.ruleset, step.amount)
     state = update_actor(resolution.state, actor)
     return resolution.with_state(
         state,
