@@ -3,10 +3,9 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from dead_by_dawn_sim.action_procedure_narration import narrate_attack_hit
 from dead_by_dawn_sim.engine_rolls import RollResult
 from dead_by_dawn_sim.engine_state import apply_damage, mark_talent_effect_used
-from dead_by_dawn_sim.state import ActorState, ConditionState, EncounterState, update_actor
+from dead_by_dawn_sim.state import ActorState, ConditionState, EncounterState, append_event, update_actor
 
 if TYPE_CHECKING:
     from dead_by_dawn_sim.action_procedure_types import ActionResolutionContext
@@ -50,7 +49,7 @@ def apply_attack_hit(
     if "bleed" in weapon.tags:
         updated_target = append_condition(updated_target, "bleeding", 3)
     state = update_actor(state, updated_target)
-    return narrate_attack_hit(state, event.format(damage=damage))
+    return append_event(state, event.format(damage=damage))
 
 
 def auto_critical_heal_result(

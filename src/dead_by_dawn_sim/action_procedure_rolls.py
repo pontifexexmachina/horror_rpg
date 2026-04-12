@@ -3,13 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from dead_by_dawn_sim.action_procedure_effects import apply_attack_hit, auto_critical_heal_result
-from dead_by_dawn_sim.action_procedure_narration import narrate_attack_miss
-from dead_by_dawn_sim.action_procedure_resources import (
-    run_spend_ammo_step as _run_spend_ammo_step,
-)
-from dead_by_dawn_sim.action_procedure_resources import (
-    run_spend_resource_step as _run_spend_resource_step,
-)
+
 from dead_by_dawn_sim.combat_support import attack_weapon, has_condition
 from dead_by_dawn_sim.engine_rolls import (
     ContestResult,
@@ -30,12 +24,10 @@ from dead_by_dawn_sim.rules import (
     CheckRollStep,
     ContestRollStep,
     Ruleset,
-    SpendAmmoStep,
     SpendResourceStep,
     action_has_heal_steps,
-    attack_step_for_action,
 )
-from dead_by_dawn_sim.state import ActorState, EncounterState, area_has_tag, update_actor
+from dead_by_dawn_sim.state import ActorState, EncounterState, append_event, area_has_tag, update_actor
 
 if TYPE_CHECKING:
     from dead_by_dawn_sim.action_procedure_types import ActionResolutionContext, ProcedureResolution
@@ -239,7 +231,7 @@ def run_attack_step(
             event=f"{resolution.actor.actor_id} hits {resolution.target.actor_id} for {{damage}}.",
         )
     else:
-        state = narrate_attack_miss(state, resolution.actor.actor_id, resolution.target.actor_id)
+        state = append_event(state, f"{resolution.actor.actor_id} misses {resolution.target.actor_id}.")
     return resolution.with_state(
         state,
         actor_id=resolution.actor.actor_id,
@@ -248,14 +240,4 @@ def run_attack_step(
     )
 
 
-def run_spend_resource_step(
-    ctx: ActionResolutionContext, resolution: ProcedureResolution, step: SpendResourceStep
-) -> ProcedureResolution:
-    del ctx
-    return _run_spend_resource_step(resolution, step)
 
-
-def run_spend_ammo_step(
-    ctx: ActionResolutionContext, resolution: ProcedureResolution, step: SpendAmmoStep
-) -> ProcedureResolution:
-    return _run_spend_ammo_step(resolution, attack_step_for_action(ctx.action), ctx.ruleset, step)

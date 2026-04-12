@@ -35,7 +35,10 @@ def resolve_roll(
 
 
 def difficulty_value(ruleset: Ruleset, difficulty_name: str) -> int:
-    return getattr(ruleset.core.difficulties, difficulty_name)
+    value = getattr(ruleset.core.difficulties, difficulty_name, None)
+    if value is None:
+        raise ValueError(f"Unknown difficulty: {difficulty_name!r}")
+    return value
 
 
 def roll_mode_params(ruleset: Ruleset, roll_mode: RollMode, push: bool) -> tuple[int, int, bool]:

@@ -41,8 +41,15 @@ TModel = TypeVar("TModel", bound=BaseModel)
 
 
 def _load_yaml(path: Path) -> object:
-    with path.open("r", encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            return yaml.safe_load(handle)
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"Rules file not found: {path}") from exc
+    except OSError as exc:
+        raise OSError(f"Failed to read rules file {path}: {exc}") from exc
+    except yaml.YAMLError as exc:
+        raise ValueError(f"Invalid YAML in {path}: {exc}") from exc
 
 
 def _load_map(directory: Path, model_type: type[TModel]) -> dict[str, TModel]:
