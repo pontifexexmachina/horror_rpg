@@ -131,27 +131,29 @@ class EncounterRunner:
             actor_id: policy_resolver(actor_id, actor_metadata)
             for actor_id, actor_metadata in metadata.items()
         }
-        for round_number in range(1, self.ruleset.core.max_rounds + 1):
-            state = replace(
-                state,
-                round_number=round_number,
-                used_reactions=frozenset(),
+
+        def maybe_finish(current_state: EncounterState, rounds: int) -> tuple[EncounterResult, EncounterState] | None:
+            winner = determine_winner(current_state)
+            if winner is None:
+                return None
+            return self._finish(
+                state=current_state,
+                scenario_id=scenario_id,
+                seed=seed,
+                winner=winner,
+                rounds=rounds,
+                metadata=metadata,
+                contributions=contributions,
+                action_counts=action_counts,
+                push_count=push_count,
             )
+
+        for round_number in range(1, self.ruleset.core.max_rounds + 1):
+            state = replace(state, round_number=round_number, used_reactions=frozenset())
             for actor_id in state.initiative_order:
                 state = start_turn(state, actor_id, self.ruleset)
-                winner = determine_winner(state)
-                if winner is not None:
-                    return self._finish(
-                        state=state,
-                        scenario_id=scenario_id,
-                        seed=seed,
-                        winner=winner,
-                        rounds=round_number,
-                        metadata=metadata,
-                        contributions=contributions,
-                        action_counts=action_counts,
-                        push_count=push_count,
-                    )
+                if result := maybe_finish(state, round_number):
+                    return result
                 if not legal_actions_for_actor(state, actor_id, self.ruleset):
                     state = end_turn(state, actor_id, roller, self.ruleset)
                     continue
@@ -163,22 +165,18 @@ class EncounterRunner:
                     affordable = affordable_actions(legal_actions, self.ruleset, remaining_actions)
                     if attack_used:
                         affordable = [
-                            choice
-                            for choice in affordable
-                            if not is_attack_choice(choice, self.ruleset)
+                            choice for choice in affordable if not is_attack_choice(choice, self.ruleset)
                         ]
                     if not affordable:
                         break
                     choice = policy.choose_action(affordable, state, self.ruleset)
                     action_cost = choice_action_cost(choice, self.ruleset)
                     action_counts[choice.action_id] = action_counts.get(choice.action_id, 0) + 1
-                    if choice.push:
-                        push_count += 1
+                    push_count += int(choice.push)
                     previous_state = state
                     state = resolve_action(state, choice, roller, self.ruleset)
                     remaining_actions -= action_cost
-                    if is_attack_choice(choice, self.ruleset):
-                        attack_used = True
+                    attack_used = attack_used or is_attack_choice(choice, self.ruleset)
                     contributions[choice.actor_id] = accumulate_contribution(
                         contributions[choice.actor_id],
                         choice_push=choice.push,
@@ -186,39 +184,16 @@ class EncounterRunner:
                         after=state,
                         actor_team=metadata[choice.actor_id].team,
                     )
-                    winner = determine_winner(state)
-                    if winner is not None:
-                        return self._finish(
-                            state=state,
-                            scenario_id=scenario_id,
-                            seed=seed,
-                            winner=winner,
-                            rounds=round_number,
-                            metadata=metadata,
-                            contributions=contributions,
-                            action_counts=action_counts,
-                            push_count=push_count,
-                        )
+                    if result := maybe_finish(state, round_number):
+                        return result
                 state = end_turn(state, actor_id, roller, self.ruleset)
-                winner = determine_winner(state)
-                if winner is not None:
-                    return self._finish(
-                        state=state,
-                        scenario_id=scenario_id,
-                        seed=seed,
-                        winner=winner,
-                        rounds=round_number,
-                        metadata=metadata,
-                        contributions=contributions,
-                        action_counts=action_counts,
-                        push_count=push_count,
-                    )
-        final_winner = determine_winner(state) or "draw"
+                if result := maybe_finish(state, round_number):
+                    return result
         return self._finish(
             state=state,
             scenario_id=scenario_id,
             seed=seed,
-            winner=final_winner,
+            winner=determine_winner(state) or "draw",
             rounds=self.ruleset.core.max_rounds,
             metadata=metadata,
             contributions=contributions,

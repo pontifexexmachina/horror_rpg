@@ -29,6 +29,11 @@ class ActorStatus(str, Enum):
     BROKEN = "broken"
 
 
+_NONACTIVE_STATUSES = frozenset(
+    {ActorStatus.CRITICAL, ActorStatus.STABLE, ActorStatus.DEAD, ActorStatus.BROKEN}
+)
+
+
 @dataclass(frozen=True)
 class ConditionState:
     id: str
@@ -133,9 +138,7 @@ def actor_count_in_area(state: EncounterState, area_id: str) -> int:
 
 def can_enter_area(state: EncounterState, area_id: str) -> bool:
     occupancy_limit = state.areas[area_id].occupancy_limit
-    if occupancy_limit is None:
-        return True
-    return actor_count_in_area(state, area_id) < occupancy_limit
+    return occupancy_limit is None or actor_count_in_area(state, area_id) < occupancy_limit
 
 
 def connection_between(
@@ -144,33 +147,26 @@ def connection_between(
     for connection in state.connections:
         if connection.from_area == from_area and connection.to_area == to_area:
             return connection
-        if (
-            connection.bidirectional
-            and connection.from_area == to_area
-            and connection.to_area == from_area
-        ):
+        if connection.bidirectional and connection.from_area == to_area and connection.to_area == from_area:
             return connection
     return None
 
 
-def has_line_of_effect(state: EncounterState, from_area: str, to_area: str) -> bool:
+def _connection_allows(state: EncounterState, from_area: str, to_area: str, blocked_tag: str) -> bool:
     if from_area == to_area:
         return True
     connection = connection_between(state, from_area, to_area)
-    if connection is None:
-        return False
-    return "blocked" not in connection.tags
+    return connection is not None and blocked_tag not in connection.tags
+
+
+def has_line_of_effect(state: EncounterState, from_area: str, to_area: str) -> bool:
+    return _connection_allows(state, from_area, to_area, "blocked")
 
 
 def has_line_of_sight(state: EncounterState, from_area: str, to_area: str) -> bool:
-    if not has_line_of_effect(state, from_area, to_area):
-        return False
-    if from_area == to_area:
-        return True
-    connection = connection_between(state, from_area, to_area)
-    if connection is None:
-        return False
-    return "blocked_sight" not in connection.tags
+    return _connection_allows(state, from_area, to_area, "blocked_sight") and has_line_of_effect(
+        state, from_area, to_area
+    )
 
 
 def connected_area_ids(state: EncounterState, area_id: str) -> tuple[str, ...]:
@@ -211,7 +207,6 @@ def build_actor_state(
     start_area: str,
 ) -> ActorState:
     max_hp = ruleset.core.hp_base + template.stats["might"]
-    defense = ruleset.core.defense_base + template.stats["speed"]
     return ActorState(
         actor_id=actor_id,
         name=name,
@@ -221,7 +216,7 @@ def build_actor_state(
         skills=dict(template.skills),
         hp=max_hp,
         max_hp=max_hp,
-        defense=defense,
+        defense=ruleset.core.defense_base + template.stats["speed"],
         stress=ruleset.core.stress.starting if template.stress_mode == "track" else 0,
         shrouds=0,
         status=ActorStatus.NORMAL,
@@ -240,9 +235,7 @@ def build_actor_state(
 
 
 def update_actor(state: EncounterState, actor: ActorState) -> EncounterState:
-    updated = dict(state.actors)
-    updated[actor.actor_id] = actor
-    return replace(state, actors=updated)
+    return replace(state, actors={**state.actors, actor.actor_id: actor})
 
 
 def append_event(state: EncounterState, message: str) -> EncounterState:
@@ -264,18 +257,20 @@ def snapshot_actor(actor: ActorState) -> dict[str, int | str | dict[str, int]]:
 
 
 def synchronize_engagements(state: EncounterState) -> EncounterState:
-    updated: dict[str, ActorState] = {}
-    for actor_id, actor in state.actors.items():
-        engaged = frozenset(
-            other.actor_id
-            for other in state.actors.values()
-            if other.actor_id != actor_id
-            and other.team != actor.team
-            and other.area_id == actor.area_id
-            and other.status
-            not in {ActorStatus.CRITICAL, ActorStatus.STABLE, ActorStatus.DEAD, ActorStatus.BROKEN}
-        )
-        updated[actor_id] = replace(actor, engaged_with=engaged)
-    return replace(state, actors=updated)
-
-
+    return replace(
+        state,
+        actors={
+            actor_id: replace(
+                actor,
+                engaged_with=frozenset(
+                    other.actor_id
+                    for other in state.actors.values()
+                    if other.actor_id != actor_id
+                    and other.team != actor.team
+                    and other.area_id == actor.area_id
+                    and other.status not in _NONACTIVE_STATUSES
+                ),
+            )
+            for actor_id, actor in state.actors.items()
+        },
+    )
