@@ -1,4 +1,6 @@
 /.quarto/
+/_book/
+/docs/
 .venv/
 .sim_runs/
 __pycache__/

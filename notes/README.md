@@ -19,3 +19,5 @@ Current agent-generated design notes worth revisiting:
 - `agent_generated/design/simulator_rules_inventory_pass.md` for the inventory-aware simulator direction
 - `agent_generated/design/simulator_canon_drift_log.md` for simulator-vs-manuscript divergences and author checklist items
 - `agent_generated/design/combat_and_chase_separation.md` for the decision to split stand-up combat from flee/chase simulation
+- `agent_generated/design/agent_driven_workflow.md` for the new author-as-creative-director, agents-as-production-leads workflow
+- `agent_generated/design/v0_2_first_pass_report.md` for the first agent-driven manuscript pass and benchmark snapshot
