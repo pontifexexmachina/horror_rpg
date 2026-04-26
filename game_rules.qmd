@@ -1,21 +1,19 @@
 # Game Rules
 
-This is the current playable rules draft for Dead By Dawn. It is being brought into line with the simulator-backed survival-horror direction: characters usually survive individual encounters, but survival costs HP, Stress, ammunition, medical supplies, time, and nerve.
-
 ## What Play Is About
 
-Dead By Dawn is about ordinary or barely-prepared people trying to survive a night of horror.
+Dead By Dawn is about ordinary or barely prepared people trying to survive a night of horror.
 
-The basic loop is:
+The basic rhythm of play is:
 
 1. Enter a dangerous place.
-2. Search, sneak, fight, barricade, treat wounds, and make bad choices under pressure.
+2. Search, sneak, fight, barricade, treat wounds, and make hard choices under pressure.
 3. Spend resources to survive.
 4. Scavenge or secure brief safety to recover some options.
 5. Push deeper toward the source of the horror.
 6. Reach the climax hurt, afraid, low on supplies, and still capable of one last desperate act.
 
-The game is not built around fair duels. The party should win most fights, but many wins should leave marks.
+Fights are dangerous, but they are not isolated sporting matches. A clean victory is rare. A useful victory is one the characters can walk away from.
 
 ## Characters
 
@@ -25,9 +23,9 @@ Player characters are defined by Stats, Skills, HP, Defense, Stress, equipment, 
 
 There are three Stats:
 
-- **Might**: strength, toughness, violence, physical force.
-- **Speed**: reflexes, aim, movement, balance.
-- **Wits**: perception, nerve, memory, medicine, talk, occult sense.
+- **Might**: strength, toughness, violence, and physical force.
+- **Speed**: reflexes, aim, movement, and balance.
+- **Wits**: perception, nerve, memory, medicine, and social pressure.
 
 At character creation, assign `2`, `1`, and `-1` across Might, Speed, and Wits.
 
@@ -41,25 +39,25 @@ At character creation, assign `2`, `1`, and `-1` across Might, Speed, and Wits.
 
 ### Skills
 
-Skills add to Checks. A starting character should have a small number of trained Skills based on their role or archetype.
+Skills add to Checks.
 
 Might Skills:
 
-- **Brawl**: punch, grapple, swing melee weapons, fight in close quarters.
-- **Brawn**: lift, shove, climb, break doors, hold something shut.
-- **Brace**: endure injury, stay upright, resist collapse.
+- **Brawl**: punch, grapple, swing melee weapons, and fight in close quarters.
+- **Brawn**: lift, shove, climb, break doors, and hold something shut.
+- **Brace**: endure injury, stay upright, and resist collapse.
 
 Speed Skills:
 
 - **Shoot**: use firearms.
-- **Stunt**: fall, dodge, trip, scramble, move under pressure.
-- **Sneak**: hide, creep, avoid notice, act quietly.
+- **Stunt**: fall, dodge, trip, scramble, and move under pressure.
+- **Sneak**: hide, creep, avoid notice, and act quietly.
 
 Wits Skills:
 
-- **Chat**: lie, charm, distract, pressure, provoke.
-- **Clever**: notice, remember, infer, spot the wrong detail.
-- **Cure**: treat injury, stop bleeding, stabilize someone.
+- **Chat**: lie, charm, distract, pressure, and provoke.
+- **Clever**: notice, remember, infer, and spot the wrong detail.
+- **Cure**: treat injury, stop bleeding, and stabilize someone.
 
 ## Core Resolution
 
@@ -81,7 +79,9 @@ On an unopposed test, meeting or beating the Difficulty succeeds.
 
 ### Opposed Tests
 
-When two characters directly contest each other, both roll. The higher total wins. Ties go to the active character unless a specific rule says otherwise.
+When two characters directly contest each other, both roll. The higher total wins.
+
+On a tie, the active character wins unless a specific rule says otherwise.
 
 ### Advantage And Disadvantage
 
@@ -105,13 +105,11 @@ When you Push, add one extra d6 and keep the best two dice. If you had Disadvant
 
 After resolving the pushed test, make a Stress Test.
 
-Pushing is a survival tool. It should feel tempting because it helps now and dangerous because it makes later worse.
-
 ## Stress And Panic
 
 Stress measures fear, shock, exhaustion, and the mind starting to crack.
 
-Most ordinary monsters do not track Stress unless a scenario or monster rule says otherwise. Stress is primarily a player-facing horror pressure system.
+Most ordinary monsters do not track Stress unless a scenario or monster rule says otherwise.
 
 ### Stress Tests
 
@@ -129,37 +127,35 @@ A Panicked character can take only one action on their turn instead of two.
 
 At `13` Stress or higher, you break down.
 
-You cannot take actions in combat and must use your movement to flee or cower unless another rule gives you a specific way to act.
+You cannot take actions in combat. You must use your movement to flee, cower, or otherwise get away from the immediate threat unless another rule gives you a specific way to act.
 
 ### Reducing Stress
 
 Stress does not fall just because a fight ends.
 
-To reduce Stress, the characters need real calm: a safe room, shelter, meaningful reassurance, drugs, ritual comfort, or enough time away from immediate threat.
-
-The current baseline recovery rule is:
+To reduce Stress, characters need real calm: shelter, meaningful reassurance, medicine, ritual comfort, or enough time away from immediate danger.
 
 After a full day of calm with no combat and no Stress Tests, roll `2d6` against your current Stress. On a success, reduce Stress by `1`.
 
-Future drafts should add shorter safe-room procedures so session play has clearer recovery windows.
-
 ## Resources And Inventory
 
-Dead By Dawn uses fiction-first resources. If a player spends something, the character should understand what they spent.
+Dead By Dawn uses resources the characters can understand inside the fiction: ammunition, bandages, medkits, light, ritual supplies, time, safe shelter, and whatever else the scenario puts under pressure.
 
-Important resources include:
+Track these resources openly unless a scenario says otherwise. When a character spends a resource, mark it off immediately.
 
-- **HP**: injury and immediate physical capacity.
-- **Stress**: fear and psychological pressure.
-- **Shrouds**: accumulated closeness to death.
-- **Ammunition**: shots available for firearms.
-- **Bandages**: quick trauma supplies for First Aid.
-- **Medkits**: stronger treatment during a lull.
-- **Light**: batteries, fuel, or other visibility supplies.
-- **Ritual components**: salt, candles, charms, holy water, sigils, or similar occult tools.
-- **Time**: clocks, pursuit, dawn, worsening rituals, spreading infestation.
+### Ammunition
 
-The current simulator already tracks ammunition, bandages, and medkit treatment in session play. Light, ritual components, time costs, and scavenging need fuller rules.
+Firearm attacks spend ammunition. A character without ammunition cannot attack with that firearm.
+
+### Bandages
+
+Bandages are quick trauma supplies. First Aid spends bandages.
+
+### Medkits
+
+Medkits provide stronger treatment during a lull. A medkit can be used between dangerous scenes to heal `2` HP, clear conditions, and return a healed Wounded, Critical, or Stable character to normal play.
+
+Using a medkit requires enough safety and time to treat the patient.
 
 ## Dying
 
@@ -197,15 +193,13 @@ A Stable character is at `0` HP, unconscious or barely conscious, and no longer 
 
 Any healing returns a Stable character to normal play.
 
-Open rule: the manuscript still needs final wording for what happens if a Stable character takes further harm before being healed. The simulator currently treats Stable as a protected recovery milestone unless later rules say otherwise.
+If a Stable character takes damage before being healed, they become Critical.
 
 ### Monsters At 0 HP
 
-Ordinary monsters, animals, and human threats usually die, collapse, or are removed from the encounter at `0` HP.
+Ordinary monsters, animals, and human threats usually die, collapse, flee, or are removed from the encounter at `0` HP.
 
-Elite monsters, slashers, and supernatural nemeses may use special death rules.
-
-Do not give every monster the full player death track. That creates slow, low-horror fights and makes ordinary threats too hard to clear.
+Elite monsters, slashers, and supernatural nemeses may have special death rules.
 
 ## Combat
 
@@ -227,7 +221,7 @@ You may make only one weapon attack on your turn.
 
 ### Action Costs
 
-Most actions cost `1` action. Some stronger actions may cost `2`.
+Most actions cost `1` action. Some stronger actions cost `2`.
 
 If an action costs `2`, it usually consumes your whole turn unless another rule changes your action budget.
 
@@ -239,7 +233,7 @@ The most common Reaction is a reaction attack when an enemy leaves your reach or
 
 ### Positioning
 
-The working core model is area-based.
+Combat uses areas instead of exact measurements.
 
 Characters can be:
 
@@ -249,8 +243,6 @@ Characters can be:
 
 Areas can have exits, cover, darkness, chokepoints, locked doors, hazards, and occupancy limits.
 
-Grid play can be added later as an optional precision module, but the simulator currently assumes areas and connections.
-
 ### Movement
 
 On your turn, you may move within your current area, engage a Near enemy, withdraw, or move to a connected area if nothing prevents it.
@@ -259,7 +251,7 @@ Leaving engagement with an enemy usually provokes a reaction attack from that en
 
 ## Actions
 
-The following actions are the current core combat menu.
+The following actions are available in combat.
 
 ### Attack
 
@@ -285,17 +277,15 @@ On a success, deal unarmed damage.
 
 Spend `1` bandage and roll `2d6 + Wits + Cure` against Challenging Difficulty.
 
-On a success, heal `1` HP to an adjacent or engaged ally. On a Critical Success, heal `2` HP instead.
+On a success, heal `1` HP to an Engaged or Near ally. On a Critical Success, heal `2` HP instead.
 
-If you have no bandages, you cannot use First Aid unless a scenario gives you suitable supplies.
+If you have no bandages, you cannot use First Aid unless the GM says you have suitable supplies at hand.
 
 ### Grit
 
 Roll `2d6 + Might + Brace` against Formidable Difficulty.
 
 On a success, heal `2` HP and clear Bleeding from yourself. On a Critical Success, heal `3` HP total.
-
-Design note: this is still the simulator's current behavior, but it may be too much like free self-healing for the intended survival-horror resource model. The likely future direction is to make Grit pain management or self-stabilization rather than reliable HP recovery.
 
 ### Rally
 
@@ -337,7 +327,7 @@ Standing while engaged provokes reaction attacks.
 
 Withdraw from immediate danger or move toward an exit.
 
-The exact effect depends on the area's exits, enemies, and hazards.
+The GM determines where you end up based on the area's exits, enemies, and hazards.
 
 ## Conditions
 
@@ -357,13 +347,9 @@ A Prone character must spend an action to stand. Standing while engaged provokes
 
 An Inspired character has Advantage on their next weapon attack.
 
-### Rattled
-
-Rattled marks a character whose focus has been disrupted. Current simulator support is minimal; future rules should decide whether this is a real condition or only a narration tag.
+After that attack is resolved, Inspired ends.
 
 ## Weapons
-
-The current structured weapon list is intentionally small.
 
 | Weapon | Type | Damage | Notes |
 |---|---:|---:|---|
@@ -372,11 +358,9 @@ The current structured weapon list is intentionally small.
 | Pistol | Firearm | d6 | Spends sidearm ammo |
 | Claws | Natural | d6 | Monster weapon |
 
-Future drafts should add shotgun, improvised weapons, knives, heavy tools, ritual weapons, and weapon tags such as loud, quiet, reload, two-handed, knockback, and bleeding.
-
 ## Talents
 
-The simulator currently supports only a small talent set.
+Each character starts with one Talent.
 
 ### Final Girl
 
@@ -386,38 +370,24 @@ Once per day, when you would reach `0` HP, you stay at `3` HP instead.
 
 Once per day, you automatically succeed at a First Aid Check.
 
-Additional talents from the older draft, such as True Grit, Sharp Tongue, Inspiring Friend, and Sweep the Leg, remain design candidates but should not be treated as stable canon until they are encoded and tested.
-
 ## Between Scenes
 
-Between dangerous scenes, the party may be able to treat wounds, reload, transfer supplies, search, barricade, or rest.
+Between dangerous scenes, the party may treat wounds, reload, transfer supplies, search, barricade, or rest if the situation allows it.
 
-The current session simulator supports medkit treatment during interludes:
+The GM decides whether the characters have enough safety and time for a between-scene action.
 
-- spend `1` medkit
-- heal `2` HP
-- clear conditions
-- restore a healed Wounded, Critical, or Stable character to normal play
+### Treat Wounds
 
-This needs fuller manuscript rules, especially for:
+Spend `1` medkit to heal `2` HP, clear conditions, and return a healed Wounded, Critical, or Stable character to normal play.
 
-- how safe the area must be
-- how much time treatment takes
-- whether treatment makes noise
-- whether Stress can be reduced
-- how scavenging works
+### Reload And Share Supplies
 
-## Open Design Calls
+Characters may reload weapons, count ammunition, and transfer supplies between willing characters.
 
-These are the highest-value decisions to settle next.
+### Search
 
-1. Confirm area-based positioning as the core model, or return the simulator to grid-first play.
-2. Decide whether Grit remains self-healing or becomes pain management/self-stabilization.
-3. Define safe rooms and short-rest recovery.
-4. Add a scavenging procedure for ammo, bandages, medkits, light, and ritual components.
-5. Decide how much inventory detail the game wants: personal slots, party pool, or a hybrid.
-6. Expand monster death classes: ordinary, elite, nemesis, supernatural.
-7. Add contribution-balanced player archetypes and their starting gear.
-8. Write the intro scenario as the first full play target.
+Characters may search the area for useful resources. The GM decides what can be found, how long the search takes, and what risks the search creates.
 
-Until these are resolved, simulator output touching those rules should be treated as useful but provisional.
+### Barricade
+
+Characters may block a door, reinforce a weak point, or create a temporary obstacle. The GM decides what materials are available and what the barricade can withstand.

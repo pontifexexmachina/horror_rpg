@@ -8,6 +8,12 @@ Agents should only edit these root notes files:
 
 Agent-authored notes, planning documents, simulator design artifacts, and research summaries should live under `notes/agent_generated/`.
 
+Suggested structure:
+- `notes/agent_generated/adrs/` for durable project decisions and manuscript policy
+- `notes/agent_generated/design/` for agent-authored design and planning notes
+- `notes/agent_generated/plans/` for active task lists, open design calls, and production plans
+- `notes/agent_generated/research/` for agent-authored research summaries and reading maps
+
 Current agent-generated design notes worth revisiting:
 
 - `agent_generated/design/book_line_plan.md` for the multi-book publishing direction
@@ -21,3 +27,5 @@ Current agent-generated design notes worth revisiting:
 - `agent_generated/design/combat_and_chase_separation.md` for the decision to split stand-up combat from flee/chase simulation
 - `agent_generated/design/agent_driven_workflow.md` for the new author-as-creative-director, agents-as-production-leads workflow
 - `agent_generated/design/v0_2_first_pass_report.md` for the first agent-driven manuscript pass and benchmark snapshot
+- `agent_generated/adrs/0001-clean-rules-manuscript.md` for the policy that rules files should not include internal design commentary
+- `agent_generated/plans/v0_2_open_design_calls.md` for current v0.2 design questions outside the manuscript

@@ -34,18 +34,18 @@ When the two disagree, we should record the disagreement here rather than silent
 - Why it matters: it makes Bleeding materially stronger in the simulator if omitted.
 
 ### Stable state behavior
-- Status: `accidental divergence`
-- Manuscript: a critical success on the critical-condition recovery roll puts you at Stable and 0 HP, but does not fully specify how Stable behaves if it takes damage before being healed.
+- Status: `resolved`
+- Manuscript: a critical success on the critical-condition recovery roll puts you at Stable and 0 HP. If a Stable character takes damage before being healed, they become Critical.
 - Simulator: now has an explicit `stable` status at 0 HP that cannot act or continue making death-track checks, and healing moves it back to `normal`.
-- Why it matters: the simulator now matches the intended recovery milestone much better, but the manuscript still needs to clarify edge behavior for a Stable character under further harm.
+- Why it matters: the book now states a playable edge rule instead of leaving the Stable state undefined.
 
 ### Monster death handling
-- Status: `intentional divergence`
-- Manuscript: currently describes the PC wound/critical/shroud track, but does not clearly separate ordinary monsters from PCs.
+- Status: `partially resolved`
+- Manuscript: now states that ordinary monsters, animals, and human threats usually die, collapse, flee, or are removed from the encounter at 0 HP, while elite monsters, slashers, and supernatural nemeses may have special death rules.
 - Simulator: ordinary monsters can use `death_mode: die_at_zero`, while PCs use the full death track.
 - Why it matters: this dramatically changes encounter resolution and appears necessary for useful pacing.
 - Why the simulator changed: hallway benchmarks showed that universal PC-style death tracks created artificial stalemates.
-- Recommended direction: manuscript should eventually define monster durability classes explicitly.
+- Remaining gap: explicit monster durability classes still need to be defined.
 
 ### Inventory-gated healing and ammo
 - Status: `partially resolved`
@@ -90,13 +90,12 @@ When the two disagree, we should record the disagreement here rather than silent
 - Recommended direction: manuscript should decide whether `Shriek` is expensive, once-per-turn, target-limited, or otherwise cadence-limited.
 
 ### Spatial model
-- Status: `partially resolved`
-- Manuscript: current combat text is square/grid-based and assumes direct movement and adjacency.
+- Status: `resolved`
+- Previous manuscript: combat text was square/grid-based and assumed direct movement and adjacency.
 - Simulator: uses an area-and-connections model with line of sight, cover, darkness, and occupancy limits.
 - Why it matters: the simulator is now testing a more abstract canonical model with optional future grid support.
 - Why the simulator changed: to model chokepoints, exits, and room-to-room horror spaces without a full tactical grid sim.
-- Current manuscript: `game_rules.qmd` now presents area-based positioning as the working core model.
-- Remaining gap: the author still needs to bless this as final canon or redirect the simulator back to grid-first play.
+- Current manuscript: `game_rules.qmd` now presents area-based positioning as the core combat model.
 
 ## Missing In Simulator
 
@@ -143,9 +142,9 @@ When the two disagree, we should record the disagreement here rather than silent
 - Simulator now enforces that limit in the turn loop instead of allowing multiple attack actions in the same turn.
 
 ### Several talents
-- Status: `missing in sim`
-- Manuscript includes `True Grit`, `Sharp Tongue`, `Inspiring Friend`, and `Sweep The Leg`.
-- Simulator currently models only `Final Girl` and `Healing Hands`.
+- Status: `resolved`
+- Manuscript now lists only `Final Girl` and `Healing Hands`.
+- Simulator currently models `Final Girl` and `Healing Hands`.
 
 ## Author Checklist For The Book
 
@@ -162,8 +161,7 @@ These are manuscript changes for the author to decide and apply.
 9. If areas are primary, frame grid play as an optional precision module.
 10. Decide whether action costs are part of the real combat procedure, and if so, explain the action budget clearly.
 11. Decide how `Shriek` cadence is limited if it remains a major fear move.
-12. Clarify exactly how `Stable` behaves if a character takes damage before being healed, since the manuscript currently names the state without fully specifying that edge case.
-13. Revisit the talent list so the manuscript only promises talents we intend to support or soon implement.
+12. Define explicit monster durability classes beyond the ordinary-threat rule.
 
 ## Simulator Fix Plan
 

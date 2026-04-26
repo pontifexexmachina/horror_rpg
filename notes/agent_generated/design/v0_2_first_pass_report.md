@@ -107,3 +107,12 @@ Recommended next pass:
 5. Begin the intro scenario as the first full play target.
 
 The immediate mechanical priority is Grit. It currently works, but it still points toward free self-healing rather than fiction-first attrition.
+
+## Follow-Up Cleanup
+
+After review, `game_rules.qmd` was cleaned so it no longer includes simulator references, open design calls, previous-draft commentary, or next-step planning.
+
+Those project-facing materials now live in:
+
+- `notes/agent_generated/adrs/0001-clean-rules-manuscript.md`
+- `notes/agent_generated/plans/v0_2_open_design_calls.md`
