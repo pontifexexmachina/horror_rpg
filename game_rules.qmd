@@ -1,190 +1,393 @@
 # Game Rules
 
-## Resolution mechanic
+## What Play Is About
 
-There are two kinds of tests, Checks and Saves. Unopposed tests are versus a fixed Difficulty (Challenging or Formidable). Opposed tests are rolled between a PC and an NPC or another PC.
+Dead By Dawn is about ordinary or barely prepared people trying to survive a night of horror.
 
-**Meets Beats**: On unopposed tests, meeting the difficulty is a success. In the event of a tie on an opposed test, 
+The basic rhythm of play is:
 
-**Check**: 2d6 + Stat + Skill
-**Save**: 2d6 + Stat
+1. Enter a dangerous place.
+2. Search, sneak, fight, barricade, treat wounds, and make hard choices under pressure.
+3. Spend resources to survive.
+4. Scavenge or secure brief safety to recover some options.
+5. Push deeper toward the source of the horror.
+6. Reach the climax hurt, afraid, low on supplies, and still capable of one last desperate act.
 
-**Challenging Difficulty**: 8
-**Formidable Difficulty**: 10
+Fights are dangerous, but they are not isolated sporting matches. A clean victory is rare. A useful victory is one the characters can walk away from.
 
-**Unopposed test**: Rolling an 8 or better succeeds at an Challenging task, rolling a 10 or better succeeds at a Difficult task.
-**Opposed test**: Both roll and add modifiers, highest wins.
+## Characters
 
-**Advantage**: Roll 3d6, take two highest
-**Disadvantage**: Roll 3d6, take two lowest
+Player characters are defined by Stats, Skills, HP, Defense, Stress, equipment, and Talents.
 
-**Critical Success**: Doubles on a success (so two fours on an Challenging task, two fives and two sixes on all tasks)
+### Stats
 
-## Stats
+There are three Stats:
 
-* Might
-* Speed
-* Wits
+- **Might**: strength, toughness, violence, and physical force.
+- **Speed**: reflexes, aim, movement, and balance.
+- **Wits**: perception, nerve, memory, medicine, and social pressure.
 
-Your starting ability spread is 2, 1, -1. Put one in each stat.
+At character creation, assign `2`, `1`, and `-1` across Might, Speed, and Wits.
 
-Hit Points: 8 + Might
-Defense: 8 + Speed
+### Derived Values
 
-## Pushing
+**Hit Points**: `8 + Might`
 
-You can Push a Test to get an extra d6 (keep highest 2) on a roll, or offset Disadvantage on a roll by dropping the lowest die roll. You may do this after you see the results of the inital roll. Pushing causes a Stress Test.
+**Defense**: `8 + Speed`
 
-## Stress/Panic
+**Starting Stress**: `3`
 
-Your starting Stress is 3. Every time you fail a Stress Test, it goes up by 1. It can also go up by 1 in other situations (monster abilities, etc.)
+### Skills
 
-**Stress Test**: Roll 2d6, with the Difficulty being your current Stress.
+Skills add to Checks.
 
-If your Stress is 8 or higher, you are Panicked. A Panicked character can only perform one action, not two, in combat.
+Might Skills:
 
-You can reduce Stress after an entire day of calm (no Stress Tests or Combat) by rolling a 2d6 check (not a Stress Test) against your Stress. On a success, reduce Stress by 1.
+- **Brawl**: punch, grapple, swing melee weapons, and fight in close quarters.
+- **Brawn**: lift, shove, climb, break doors, and hold something shut.
+- **Brace**: endure injury, stay upright, and resist collapse.
 
-At 13 stress, you become unable to take actions in Combat and must use your movement to flee.
+Speed Skills:
+
+- **Shoot**: use firearms.
+- **Stunt**: fall, dodge, trip, scramble, and move under pressure.
+- **Sneak**: hide, creep, avoid notice, and act quietly.
+
+Wits Skills:
+
+- **Chat**: lie, charm, distract, pressure, and provoke.
+- **Clever**: notice, remember, infer, and spot the wrong detail.
+- **Cure**: treat injury, stop bleeding, and stabilize someone.
+
+## Core Resolution
+
+There are two kinds of tests: Checks and Saves.
+
+**Check**: roll `2d6 + Stat + Skill`.
+
+**Save**: roll `2d6 + Stat`.
+
+Use a Check when training matters. Use a Save when only the raw Stat matters.
+
+### Difficulties
+
+**Challenging**: `8`
+
+**Formidable**: `10`
+
+On an unopposed test, meeting or beating the Difficulty succeeds.
+
+### Opposed Tests
+
+When two characters directly contest each other, both roll. The higher total wins.
+
+On a tie, the active character wins unless a specific rule says otherwise.
+
+### Advantage And Disadvantage
+
+With **Advantage**, roll `3d6` and keep the highest two dice.
+
+With **Disadvantage**, roll `3d6` and keep the lowest two dice.
+
+If Advantage and Disadvantage both apply, they cancel.
+
+### Critical Success
+
+If you roll doubles and the test succeeds, it is a Critical Success.
+
+Critical Successes improve the result of actions that list a critical effect.
+
+## Push
+
+After you roll a Check or Save and see the dice, you may Push if the action allows it.
+
+When you Push, add one extra d6 and keep the best two dice. If you had Disadvantage, pushing can instead cancel the lowest die and return the roll to a normal two-die result.
+
+After resolving the pushed test, make a Stress Test.
+
+## Stress And Panic
+
+Stress measures fear, shock, exhaustion, and the mind starting to crack.
+
+Most ordinary monsters do not track Stress unless a scenario or monster rule says otherwise.
+
+### Stress Tests
+
+When you make a Stress Test, roll `2d6`.
+
+The Difficulty is your current Stress. If you fail, increase your Stress by `1`.
+
+### Panic
+
+At `8` Stress or higher, you are **Panicked**.
+
+A Panicked character can take only one action on their turn instead of two.
+
+### Breakdown
+
+At `13` Stress or higher, you break down.
+
+You cannot take actions in combat. You must use your movement to flee, cower, or otherwise get away from the immediate threat unless another rule gives you a specific way to act.
+
+### Reducing Stress
+
+Stress does not fall just because a fight ends.
+
+To reduce Stress, characters need real calm: shelter, meaningful reassurance, medicine, ritual comfort, or enough time away from immediate danger.
+
+After a full day of calm with no combat and no Stress Tests, roll `2d6` against your current Stress. On a success, reduce Stress by `1`.
+
+## Resources And Inventory
+
+Dead By Dawn uses resources the characters can understand inside the fiction: ammunition, bandages, medkits, light, ritual supplies, time, safe shelter, and whatever else the scenario puts under pressure.
+
+Track these resources openly unless a scenario says otherwise. When a character spends a resource, mark it off immediately.
+
+### Ammunition
+
+Firearm attacks spend ammunition. A character without ammunition cannot attack with that firearm.
+
+### Bandages
+
+Bandages are quick trauma supplies. First Aid spends bandages.
+
+### Medkits
+
+Medkits provide stronger treatment during a lull. A medkit can be used between dangerous scenes to heal `2` HP, clear conditions, and return a healed Wounded, Critical, or Stable character to normal play.
+
+Using a medkit requires enough safety and time to treat the patient.
 
 ## Dying
 
-If you reach 0 HP, you are Wounded. (You cannot go below 0 HP.) A Wounded character can take only one action per turn in Combat, and must succeed on a Difficult Brace check at the end of each turn to keep from being Critical. Being healed for any amount ends Wounded.
+Characters do not go below `0` HP.
 
-A Critical character is unconscious and unable to take any actions. At the end of every turn, make an Challenging Brace check. On a Success you remain Critical. A Critical Success puts you at Stable but 0 HP. A Failure gives you a Shroud of Death. If you get three Shrouds, you are dead. Being healed for any amount ends Critical, but does not remove any Shrouds. (Removing Shrouds is a TBD item.)
+### Wounded
 
-## Skills
+If you reach `0` HP, you are **Wounded**.
 
-Everybody starts with skill points to invest.
+While Wounded:
 
-### Might Skills
+- you can take only one action on your turn
+- at the end of each of your turns, make a Formidable Brace Check
+- on a failure, you become Critical
 
-**Brawl**: Punching and using melee weapons
-**Brawn**: Lifting, throwing, climbing, breaking down doors
-**Brace**: Fortify yourself from injury
+Any healing ends Wounded.
 
-### Speed Skills
+### Critical
 
-**Shoot**: Use a firearm
-**Stunt**: Roll to break a fall without getting hurt, trip someone, etc.
-**Sneak**: Hide, do something without being notices
+A Critical character is unconscious and cannot act.
 
-### Wits Skills
+At the end of each of your turns while Critical, make a Challenging Brace Check.
 
-**Chat**: Lie, charm, pressure
-**Clever**: Remember something important, notice something
-**Cure**: Help someone who's injured
+- On a success, you remain Critical.
+- On a Critical Success, you become Stable at `0` HP.
+- On a failure, you gain one Shroud of Death.
+
+If you gain three Shrouds, you die.
+
+Any healing ends Critical, but it does not remove Shrouds.
+
+### Stable
+
+A Stable character is at `0` HP, unconscious or barely conscious, and no longer makes death-track checks.
+
+Any healing returns a Stable character to normal play.
+
+If a Stable character takes damage before being healed, they become Critical.
+
+### Monsters At 0 HP
+
+Ordinary monsters, animals, and human threats usually die, collapse, flee, or are removed from the encounter at `0` HP.
+
+Elite monsters, slashers, and supernatural nemeses may have special death rules.
 
 ## Combat
 
-### Initiative/Rounds
+Combat is dangerous, fast, and resource-expensive. It is not the only way to solve a scene.
 
-Everybody rolls speed, initiative goes highest to lowest, ties go to highest d6 roll. Everybody takes a turn in order of intiative in each round.
+### Rounds And Initiative
+
+At the start of combat, everyone rolls `2d6 + Speed`.
+
+Act from highest to lowest. Ties go to the highest single die, then to the player characters if still tied.
 
 ### Turns
 
-During your turn, you can take move and take two actions in combat, only one of which may be a weapon attack.
+On your turn, you may move and take two actions.
+
+If you are Panicked or Wounded, you may take only one action.
+
+You may make only one weapon attack on your turn.
+
+### Action Costs
+
+Most actions cost `1` action. Some stronger actions cost `2`.
+
+If an action costs `2`, it usually consumes your whole turn unless another rule changes your action budget.
 
 ### Reactions
 
-Some situations allow you to make a Reaction to someone else's Action. You may take one Reaction per Round.
+You may take one Reaction per round.
+
+The most common Reaction is a reaction attack when an enemy leaves your reach or stands from Prone while engaged with you.
+
+### Positioning
+
+Combat uses areas instead of exact measurements.
+
+Characters can be:
+
+- **Engaged**: close enough to attack in melee.
+- **Near**: in the same area or close enough to reach quickly.
+- **Far**: distant, behind space, or across a connected area.
+
+Areas can have exits, cover, darkness, chokepoints, locked doors, hazards, and occupancy limits.
 
 ### Movement
 
-You may move 30 ft. (6 squares) per round. Moving out of a square next to an enemy to a square not adjacent to that same enemy provokes a reaction attack.
+On your turn, you may move within your current area, engage a Near enemy, withdraw, or move to a connected area if nothing prevents it.
 
-### Actions
+Leaving engagement with an enemy usually provokes a reaction attack from that enemy.
 
-#### Shove
+## Actions
 
-Roll Brawn against target's Might. On a success, the target moves 5 ft. in the direction you choose. On a critical succes, the target moves 5 ft. in the direction you choose and becomes Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.
+The following actions are available in combat.
 
-#### Taunt
+### Attack
 
-Roll Chat against target's Wits. On a success, the target has Disadvantage on actions against any combatant other than you on its next turn.
+Make a weapon attack against an enemy.
 
-#### Trip
+For melee attacks, roll `2d6 + Might + Brawl` against the target's Defense.
 
-Roll Stunt against target's speed. On a success, target is Prone. Being prone gives enemies Advantage on attacks against you. Standing up from prone take 10 ft. of movement and allows adjacent enemies to make a reaction attack against you.
+For firearm attacks, roll `2d6 + Speed + Shoot` against the target's Defense and spend `1` ammo.
 
-#### Grit
+On a success, deal the weapon's damage. On a Critical Success, deal the maximum possible damage.
 
-Roll Brace for a Difficult task. On a success, heal 2 HP. On a crit, heal 3 HP.
+If you have no ammunition or no useful weapon, you may still make an Unarmed Attack.
 
-#### Rally
+### Unarmed Attack
 
-Roll Charm for a Difficult task. On a success, target ally gets advantage on their next weapon attack. On a critical success, target ally also heals 1 HP.
+Make a close attack with fists, feet, teeth, a chair leg, or whatever is left.
 
-#### Feint
+Roll `2d6 + Might + Brawl` against the target's Defense.
 
-Roll Steath vs Wits. On a success, you have advantage on a weapon attack on the target this turn.
+On a success, deal unarmed damage.
 
-#### First Aid
+### First Aid
 
-Roll Cure for an Challenging task. On a success, heal 1 HP on an adjacent ally. On a crit, heal 2 HP.
+Spend `1` bandage and roll `2d6 + Wits + Cure` against Challenging Difficulty.
 
-#### Attack
+On a success, heal `1` HP to an Engaged or Near ally. On a Critical Success, heal `2` HP instead.
 
-Roll Brawl for a melee weapon or unarmed attack, Shoot for a Firearm, against the enemy's Defense. On a success, do damage equal to your weapon's damage dice. On a critical success, take the max roll possible.
+If you have no bandages, you cannot use First Aid unless the GM says you have suitable supplies at hand.
+
+### Grit
+
+Roll `2d6 + Might + Brace` against Formidable Difficulty.
+
+On a success, heal `2` HP and clear Bleeding from yourself. On a Critical Success, heal `3` HP total.
+
+### Rally
+
+Roll `2d6 + Wits + Chat` against Formidable Difficulty.
+
+On a success, an ally gains Advantage on their next weapon attack. On a Critical Success, that ally also heals `1` HP.
+
+### Feint
+
+Roll `2d6 + Speed + Sneak` opposed by the target's Wits Save.
+
+On a success, you gain Advantage on your next weapon attack against that target this turn.
+
+### Shove
+
+Roll `2d6 + Might + Brawn` opposed by the target's Might Save.
+
+On a success, move the target out of engagement or into a worse position in the same area. On a Critical Success, the target also becomes Prone.
+
+### Trip
+
+Roll `2d6 + Speed + Stunt` opposed by the target's Speed Save.
+
+On a success, the target becomes Prone.
+
+### Taunt
+
+Roll `2d6 + Wits + Chat` opposed by the target's Wits Save.
+
+On a success, the target has Disadvantage on actions against anyone other than you on its next turn.
+
+### Stand Up
+
+If you are Prone, spend `1` action to stand.
+
+Standing while engaged provokes reaction attacks.
+
+### Fall Back
+
+Withdraw from immediate danger or move toward an exit.
+
+The GM determines where you end up based on the area's exits, enemies, and hazards.
+
+## Conditions
+
+### Bleeding
+
+If you are Bleeding, take `1` damage at the start of your turn.
+
+You can end Bleeding with a successful Grit action or appropriate medical treatment.
+
+### Prone
+
+Attackers have Advantage on attacks against a Prone target.
+
+A Prone character must spend an action to stand. Standing while engaged provokes reaction attacks.
+
+### Inspired
+
+An Inspired character has Advantage on their next weapon attack.
+
+After that attack is resolved, Inspired ends.
 
 ## Weapons
 
-These weapons are available to starting characters. Iconic weapons come later
-
-### Melee
-
-| Name           | Dmg | Effect    |
-|----------------|-----|-----------|
-| Unarmed        | d4  | N/A       |
-| Baseball bat   | d6  | N/A       |
-| Spiked bat     | d6  | Bleed     |
-
-### Firearm 
-
-| Name           | Dmg | Effect    |
-|----------------|-----|-----------|
-| Pistol         | d6  | N/A       |
-| Shotgun        | d4  | Knockback |
-| Assault Rifle  | d6  | Auto      |
-
-### Effects
-
-#### Bleed
-
-If you are Bleeding, take 1 damage at the start of your turn. You can end Bleeding by using Grit successfully.
-
-#### Auto
-
-Fire two shots at Disadvantage.
-
-#### Knockback
-
-Target must succeed on a Difficult Strength save or be moved 5 ft away from the source of the knockback.
+| Weapon | Type | Damage | Notes |
+|---|---:|---:|---|
+| Unarmed | Melee | d4 | Always available as a fallback |
+| Bat | Melee | d6 | Quiet, simple, reliable |
+| Pistol | Firearm | d6 | Spends sidearm ammo |
+| Claws | Natural | d6 | Monster weapon |
 
 ## Talents
 
-Each character gets one Talent to start. Potential to get more as you advance.
-
-### True Grit
-
-You may replace one of the dice rolls with a 3 whenever you roll for Grit.
-
-### Sharp Tongue
-
-You may replace one of the dice rolls with a 3 whenever you roll for Taunt.
+Each character starts with one Talent.
 
 ### Final Girl
 
-Once per day, when you reach 0 HP, you are instead at 3 HP.
+Once per day, when you would reach `0` HP, you stay at `3` HP instead.
 
 ### Healing Hands
 
-Once per day, you auto-succeed at a First Aid check.
+Once per day, you automatically succeed at a First Aid Check.
 
-### Inspiring Friend
+## Between Scenes
 
-You roll Challenging checks instead of Difficult checks to Rally.
+Between dangerous scenes, the party may treat wounds, reload, transfer supplies, search, barricade, or rest if the situation allows it.
 
-### Sweep The Leg
+The GM decides whether the characters have enough safety and time for a between-scene action.
 
-Spending two actions, you can do a Trip against all adjacent enemies.
+### Treat Wounds
+
+Spend `1` medkit to heal `2` HP, clear conditions, and return a healed Wounded, Critical, or Stable character to normal play.
+
+### Reload And Share Supplies
+
+Characters may reload weapons, count ammunition, and transfer supplies between willing characters.
+
+### Search
+
+Characters may search the area for useful resources. The GM decides what can be found, how long the search takes, and what risks the search creates.
+
+### Barricade
+
+Characters may block a door, reinforce a weak point, or create a temporary obstacle. The GM decides what materials are available and what the barricade can withstand.

@@ -34,49 +34,52 @@ When the two disagree, we should record the disagreement here rather than silent
 - Why it matters: it makes Bleeding materially stronger in the simulator if omitted.
 
 ### Stable state behavior
-- Status: `accidental divergence`
-- Manuscript: a critical success on the critical-condition recovery roll puts you at Stable and 0 HP, but does not fully specify how Stable behaves if it takes damage before being healed.
+- Status: `resolved`
+- Manuscript: a critical success on the critical-condition recovery roll puts you at Stable and 0 HP. If a Stable character takes damage before being healed, they become Critical.
 - Simulator: now has an explicit `stable` status at 0 HP that cannot act or continue making death-track checks, and healing moves it back to `normal`.
-- Why it matters: the simulator now matches the intended recovery milestone much better, but the manuscript still needs to clarify edge behavior for a Stable character under further harm.
+- Why it matters: the book now states a playable edge rule instead of leaving the Stable state undefined.
 
 ### Monster death handling
-- Status: `intentional divergence`
-- Manuscript: currently describes the PC wound/critical/shroud track, but does not clearly separate ordinary monsters from PCs.
+- Status: `partially resolved`
+- Manuscript: now states that ordinary monsters, animals, and human threats usually die, collapse, flee, or are removed from the encounter at 0 HP, while elite monsters, slashers, and supernatural nemeses may have special death rules.
 - Simulator: ordinary monsters can use `death_mode: die_at_zero`, while PCs use the full death track.
 - Why it matters: this dramatically changes encounter resolution and appears necessary for useful pacing.
 - Why the simulator changed: hallway benchmarks showed that universal PC-style death tracks created artificial stalemates.
-- Recommended direction: manuscript should eventually define monster durability classes explicitly.
+- Remaining gap: explicit monster durability classes still need to be defined.
 
 ### Inventory-gated healing and ammo
-- Status: `intentional divergence`
+- Status: `partially resolved`
 - Manuscript: combat text does not yet clearly express ammo consumption, bandage-gated `First Aid`, or medkit-driven between-scene recovery.
 - Simulator: ranged attacks consume ammo, `First Aid` consumes bandages, and sessions carry forward ammo/bandages/medkits.
 - Why it matters: this is central to the current survival-horror resource model.
 - Why the simulator changed: to avoid dissociated per-encounter healing abstractions and move toward a Resident Evil-like loop.
-- Recommended direction: manuscript should add a real inventory/resource chapter or section before simulator results are treated as canon.
+- Current manuscript: `game_rules.qmd` now introduces fiction-first resources, ammo-spending firearm attacks, bandage-gated `First Aid`, and medkit treatment between scenes.
+- Remaining gap: inventory slots, scavenging, light, ritual components, time pressure, and detailed safe-room procedures still need rules.
 
 ### Monster stress immunity
-- Status: `intentional divergence`
+- Status: `partially resolved`
 - Manuscript: current stress rules read as generally applicable and do not yet clearly state whether monsters participate in the stress economy.
 - Simulator: ordinary monsters now use `stress_mode: ignore` and do not gain stress, panic, or break down.
 - Why it matters: this removes a misleading simulator behavior where fear powers could shut monsters down like PCs.
 - Why the simulator changed: fear is now treated as a player-facing horror pressure system rather than a universal morale track.
-- Recommended direction: manuscript should explicitly state whether only PCs use stress by default, and note any exceptions for special monsters.
+- Current manuscript: `game_rules.qmd` now says ordinary monsters do not track Stress unless a scenario or monster rule says otherwise.
+- Remaining gap: monster exceptions still need explicit design.
 
 ### Universal fallback melee attacks
-- Status: `intentional divergence`
+- Status: `resolved`
 - Manuscript: some player builds do not currently read as having a clear last-resort attack once they run out of ammo.
 - Simulator: all player templates now include a distinct `unarmed_attack` fallback melee option, while real melee specialists keep their weapon-based attacks.
 - Why it matters: this removed misleading endgame churn where some PCs had no damaging action left and defaulted into weak support/control loops.
 - Why the simulator changed: desperate violence should remain available even when a character is out of ammunition.
-- Recommended direction: manuscript should explicitly give every PC a fallback melee/basic attack, even if some archetypes are poor at it.
+- Current manuscript: `game_rules.qmd` now explicitly gives every PC access to `Unarmed Attack`.
 
 ### Action-cost economy
-- Status: `missing in book`
+- Status: `partially resolved`
 - Manuscript: current action text does not yet clearly express any action-cost budget beyond having actions.
 - Simulator: action costs are now first-class, and turns spend a real action budget; this matters because `Shriek` now costs 2 actions.
 - Why it matters: without a real action-cost loop, action-cost values in the data were decorative and special moves could be spammed unrealistically.
-- Recommended direction: manuscript should either adopt explicit action costs/budgets or avoid presenting costs that the core turn procedure does not enforce.
+- Current manuscript: `game_rules.qmd` now states that characters normally have two actions and that stronger actions may cost 2.
+- Remaining gap: `Shriek` and other monster-only high-impact actions need manuscript-facing definitions.
 
 ### Shriek cadence
 - Status: `intentional divergence`
@@ -87,12 +90,12 @@ When the two disagree, we should record the disagreement here rather than silent
 - Recommended direction: manuscript should decide whether `Shriek` is expensive, once-per-turn, target-limited, or otherwise cadence-limited.
 
 ### Spatial model
-- Status: `intentional divergence`
-- Manuscript: current combat text is square/grid-based and assumes direct movement and adjacency.
+- Status: `resolved`
+- Previous manuscript: combat text was square/grid-based and assumed direct movement and adjacency.
 - Simulator: uses an area-and-connections model with line of sight, cover, darkness, and occupancy limits.
 - Why it matters: the simulator is now testing a more abstract canonical model with optional future grid support.
 - Why the simulator changed: to model chokepoints, exits, and room-to-room horror spaces without a full tactical grid sim.
-- Recommended direction: manuscript should eventually choose whether areas are the core model with optional grid translation, or whether the simulator should be refit to a stricter square-based rules engine.
+- Current manuscript: `game_rules.qmd` now presents area-based positioning as the core combat model.
 
 ## Missing In Simulator
 
@@ -139,9 +142,9 @@ When the two disagree, we should record the disagreement here rather than silent
 - Simulator now enforces that limit in the turn loop instead of allowing multiple attack actions in the same turn.
 
 ### Several talents
-- Status: `missing in sim`
-- Manuscript includes `True Grit`, `Sharp Tongue`, `Inspiring Friend`, and `Sweep The Leg`.
-- Simulator currently models only `Final Girl` and `Healing Hands`.
+- Status: `resolved`
+- Manuscript now lists only `Final Girl` and `Healing Hands`.
+- Simulator currently models `Final Girl` and `Healing Hands`.
 
 ## Author Checklist For The Book
 
@@ -158,8 +161,7 @@ These are manuscript changes for the author to decide and apply.
 9. If areas are primary, frame grid play as an optional precision module.
 10. Decide whether action costs are part of the real combat procedure, and if so, explain the action budget clearly.
 11. Decide how `Shriek` cadence is limited if it remains a major fear move.
-12. Clarify exactly how `Stable` behaves if a character takes damage before being healed, since the manuscript currently names the state without fully specifying that edge case.
-13. Revisit the talent list so the manuscript only promises talents we intend to support or soon implement.
+12. Define explicit monster durability classes beyond the ordinary-threat rule.
 
 ## Simulator Fix Plan
 
